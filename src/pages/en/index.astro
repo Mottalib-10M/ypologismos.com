@@ -1,10 +1,141 @@
 ---
 import PageLayout from '../../layouts/PageLayout.astro';
 import ToolCalc from '../../components/calc/ToolCalc';
-import { route } from '../../i18n/routes';
-const lang = "en";
+import MiniSim from '../../components/calc/MiniSim';
+import ContentTable from '../../components/ContentTable.astro';
+import { route, AMOUNTS } from '../../i18n/routes';
+import { amountLabel, label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, grossForNet, christmasBonus, easterBonus, leaveAllowance, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney, pct, displayDate } from '../../lib/format';
+import { webApplicationSchema, websiteSchema, organizationSchema, faqSchema } from '../../lib/seo';
+import { LAST_UPDATED, LANG_TAGS } from '../../data/site-config';
+
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const updated = displayDate(LAST_UPDATED, LANG_TAGS[lang]);
+
+const G = 2000;
+const s = salary({ gross: G });
+const s1 = salary({ gross: G, children: 1 }), s2 = salary({ gross: G, children: 2 });
+const sY = salary({ gross: G, age: 'u25' }), sY2 = salary({ gross: G, age: '26_30' });
+const annualOffer = 30000;
+const o14 = salary({ gross: annualOffer / 14, payments: 14 }), o12 = salary({ gross: annualOffer / 12, payments: 12 });
+const min = salary({ gross: P.minimum_wage.monthly });
+const netTarget = 2000, gfn = grossForNet(netTarget);
+const xmas = christmasBonus({ pay: G }), easter = easterBonus({ pay: G }), leave = leaveAllowance({ pay: G });
+const high = salary({ gross: 9000 });
+
+const exGross = [P.minimum_wage.monthly, 1200, 1500, 2000, 2500, 3000, 4000, 6000];
+const exRows = exGross.map((g) => { const r = salary({ gross: g }); return [$(g), $(g * 14), $(r.efka), $(r.tax), $(r.net), $(r.netPer12)]; });
+
+const matrixGross = 2500;
+const ageLabel = { u25: 'up to 25', '26_30': '26-30', over30: '31+' } as const;
+const matrix = (['u25', '26_30', 'over30'] as const).map((a) => [ageLabel[a], ...[0, 1, 2, 3, 4].map((k) => $(salary({ gross: matrixGross, age: a, children: k }).net))]);
+const youthGain = salary({ gross: matrixGross, age: 'u25' }).netAnnual - salary({ gross: matrixGross }).netAnnual;
+
+const paramRows = [
+  ['Minimum wage (from 1 April 2026)', `${F.minWage} / ${F.minDaily} a day`, 'Ministry of Labour'],
+  ['Employee social security, e-EFKA (code 101)', F.efkaEe, 'e-EFKA circular 38/2024'],
+  ['Employer social security, e-EFKA (code 101)', F.efkaEr, 'e-EFKA circular 38/2024'],
+  ['Monthly contribution ceiling', F.ceiling, 'e-EFKA circular 4/2026'],
+  ['Employment income tax rates', F.r.join(' / '), 'Law 5246/2025, art. 3'],
+  ['Bracket limits (taxable income)', F.limits.filter(Boolean).join(' · '), 'Income Tax Code, art. 15'],
+  ['2nd bracket with 1 / 2 / 3 children', `${F.second[1]} / ${F.second[2]} / ${F.second[3]}`, 'Income Tax Code, art. 15(1)(b)'],
+  ['Under 25 / 26-30: first two brackets', `${F.youthU25} / ${F.youth2630} up to ${F.youthLimit}`, 'Income Tax Code, art. 15(1)(e)'],
+  ['Tax reduction, 0 to 3 children', F.credit.slice(0, 4).join(' / '), 'Income Tax Code, art. 16'],
+  ['Payments a year', '14 (12 + holiday bonuses + leave allowance)', 'Labour Inspectorate'],
+];
+
+const faqs = [
+  { q: 'My Greek offer says €2,000 gross. How much will I actually be paid each month?', a: `${$(s.net)} per payment if you are over 30 with no dependent children, and there are 14 payments a year rather than 12. The employer withholds ${$(s.efka)} for e-EFKA social security (${F.efkaEe}) and about ${$(s.tax)} income tax from each payment. Over a year that is ${$(s.netAnnual)} net, or ${$(s.netPer12)} a month if you spread the bonuses evenly.` },
+  { q: 'Are expats taxed differently from Greek employees?', a: `Not in this calculation. A tax resident employee pays the same ${F.efkaEe} social security and the same scale whatever their nationality, and the under-25, 26-30 and children rules apply equally. Special regimes for people who move their tax residence to Greece are not modelled here; if your employer mentions one, ask a Greek accountant how it changes your withholding.` },
+  { q: 'Why does the calculator ask for my age?', a: `Because since January ${F.year} age changes the tax. Up to 25, the first two brackets, up to ${F.youthLimit} of taxable income, are taxed at ${F.youthU25}; from 26 to 30 at ${F.youth2630}. On ${$(G)} gross that means ${$(sY.net)} net for a 24-year-old and ${$(sY2.net)} for a 28-year-old, against ${$(s.net)} from 31.` },
+  { q: 'I was offered €30,000 a year. Should I divide by 12 or by 14?', a: `Divide by fourteen to find the monthly gross the payroll will use: ${$(annualOffer / 14)}, giving ${$(o14.net)} net per payment. If the contract really pays the annual amount in twelve instalments, each payment is ${$(o12.net)} net. The yearly net is the same in both cases, ${$(o14.netAnnual)}; only the rhythm changes.` },
+  { q: 'Is there a cap on Greek social security contributions?', a: `Yes. Contributions are charged on earnings up to ${F.ceiling} a month in ${F.year}, both for you and your employer. Above that nothing more is due, so the maximum employee contribution is ${$(P.efka.ceiling_monthly * P.efka.employee_rate)} a month. On a ${$(9000)} salary you keep ${$(high.net)} net per payment.` },
+  { q: 'Does this work for freelancers or public-sector staff?', a: `It is built for private-sector employees on the standard contribution package, code ${F.kpk}. The income tax scale and the article 16 reduction are the same for all employees and pensioners, but civil servants, heavy-and-unhealthy occupations and freelancers pay different contributions, so their net pay will differ from the result shown here.` },
+];
+
+const related = [
+  { href: route('nettogross', lang), name: label('nettogross', lang), description: 'The gross salary to ask for to reach a target net.' },
+  { href: route('fourteen', lang), name: label('fourteen', lang), description: 'How twelve months become fourteen payments.' },
+  { href: route('road', lang), name: label('road', lang), description: 'Annual road tax for your car, by CO₂ or engine size.' },
+];
+const sources = [src('min_wage', lang), src('efka_rates', lang), src('efka_ceiling', lang), src('tax_scale', lang), src('tax_credit', lang), src('hli_bonuses', lang)];
+const title = `Net Salary Greece ${F.year}: Gross to Net Pay After Tax and EFKA`;
+const description = `Net salary in Greece ${F.year}: ${F.minWage} gross gives ${F.minNet} net. EFKA ${F.efkaEe}, the new tax scale, under-25 and children rules, 14 payments a year. Free, no sign-up.`;
+const path = route('home', lang);
+const jsonLd = [webApplicationSchema({ name: `Greek salary calculator ${F.year}`, description, path, lang }), websiteSchema(lang), organizationSchema(lang), faqSchema(faqs, lang)];
 ---
-<PageLayout title="Greek salary stub" description="stub" lang={lang}>
-  <h1>Greek salary</h1>
-  <ToolCalc client:load kind="salary" lang={lang} methodHref={route('method', lang)} />
+<PageLayout title={title} description={description} lang={lang} jsonLd={jsonLd} faqs={faqs} related={related} sources={sources}>
+  <article>
+    <header class="mb-6">
+      <h1 class="text-3xl font-bold text-navy-900 md:text-4xl">Net salary in Greece {F.year}: gross to net calculator</h1>
+      <p class="mt-3 text-lg text-navy-600">Take-home pay after e-EFKA social security and income tax, with the {F.year} rules for young workers and parents, the way a Greek payroll office works it out.</p>
+      <p class="mt-2 text-sm text-navy-500">{F.year} rates · updated {updated}</p>
+    </header>
+    <ToolCalc client:load kind="salary" lang={lang} defaults={{ g: G }} methodHref={route('method', lang)} />
+
+    <p class="mt-8 text-navy-700">On a gross salary of {$(G)} a month, a private-sector employee in Greece who is over 30 and has no children takes home {$(s.net)} in each of the fourteen payments of {F.year}, or {$(s.netAnnual)} over the year. Two deductions come off the gross: the employee’s social security contribution to e-EFKA, the national insurance fund, at {F.efkaEe} ({$(s.efka)}), and income tax withheld at source, about {$(s.tax)}, worked out on the new scale of Law 5246/2025 after the employee tax reduction. The same salary leaves {$(s1.net)} with one child, {$(s2.net)} with two, and {$(sY.net)} for anyone aged 25 or under, because from {F.year} the tax depends on age and family. At the minimum wage of {F.minWage} the net is {F.minNet}. If you are comparing with a job abroad, remember the fourteen payments: spread over twelve months this salary is worth {$(s.netPer12)} a month. Use the calculator above for any amount, with 12 or 14 payments, and see what the job costs your employer.</p>
+
+    <div class="prose prose-slate max-w-none">
+      <h2>How a Greek payslip gets from gross to net</h2>
+      <p>The net salary (<em>katharos misthos</em>) is what reaches your bank account after your employer has withheld and paid over two amounts on your behalf: your social security contribution to e-EFKA and the payroll income tax (<em>FMY</em>) to AADE, the tax authority. The order matters, because tax is charged on what is left after contributions. The calculator reproduces the steps of Greek payroll software.</p>
+      <ol>
+        <li><strong>e-EFKA contributions.</strong> Most private-sector employees are on package code {F.kpk}: {F.efkaEe} of gross for the employee, of which {F.efkaHealthEe} funds health cover. On {$(G)} that is {$(s.efka)} a month, and nothing more is charged above the {F.ceiling} ceiling.</li>
+        <li><strong>Annual taxable income.</strong> Gross minus contributions, multiplied by the number of payments. Fourteen payments of {$(G)} give {$(s.taxableAnnual)} of taxable income. Article 60 of the Income Tax Code requires payroll to annualise each payment this way.</li>
+        <li><strong>Scale tax.</strong> {F.r[0]} up to €10,000, {F.r[1]} to €20,000, {F.r[2]} to €30,000, {F.r[3]} to €40,000, {F.r[4]} to €60,000 and {F.r[5]} above, with lower rates for parents and young workers. Here the scale tax is {$(s.scaleAnnual)}.</li>
+        <li><strong>Employee tax reduction.</strong> {F.credit[0]} without children, more with children, reduced by {F.creditTaper} for every €1,000 of taxable income above {F.creditThreshold}. In this example it is worth {$(s.creditAnnual)}.</li>
+        <li><strong>Spreading.</strong> The year’s tax, {$(s.taxAnnual)}, is divided evenly over the payments: {$(s.tax)} from each salary and each bonus.</li>
+      </ol>
+      <p>Net equals gross minus contributions minus tax: {$(s.net)} on {$(G)}. Your employer spends {$(s.cost)} per payment, because it adds its own {F.efkaEr} of contributions. The <a href={route('method', lang)}>methodology page</a> sets out every formula, the rounding and what the tool does not cover.</p>
+
+      <h2>Why age and children now change your take-home pay</h2>
+      <p>Until 2025, a Greek net salary calculation needed little more than the gross and, for the tax reduction, the number of children. From January {F.year}, article 15 of the Income Tax Code, as rewritten by Law 5246/2025, sets different rates along two dimensions: the taxpayer’s age and the number of dependent children. The table shows the net per payment on {$(matrixGross)} gross for every combination.</p>
+    </div>
+    <ContentTable headers={['Age \\ children', '0', '1', '2', '3', '4']} align={['l', 'r', 'r', 'r', 'r', 'r']} rows={matrix} highlightRow={2} />
+    <div class="prose prose-slate mt-6 max-w-none">
+      <p>For a young professional moving to Athens or Thessaloniki the difference is real money: at {$(matrixGross)} gross, being 25 or under is worth {$(youthGain)} a year compared with being 31. The relief is capped, because only the first {F.youthLimit} of taxable income gets the reduced rate; the normal scale applies above it. Our page on <a href={route('youth', lang)}>tax for workers under 30</a> works through examples.</p>
+      <p>Parents benefit on two fronts. One child brings the second bracket down from {F.r[1]} to {F.second[1]}, two to {F.second[2]}, three to {F.second[3]}, and from four children the first two brackets are taxed at zero. The third bracket falls too, from {F.third[1]} with one child to {F.third[4]} with four, and the article 16 reduction rises. Children must be your dependants for Greek tax purposes; the <a href={route('children', lang)}>children tax reduction guide</a> explains the effect per child.</p>
+      <p>Payroll can only apply these reductions if your employer has your date of birth and your dependent children on file. If something is missing, the overpaid tax comes back when you file your annual return, not in that month’s salary.</p>
+
+      <h2>{F.year} rates and parameters</h2>
+      <p>Every value below is read from the same parameter file the calculator uses, so the table cannot disagree with the result. We checked each figure against its source on {updated}.</p>
+    </div>
+    <ContentTable headers={['Parameter', `${F.year} value`, 'Source']} align={['l', 'r', 'l']} rows={paramRows} />
+
+    <div class="prose prose-slate mt-8 max-w-none">
+      <h2>Example net salaries in Greece, {F.year}</h2>
+      <p>The table is for an employee over 30 with no dependent children and fourteen payments. The “12-month basis” column spreads the Christmas and Easter bonuses and the leave allowance over twelve months, which is the right figure to set against a salary paid twelve times a year in another country.</p>
+    </div>
+    <ContentTable headers={['Monthly gross', 'Annual gross', 'EFKA', 'Tax', 'Net (×14)', 'Net, 12-month basis']} align={['r', 'r', 'r', 'r', 'r', 'r']} rows={exRows} highlightRow={3} />
+
+    <div class="prose prose-slate mt-8 max-w-none">
+      <p>The share of gross you keep shrinks as pay rises, though more gently than many newcomers expect: {pct(min.net / P.minimum_wage.monthly, lang)} at the minimum wage, {pct(s.net / G, lang)} at {$(G)}. Contributions are a flat percentage; it is the progressive tax and the fading article 16 reduction that bite as salaries climb.</p>
+      <div data-chrome><MiniSim client:load kind="amount" lang={lang} href={route('home', lang)} /></div>
+
+      <h2>Fourteen payments, three of them holiday money</h2>
+      <p>Greek private-sector salaries are paid fourteen times a year. Besides the twelve monthly salaries, every employee receives a Christmas bonus (<em>doro Christougennon</em>) of one month’s pay plus a leave allowance share, paid by 21 December; an Easter bonus (<em>doro Pascha</em>) of half a month, paid by Holy Wednesday; and a leave allowance (<em>epidoma adeias</em>) of up to half a month. On {$(G)} gross those come to {$(xmas.amount)}, {$(easter.amount)} and {$(leave.amount)}. They are taxed and subject to contributions like salary. If you joined part-way through the year, the bonuses are pro rata: the <a href={route('christmas', lang)}>Christmas bonus</a>, <a href={route('easter', lang)}>Easter bonus</a> and <a href={route('leave', lang)}>leave allowance</a> calculators do that for you.</p>
+      <p>International employers sometimes quote an annual package. Divide it by fourteen to find the monthly gross Greek payroll will use, or choose “12 payments” in the calculator if your contract genuinely pays twelve instalments. The <a href={route('fourteen', lang)}>fourteen-salaries guide</a> has the conversions.</p>
+
+      <h2>Gross, net and employer cost: three figures for one job</h2>
+      <p>In a Greek job interview three different numbers tend to come up. Gross (<em>mikta</em>) is the contract amount and the basis for everything else: contributions, tax, bonuses, severance pay. Net (<em>kathara</em>) is the transfer into your account, and it depends on personal facts such as your age and children. Employer cost is gross plus the employer’s {F.efkaEr} of contributions: {$(s.cost)} per payment on {$(G)}.</p>
+      <p>That is why “{$(s.net)} net” and “{$(G)} gross” can be the same offer for one person and a different offer for a colleague of another age. When comparing offers, ask for the gross and the number of payments, then run your own figures. If all you know is the net amount, the <a href={route('nettogross', lang)}>net to gross calculator</a> converts it; for {$(netTarget)} net per payment you need about {$(gfn)} gross. Employers can use the <a href={route('employer', lang)}>employer cost calculator</a>.</p>
+
+      <h2>Checking your first Greek payslip</h2>
+      <p>The payslip (<em>ekkatharisi misthodosias</em>) shows the same amounts as the calculator under Greek labels. Start with “μικτές αποδοχές”, gross earnings, and check that it includes everything fixed: base salary, seniority increments, contractual allowances. Then the “κρατήσεις ΕΦΚΑ” line should be {F.efkaEe} of gross, unless you are above the ceiling or on another contribution package such as heavy and unhealthy work.</p>
+      <p>The last line to check is the tax withheld, “ΦΜΥ”. If it is higher than the calculator, the employer usually lacks your children or your age, or you have a second source of income. Differences are settled in the annual tax return, where tax is worked out on all your income together; see the <a href={route('withholding', lang)}>payroll withholding guide</a>. Deductions the calculator cannot know about, such as union dues, group insurance or loan repayments, reduce the transfer without changing the tax.</p>
+
+      <h2>Popular amounts: net pay from a given gross</h2>
+      <p>Each page takes one gross salary and explains its own thresholds: where a new bracket starts, when the tax reduction fades, what a parent or a young worker gains.</p>
+      <ul>
+        {AMOUNTS.map((a) => <li><a href={route(`amount-${a}`, lang)}>{amountLabel(a, lang)} to net</a>: {$(salary({ gross: a }).net)} per payment without children</li>)}
+      </ul>
+
+      <h2>Beyond the payslip: other Greek calculators</h2>
+      <p>Living in Greece brings a few other bills that expats ask about early. If you own or lease a car registered in Greece, the annual <a href={route('road', lang)}>road tax</a> (<em>teli kykloforias</em>) depends on the first registration date and on CO₂ or engine size. If you own property, <a href={route('enfia', lang)}>ENFIA</a> is the annual property tax, based on floor area and the zone price of the area. And if a job ends, the <a href={route('severance', lang)}>severance pay calculator</a> applies the Greek tables by years of service. Every page also exists in <a href={route('home', 'el')} hreflang="el">Greek</a>, with the same calculations.</p>
+      <p>The calculator covers one employer and one tax year. With rental income or a second job, the final tax comes from your annual return on total income; treat the result as the payroll figure, and the return as the final word.</p>
+    </div>
+  </article>
 </PageLayout>
