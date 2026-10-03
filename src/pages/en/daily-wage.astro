@@ -1,0 +1,62 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, christmasBonus, easterBonus, leaveAllowance, severance, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const d = P.minimum_wage.daily;
+const rates = [d, 45, 50, 55, 65, 80];
+const grid = rates.map((w) => { const a = salary({ gross: w * 22 }), b = salary({ gross: w * 26 }); return [$2(w), $(w * 22), $(a.net), $(w * 26), $(b.net)]; });
+const s26 = salary({ gross: d * 26 }), s21 = salary({ gross: d * 21 });
+const w = 50;
+const season = { xmas: christmasBonus({ pay: w, daily: true, days: 184 }), easter: easterBonus({ pay: w, daily: true, days: 30 }) };
+const xm = christmasBonus({ pay: d, daily: true }).amount, ea = easterBonus({ pay: d, daily: true }).amount, lv = leaveAllowance({ pay: d, daily: true }).amount;
+const sev = [3, 8, 15].map((y) => [String(y), String(severance({ pay: w, daily: true, years: y }).months), $(severance({ pay: w, daily: true, years: y }).total), $(severance({ pay: w, daily: true, years: y, notice: true }).total)]);
+const faqs = [
+  { q: 'What is the minimum daily wage in Greece in 2026?', a: `${F.minDaily} gross per day worked, from 1 April ${F.year}, alongside the ${F.minWage} monthly minimum for salaried staff. Twenty-six days in a month bring ${$(d * 26)} gross and about ${$(s26.net)} net; twenty-one days bring ${$(d * 21)} and ${$(s21.net)} net, for a worker over 30 without children.` },
+  { q: 'I did a summer season in Greece from May to October on a daily wage. Am I owed a Christmas bonus?', a: `Yes, a share of it, paid when the contract ends. The Christmas bonus covers 1 May to 31 December, and a day worker earns 2 daily wages for every 19 days of employment in that period. From 1 May to 31 October on ${$2(w)} a day, that is ${$(season.xmas.base)}, or ${$(season.xmas.amount)} with the leave allowance share included.` },
+  { q: 'How many daily wages is a Greek worker’s leave allowance?', a: `Up to ${F.leaveDaily} daily wages, paid when the annual leave starts; at the minimum that is ${$(lv)} gross. If you leave the job with leave still untaken, it is paid out with your final pay. The two holiday bonuses are counted in days as well: ${F.xmasDaily} for Christmas and ${F.easterDaily} for Easter.` },
+  { q: 'Why does a Greek severance calculation use 22 days and not 26?', a: `Since 2022 manual workers and salaried staff follow one severance scale, and the law converts a day worker’s pay into a month at ${F.sevDailyMonth} daily wages. On ${$2(w)} a day, the month is ${$(w * 22)}, and one sixth is added for the bonuses. The 25 days used for the Christmas bonus are a separate rule for a separate payment.` },
+];
+---
+<GuideLayout lang={lang} id="daily" breadcrumbLabel={label('daily', lang)}
+  title={`Daily Wage Greece ${F.year}: ${F.minDaily} Minimum, Monthly Net`}
+  h1={`Daily wage in Greece (${F.year}): from ${F.minDaily} a day to monthly net pay`}
+  description={`Daily wage Greece ${F.year}: minimum ${F.minDaily} a day from 1 April. Monthly net by days worked, bonuses of ${F.xmasDaily} and ${F.easterDaily} daily wages, and severance counted at 22 days.`}
+  intro={`Manual workers paid by the day in Greece earn at least ${F.minDaily} gross per day in ${F.year}, and their bonuses are counted in daily wages too.`}
+  resume={`The Greek minimum daily wage, the imeromisthio, is ${F.minDaily} gross from 1 April ${F.year}. It mostly applies to manual workers in construction, farming, warehouses, cleaning and seasonal hospitality, while office and shop staff usually have a monthly salary. Monthly pay depends on the days you work: twenty-six days at the minimum give ${$(d * 26)} gross and roughly ${$(s26.net)} net, twenty-one days ${$(d * 21)} and ${$(s21.net)}, for someone over 30 without children. Bonuses are expressed in days rather than months: ${F.xmasDaily} daily wages at Christmas, ${F.easterDaily} at Easter and up to ${F.leaveDaily} for the leave allowance, which at the minimum come to ${$(xm)}, ${$(ea)} and ${$(lv)} gross, the two holiday bonuses including the leave share. Seasonal workers receive pro-rata bonuses when the season ends. For severance, a day worker’s month counts as ${F.sevDailyMonth} daily wages under the single scale in force since 2022. Use the calculator below with your own rate and days.`}
+  faqs={faqs}
+  related={[{ href: route('sevworkers', lang), name: label('sevworkers', lang), description: 'Severance for manual workers, in detail.' }, { href: route('easter', lang), name: label('easter', lang), description: `The ${F.easterDaily}-day Easter bonus and its pro rata.` }, { href: route('fourteen', lang), name: label('fourteen', lang), description: 'How the year of pay is built.' }]}
+  sources={[src('min_wage', lang), src('hli_christmas', lang), src('hli_easter', lang), src('hli_bonuses', lang), src('law_4808_64', lang)]}>
+  <div data-chrome><MiniSim client:load kind="daily" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Monthly gross and net for common day rates</h2>
+  <ContentTable headers={['Day rate', 'Gross, 22 days', 'Net, 22 days', 'Gross, 26 days', 'Net, 26 days']} align={['r', 'r', 'r', 'r', 'r']} rows={grid} highlightRow={0} />
+  <p>Twenty-two days is roughly a five-day week, twenty-six a six-day week. Net figures assume the month repeats through the year with the usual bonuses, an employee over 30 and no children, and use the same deductions as Greek payroll: {F.efkaEe} social security and income tax on the annualised figure, minus the employee tax credit. If your rate is above the minimum, type it into the calculator; the rows for higher rates are only examples.</p>
+  <p>Day workers often ask why their net per day falls slightly in a busy month. It is the annualisation: Greek withholding treats each month’s pay as if it repeated all year, so a month with more days pushes part of the income into a higher tax band, and the employee tax credit begins to shrink above {F.creditThreshold} of annual taxable income.</p>
+
+  <h2>Seasonal work: what you are owed when the season ends</h2>
+  <p>Many people work a Greek tourist season on daily wages, from spring to autumn. The holiday bonuses follow you even if you never reach Christmas or Easter on the payroll. The Christmas bonus is earned between 1 May and 31 December at 2 daily wages per 19 days of employment; the Easter bonus between 1 January and 30 April at 1 daily wage per 8 days. A season from 1 April to 31 October on {$2(w)} a day earns {$(season.easter.amount)} of Easter bonus for April and {$(season.xmas.amount)} of Christmas bonus for May to October, both including the leave allowance share. The Christmas share is paid when the contract ends, calculated on your pay at that date.</p>
+  <p>Leave works the same way: days of annual leave you did not take are paid with your final wages. Ask for a final statement that lists the days worked, the bonus shares and the leave paid out, and check it against the <a href={route('christmas', lang)}>Christmas bonus calculator</a> and the <a href={route('easter', lang)}>Easter bonus calculator</a>, which accept daily wages.</p>
+
+  <div data-chrome><MiniSim client:load kind="dailybonus" lang={lang} href={route('christmas', lang)} /></div>
+
+  <h2>Bonuses counted in days</h2>
+  <p>A salaried employee’s Christmas bonus is one month’s pay; a day worker’s is {F.xmasDaily} daily wages. The Easter bonus is {F.easterDaily} daily wages instead of half a month, and the leave allowance is capped at {F.leaveDaily} daily wages instead of half a month. On a six-day week those numbers land close to the monthly equivalents, which is the point. The Labour Inspectorate adds that both holiday bonuses include a share of the leave allowance, {F.leaveShare} on top, which our figures always include. Absences without good reason, strike days and unpaid leave do not count towards the bonus period; maternity leave does.</p>
+
+  <h2>Severance on a daily wage</h2>
+  <ContentTable headers={['Years with the employer', 'Months of pay', `Without notice (${$2(w)}/day)`, 'With written notice']} align={['l', 'r', 'r', 'r']} rows={sev} />
+  <p>Law 4808/2021 (article 64) ended the separate dismissal rules for manual workers from 1 January 2022. Day workers now use the same scale as salaried staff, in months of pay, with one month valued at {F.sevDailyMonth} daily wages, plus one sixth for the bonuses. Written notice halves the payment, as for everyone else; nothing is due in the first twelve months, which count as a probation period. The <a href={route('sevworkers', lang)}>manual workers’ severance guide</a> covers the rules, and the calculator below gives a quick figure.</p>
+
+  <div data-chrome><MiniSim client:load kind="sevworkers" lang={lang} href={route('severance', lang)} /></div>
+
+  <h2>Reading a day worker’s payslip</h2>
+  <p>A Greek payslip for a day worker shows the number of days, the daily rate and their product, then the deductions. Check three things: that the days match the days you worked, that the rate is at least {F.minDaily}, and that the employee contribution is {F.efkaEe} of gross. If you want the net with your age and children, enter the monthly gross in the main <a href={route('home', lang)}>Greek salary calculator</a>, or compare with the salaried <a href={route('minimum', lang)}>minimum wage</a> if you are weighing a monthly contract.</p>
+</GuideLayout>

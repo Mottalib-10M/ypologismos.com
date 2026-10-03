@@ -1,0 +1,68 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { parentalBenefit, salary, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const Q = P.parental;
+const b = parentalBenefit(), bs = parentalBenefit({ single: true }), bm = parentalBenefit({ multiple: true });
+const PAT = 14;
+const cmp = [1200, 1800, 2500, 3500].map((g) => { const own = g * (1 + P.severance.holiday_uplift); const s = salary({ gross: g }); return [$(g), $(s.net), $(own), $(b.perMonth), `${Math.round(b.perMonth / own * 100)} %`]; });
+const plan = [
+  ['Birth', `Paternity leave, ${PAT} working days`, 'Employer, full pay'],
+  ['Around the birth', 'Maternity leave and benefits (separate rules)', 'Not covered on this page'],
+  [`Any time before age ${Q.child_max_age}`, `Parental leave, months 1-${Q.paid_months}`, `${$(b.perMonth)} a month from DYPA`],
+  [`Any time before age ${Q.child_max_age}`, `Parental leave, months ${Q.paid_months + 1}-${Q.leave_months}`, 'Unpaid unless agreed otherwise'],
+];
+const faqs = [
+  { q: 'How much is the parental leave benefit in Greece in 2026?', a: `${F.parentalMonthly} gross a month for the first ${Q.paid_months} months of parental leave, paid by DYPA, the public employment service. The law sets it at the statutory minimum wage, ${F.minWage}, plus a share of the holiday bonuses and leave allowance, which we calculate at one sixth. Over the two months that is ${F.parentalTotal}, from which DYPA withholds the employee’s social security contribution.` },
+  { q: 'I am a foreign national working in Greece. Can I take parental leave?', a: `The right belongs to every employed parent, and the article sets no nationality condition. What counts is one year of work with the same employer, continuous or through successive fixed-term contracts, unless a more favourable rule applies. You can then take ${Q.leave_months} months, in one go or in parts, until your child turns ${Q.child_max_age}.` },
+  { q: 'We are expecting twins. Do we get more parental leave pay in Greece?', a: `Yes. Parents of twins, triplets or more receive the benefit for ${Q.paid_months} extra months whatever the number of children, so ${bm.months} paid months and ${$(bm.total)} gross per parent. You may also take the leave separately for each child, in blocks or continuously, and your requests have priority with the employer.` },
+  { q: 'How many days of paternity leave do fathers get in Greece?', a: `${PAT} working days with full pay, around the birth, under article 27 of Law 4808/2021. A father can take two days before the expected due date and the other twelve within 30 days after the birth, or all fourteen after it. The employer must grant it, and there is no length-of-service condition.` },
+  { q: 'Can my Greek employer refuse the dates I asked for my parental leave?', a: `Only by postponing them, and only if your absence would seriously disrupt the business, in which case the reason must be given in writing with alternative proposals. Apply at least a month ahead; the employer replies within a month and must grant the leave within two months of your request at the latest.` },
+];
+---
+<GuideLayout lang={lang} id="parental" breadcrumbLabel={label('parental', lang)}
+  title={`Parental Leave Benefit Greece ${F.year}: ${F.parentalMonthly} a Month`}
+  h1={`Parental leave benefit in Greece (${F.year}): amount, eligibility and how to plan it`}
+  description={`Parental leave benefit Greece ${F.year}: DYPA pays ${F.parentalMonthly} a month for ${F.parentalMonths} months, up to ${F.parentalTotal}. Four months per parent, twins, single parents, paternity leave.`}
+  intro={`Every working parent in Greece has ${Q.leave_months} months of parental leave; for the first two, DYPA pays a benefit equal to the minimum wage plus a bonus share.`}
+  resume={`Greece gives each working parent ${Q.leave_months} months of parental leave under article 28 of Law 4808/2021, to be used before the child turns ${Q.child_max_age}, once they have a year of service with their employer. The first ${Q.paid_months} months are paid by DYPA, the public employment service formerly known as OAED, at a flat ${F.parentalMonthly} gross a month in ${F.year}: the ${F.minWage} minimum wage plus a share of the holiday bonuses and leave allowance, which we compute at one sixth. That is ${F.parentalTotal} per parent, and both parents have their own entitlement, so a couple can receive ${$(b.total * 2)}. Parents of twins or more get ${Q.paid_months} extra paid months, ${$(bm.total)} in total, and single parents get double, ${$(bs.total)}. The remaining months are unpaid unless the employer agrees otherwise, but they still count as service for pay, leave and severance. Separately, fathers have ${PAT} working days of fully paid paternity leave at the birth. The calculator below gives the amount for your situation.`}
+  faqs={faqs}
+  related={[{ href: route('minimum', lang), name: label('minimum', lang), description: `The ${F.minWage} figure the benefit is pegged to.` }, { href: route('leave', lang), name: label('leave', lang), description: 'Parental leave still counts towards your leave allowance.' }, { href: route('home', lang), name: label('home', lang), description: 'Your normal net pay, to compare with the benefit.' }]}
+  sources={[src('parental', lang), { name: 'Law 4808/2021, Article 27: 14 working days of paternity leave', url: 'https://www.taxheaven.gr/law/4808/2021/article/27/view' }, src('min_wage', lang), src('efka_rates', lang)]}>
+  <div data-chrome><MiniSim client:load kind="parental" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>The benefit against your usual salary</h2>
+  <ContentTable headers={['Your monthly gross', 'Your net per payment', 'Salary with bonus share', 'DYPA benefit', 'Benefit covers']} align={['r', 'r', 'r', 'r', 'r']} rows={cmp} />
+  <p>The benefit is flat. It does not depend on what you earn, so it replaces a minimum-wage salary entirely and a higher salary only in part. To compare like with like, the third column adds the same one-sixth bonus share to your salary that is built into the benefit. On {$(2500)} gross, the benefit covers well under half of your usual pay, which is one reason to look at the flexible options below rather than two full months off. The figures are gross; DYPA deducts the employee’s social security contribution from the benefit and pays the employer share itself.</p>
+
+  <h2>Who qualifies</h2>
+  <p>Article 28 gives the right to each employed parent, and to anyone exercising parental responsibility, as an individual entitlement that cannot be transferred to the other parent. The only service condition is one year with the same employer, continuous or through successive fixed-term contracts, unless a law, a collective agreement or an arrangement with your employer is more generous. The leave can be used until the child’s eighth birthday; for an adopted or fostered child under eight it starts when the child joins the family.</p>
+  <p>With more than one child, the right is separate for each, provided a year of actual work with the same employer has passed since the previous parental leave ended. On a fixed-term contract, the leave stops when the contract ends and can continue if it is renewed or extended, or with a new employer. If both parents work for the same employer, they decide in a joint statement who goes first and for how long.</p>
+
+  <h2>Twins and single parents</h2>
+  <p>Parents of twins, triplets or more may take parental leave for each child separately, in parts or continuously, and receive the benefit for {Q.paid_months} extra months regardless of how many children were born together: {bm.months} paid months, {$(bm.total)} gross. Single parents, defined as those raising a child alone because the other parent has died, has lost parental responsibility entirely or has not recognised the child, receive both the leave and the benefit twice over: {bs.months} paid months and {$(bs.total)}.</p>
+
+  <div data-chrome><MiniSim client:load kind="parentalgap" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Planning the first years</h2>
+  <ContentTable headers={['When', 'Leave', 'Paid by']} align={['l', 'l', 'l']} rows={plan} />
+  <p>Families moving to Greece often mix up the different kinds of leave. Paternity leave is short and comes at the birth. Maternity leave and maternity benefits follow their own rules, which this page does not cover. Parental leave is the long, flexible block that either parent can use at any point until the child turns {Q.child_max_age}, for example when a nursery place falls through or school starts.</p>
+  <p>It does not have to be taken in whole months. On request, it can be granted as reduced daily hours or as days spread over weeks or months, without losing the benefit. You say in your application how much of the leave you want to take flexibly and in what form; the employer considers both sides’ needs and must justify a refusal in writing within a month.</p>
+
+  <h2>Applying, and what the employer must do</h2>
+  <p>The application goes to your employer, in writing or electronically, at least one month before the start date unless exceptional reasons make that impossible, and states when the leave starts and ends. The employer answers promptly and within one month at most. It must grant the dates you asked for unless that would seriously disrupt the business, in which case it has to explain why in writing and may propose other dates or a flexible arrangement; in every case the leave must be granted within two months of your application. The leave is recorded in ERGANI, the Labour Ministry’s employment register. Requests from single parents, parents with disabilities or with disabled or seriously ill children, parents of large families and women returning from maternity leave have absolute priority.</p>
+
+  <h2>Your job, pension and severance while you are away</h2>
+  <p>The paid months count as insurance time for your main pension, health cover and supplementary pension. For the unpaid months you can have the time recognised by your insurance fund under article 40 of Law 2084/1992, unless your employer has agreed to keep paying you. The whole leave counts as actual service for pay, annual leave and the <a href={route('leave', lang)}>leave allowance</a>, promotion and <a href={route('severance', lang)}>severance</a>, and you return to the same job or an equivalent one on terms no less favourable.</p>
+
+  <h2>Paternity leave: {PAT} working days</h2>
+  <p>Article 27 of the same law gives every employed father {PAT} working days of paid leave at the birth: either two days before the expected due date and the remaining twelve within 30 days of the birth, or all of them after it. The employer must grant it, regardless of length of service or marital status, and the father simply tells the employer the expected due date in good time. Because it is paid leave, your salary continues as normal; the main <a href={route('home', lang)}>Greek salary calculator</a> shows that net figure.</p>
+</GuideLayout>

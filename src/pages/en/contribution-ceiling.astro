@@ -1,0 +1,67 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, grossForNet, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney, pct } from '../../lib/format';
+import { CEILING_BASE_2016, CEILING_INDEX_2026 } from '../../lib/mini-extra-c';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const E = P.efka;
+const C = E.ceiling_monthly;
+const maxEe = C * E.employee_rate, maxEr = C * E.employer_rate;
+const top = P.tax.brackets[P.tax.brackets.length - 1].rate;
+const s10 = salary({ gross: 10000 }), s8 = salary({ gross: 8000 }), s15 = salary({ gross: 15000 });
+const pkg = 140000, pkgMonthly = pkg / 14, sp = salary({ gross: pkgMonthly });
+const want = 6000, need = grossForNet(want);
+const cap25 = C / (1 + CEILING_INDEX_2026);
+const rows = [6500, C, 8500, 10000, 11000, 12500, 15000, 17500, 25000].map((g) => {
+  const s = salary({ gross: g });
+  return [$2(g), $(s.efka), $(s.employer), $(s.cost), $(s.net), $(s.netAnnual), pct(Math.round(s.net / g * 1000) / 1000, lang)];
+});
+const faqs = [
+  { q: 'My Greek payslip shows the same EFKA deduction every month even after my raise. Is that a mistake?', a: `Probably not. Once your monthly gross passes ${F.ceiling}, the ${F.year} ceiling on insurable earnings, the employee contribution stops at ${$2(maxEe)} however much more you earn. A raise from ${$(8000)} to ${$(10000)} therefore leaves EFKA unchanged at ${$2(s10.efka)} and only increases the income tax line, at ${pct(top, lang)} on every extra euro.` },
+  { q: `I am negotiating a ${$(pkg)} package in Athens. How does the ceiling change my take-home pay?`, a: `Split over the usual fourteen payments, that is ${$(pkgMonthly)} gross each time, comfortably above the ${F.ceiling} ceiling. EFKA takes the maximum ${$2(sp.efka)} per payment rather than ${$2(pkgMonthly * E.employee_rate)}, and you keep ${$(sp.net)} net per payment, ${$(sp.netAnnual)} a year, on the standard scale for a taxpayer over 30 without children.` },
+  { q: 'Will the Greek contribution ceiling rise again in 2027?', a: `It is reviewed every January. For ${F.year} it went up ${pct(CEILING_INDEX_2026, lang)}, in line with 2025 consumer prices, under Article 38 of Law 4387/2016 and e-EFKA circular 4/2026. From 1 January 2027 the law switches the yearly adjustment to the wage-growth index instead of prices, so the next figure depends on how fast Greek pay rises during ${F.year}.` },
+  { q: 'Does my employer also stop paying social security above the ceiling?', a: `Yes, the cap applies to both sides. The employer share of ${F.efkaEr} is charged on no more than ${F.ceiling} a month, which puts the employer’s maximum at ${$2(maxEr)} per payment. On a ${$(15000)} salary the business pays ${$(s15.employer)} in contributions and the total cost of the role is ${$(s15.cost)} per payment.` },
+  { q: `What gross salary should I ask for to take home ${$(want)} a month in Greece?`, a: `About ${$(need)} gross per payment, over fourteen payments, for a taxpayer over 30 without children. At that level you are below the ceiling, so EFKA still takes the full ${F.efkaEe}; most of the gap between gross and net is income tax at the ${pct(top, lang)} top rate. The net-to-gross calculator repeats the search for any target.` },
+];
+---
+<GuideLayout lang={lang} id="ceiling" breadcrumbLabel={label('ceiling', lang)}
+  title={`Contribution Ceiling Greece ${F.year}: ${F.ceiling} a Month`}
+  h1={`EFKA contribution ceiling ${F.year}: ${F.ceiling} a month, explained`}
+  description={`Contribution ceiling Greece ${F.year}: EFKA stops at ${F.ceiling} of monthly pay. Maximum employee deduction ${$2(maxEe)}, the employer cap, net pay on high salaries.`}
+  intro={`Greek social security is charged on monthly pay up to ${F.ceiling} in ${F.year}; anything above that is free of EFKA contributions.`}
+  resume={`In ${F.year} Greek social security contributions are capped at monthly earnings of ${F.ceiling}, a figure known locally as the plafon. It was raised ${pct(CEILING_INDEX_2026, lang)} on 1 January by e-EFKA circular 4/2026, matching 2025 inflation. Below the ceiling, a private-sector employee pays ${F.efkaEe} of gross pay to e-EFKA, the national insurance fund, and the employer adds ${F.efkaEr}. Above it, both stop: the employee’s deduction never exceeds ${$2(maxEe)} a month and the employer’s never exceeds ${$2(maxEr)}. On a ${$(10000)} monthly salary that means ${$2(s10.efka)} of EFKA instead of ${$2(10000 * E.employee_rate)}, and ${$(s10.net)} net per payment. The cap only matters for senior salaries, more than five times the ${F.avgWage} average recorded in 2025, but for those it changes the arithmetic of every raise: each euro above it loses ${pct(top, lang)} income tax and nothing else. The calculator below shows how much contribution the ceiling saves on your salary.`}
+  faqs={faqs}
+  related={[{ href: route('efka', lang), name: label('efka', lang), description: `What the ${F.efkaEe} employee rate is made of.` }, { href: route('nettogross', lang), name: label('nettogross', lang), description: 'The gross you need for a net target.' }, { href: route('employer', lang), name: label('employer', lang), description: 'Full cost of a Greek salary to the business.' }]}
+  sources={[src('efka_ceiling', lang), { name: 'Law 4387/2016, Article 38: ceiling on insurable earnings and its yearly adjustment', url: 'https://www.taxheaven.gr/law/4387/2016/article/38/view' }, src('efka_rates', lang), src('tax_scale', lang)]}>
+  <div data-chrome><MiniSim client:load kind="ceiling" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Senior salaries in Greece: cost, net and the cap</h2>
+  <ContentTable headers={['Monthly gross', 'Employee EFKA', 'Employer EFKA', 'Cost per payment', 'Net per payment', 'Net per year', 'Net as % of gross']} align={['r', 'r', 'r', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={1} />
+  <p>All rows assume fourteen payments, no dependent children and an employee over 30. The highlighted line is the ceiling itself; from there down, the two EFKA columns no longer move. Notice what happens to the last column: the share of gross you keep stops falling once you pass the ceiling and starts creeping back up, because the fixed contribution weighs less and less against a growing salary while the tax rate stays at {pct(top, lang)}.</p>
+
+  <h2>Where the number comes from</h2>
+  <p>Article 38(2) of Law 4387/2016 set the ceiling at {$(CEILING_BASE_2016)} a month. The same paragraph indexes it every year from 2023 to {F.year} by the average change in the consumer price index of the previous year, by ministerial decision, and protects it from falling: if prices drop, the ceiling stays put. Prices rose {pct(CEILING_INDEX_2026, lang)} in 2025, so the ceiling moved from roughly {$2(cap25)} to {F.ceiling}. The decision appeared in the Government Gazette on 29 January 2026 and e-EFKA circulated it to employers as circular 4/2026, effective for January payroll.</p>
+  <p>From 2027 the formula changes. The law, and the circular, say the ceiling will follow the wage-growth index instead of prices. For a reader planning a multi-year move this is worth knowing: when wages outpace inflation, the cap will rise faster than it has in recent years, and a salary sitting just above it today could fall back under it.</p>
+
+  <h2>Reading the payslip line by line</h2>
+  <p>A Greek payslip (<em>ekkatharistiko</em>) lists gross pay, then the employee contribution, usually labelled ΕΦΚΑ or ΙΚΑ out of habit, then the withholding tax, known as ΦΜΥ. Under the ceiling the contribution line equals {F.efkaEe} of gross to the cent. Above it, you will see a round {$2(maxEe)} every month. If the figure is higher, the payroll has not applied the {F.year} ceiling; if it is lower while your gross is above the cap, check whether part of your pay has been recorded under another heading.</p>
+  <p>The ceiling is monthly, not annual. Our engine applies it to each of the fourteen payments separately, which is how ordinary monthly payroll works. Bonuses, back pay or a one-off award that lands in the same month as a salary close to the cap are where real payslips can differ from a simple model: the employer’s periodic declaration to e-EFKA, the APD, is what counts, and that is the document to ask your payroll provider about.</p>
+
+  <div data-chrome><MiniSim client:load kind="ceilingcost" lang={lang} href={route('employer', lang)} /></div>
+
+  <h2>Why employers care more than employees</h2>
+  <p>The employer rate of {F.efkaEr} is higher than the employee rate, so the cap saves the business more. On {$(8000)} gross the employer pays {$(s8.employer)} rather than {$(8000 * E.employer_rate)}; on {$(15000)} it pays {$(s15.employer)} rather than {$(15000 * E.employer_rate)}. For companies relocating a team to Athens or Thessaloniki this makes senior hires predictable: above the cap, each extra euro of salary costs exactly one euro, with no social charge on top.</p>
+  <p>For the employee, the cap has a second face. Earnings above {F.ceiling} are not insurable earnings, the legal term the article uses: no contribution is paid on them, so they do not add to the insured salary that the Greek system records for you. If you plan to retire in Greece, the <a href={route('pension', lang)}>pension calculator</a> shows how an average insured salary becomes a contributory pension, and why high earners often add private savings on top.</p>
+
+  <h2>Income tax is not capped</h2>
+  <p>Newcomers sometimes assume that, like contributions, income tax flattens out at some level. It does not. Greece taxes employment income on a progressive scale that ends with a {pct(top, lang)} rate on taxable income above {F.limits[4]} a year, with no upper limit. A salary of around {$(5000)} a month already reaches that top band, well before the contribution ceiling. That is why the jump in the last column of the table is modest: the cap removes contributions, but income tax keeps taking the same share of every euro. The <a href={route('brackets', lang)}>income tax brackets guide</a> lists every band and the reductions for children.</p>
+  <p>To check your own figures, the main <a href={route('home', lang)}>Greek salary calculator</a> applies the {F.year} ceiling automatically, and so does the <a href={route('nettogross', lang)}>net-to-gross calculator</a> if you are working backwards from a net target in an offer letter.</p>
+</GuideLayout>
