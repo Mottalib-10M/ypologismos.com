@@ -1,0 +1,81 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, incomeTax, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+import { ART60, ART60_SOURCE } from '../../lib/mini-extra-b';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const p = F.pct;
+// Example used throughout: €2,100 gross a month.
+const g = 2100;
+const s = salary({ gross: g });
+const grosses = [P.minimum_wage.monthly, 1300, 1700, 2100, 2600, 3200, 4500, 6000];
+const rows = grosses.map((x) => { const a = salary({ gross: x }), b = salary({ gross: x, children: 1 }), c = salary({ gross: x, age: 'u25' }); return [$(x), $2(a.tax), $2(b.tax), $2(c.tax), $(a.taxAnnual)]; });
+// Arrived in Greece in September: four months of salary plus pro-rata bonuses (simplification).
+const arrPayments = 5;
+const arrWithheld = s.tax * arrPayments;
+const arrReal = incomeTax(s.taxable * arrPayments).tax;
+// Main job plus a weekend job.
+const j1 = salary({ gross: 1900 }), j2 = salary({ gross: 600 });
+const jReal = incomeTax(j1.taxableAnnual + j2.taxableAnnual).tax;
+const jDue = jReal - j1.taxAnnual - j2.taxAnnual;
+// Child not declared to payroll.
+const nk = salary({ gross: g }), wk = salary({ gross: g, children: 1 });
+const bonus = 3000;
+const r0 = salary({ gross: 2100 }), r1 = salary({ gross: 2400 });
+const t14 = salary({ gross: 2100 }), t12 = salary({ gross: 2100 * 14 / 12, payments: 12 });
+const faqs = [
+  { q: 'What is “ΦΜΥ” on my Greek payslip?', a: `ΦΜΥ (FMY, short for foros misthoton ypiresion, “tax on salaried services”) is the income tax your employer withholds from each payment. It is an advance on your annual tax, calculated with the ${F.year} scale and the article 16 employee tax reduction. On ${$(g)} gross a month, paid fourteen times, it comes to ${$2(s.tax)} per payment and ${$(s.taxAnnual)} for the year.` },
+  { q: 'I arrived in Greece in September. Will I get tax back?', a: `Very likely. Payroll annualises each salary as if you would earn it all year. With ${$(g)} gross and roughly ${arrPayments} payments between September and December, counting the pro-rata Christmas bonus, about ${$(arrWithheld)} is withheld, while the tax on your actual Greek income for the year is about ${$(arrReal)}. The difference is settled when you file the annual return.` },
+  { q: 'I have a weekday job and a weekend job. Why do I owe tax at the end of the year?', a: `Each employer withholds as if its salary were your only income, starting from the ${F.r[0]} band with the full tax reduction. With ${$(1900)} and ${$(600)} gross, the two withhold ${$(j1.taxAnnual + j2.taxAnnual)} a year in total, but the tax on your combined income is ${$(jReal)}. The ${$(jDue)} gap appears as tax to pay on your return.` },
+  { q: 'How is a one-off bonus taxed in Greek payroll?', a: `Article 60 sets a flat ${p(ART60.extra)} withholding on back pay and on additional remuneration that is not part of regular pay. On a ${$(bonus)} one-off bonus, ${$(bonus * ART60.extra)} is withheld. That is only an advance: the bonus is added to your income on the annual return and taxed on the scale, so the final tax may be higher or lower.` },
+  { q: 'When does my employer pay the withheld tax to the state?', a: `By the end of the ${ART60.remitMonths === 2 ? 'second' : String(ART60.remitMonths) + 'th'} month after the salary is paid, under article 60(5) of the Income Tax Code. Paying it over is the employer’s duty. For you, the tax counts as paid once it has been withheld from your salary, and it is credited against the tax assessed on your annual return.` },
+];
+---
+<GuideLayout lang={lang} id="withholding" breadcrumbLabel={label('withholding', lang)}
+  title={`Payroll Tax Withholding Greece ${F.year}: How FMY Is Worked Out`}
+  h1={`Payroll tax withholding in Greece (ΦΜΥ): how your monthly tax is worked out`}
+  description={`Payroll tax withholding Greece ${F.year}: how employers annualise pay under article 60, withholding by salary, and why your tax return shows a refund or tax due.`}
+  intro={`Greek employers withhold income tax, known as ΦΜΥ, from every salary payment by turning the month’s pay into an annual figure and applying the full-year rules.`}
+  resume={`Under article 60 of the Greek Income Tax Code, the tax withheld from your salary (ΦΜΥ, foros misthoton ypiresion) is calculated by annualising the payment: the monthly gross is multiplied up to a year, employee social security is deducted, the ${F.year} scale and the article 16 tax reduction are applied, and the annual tax is divided across the year’s payments. With fourteen payments, a monthly gross of ${$(g)} becomes ${$(s.annualGross)} a year and ${$(s.taxableAnnual)} of taxable income after the ${F.efkaEe} e-EFKA contribution. The annual tax is ${$(s.taxAnnual)}, so ${$2(s.tax)} is withheld from each payment. Withholding is an advance, not the final bill: if you arrive mid-year, hold two jobs or have not told payroll about your children, the annual return will show a refund or extra tax. Back pay and extra remuneration outside regular pay are withheld at a flat ${p(ART60.extra)}. Enter your salary below to see your own figure.`}
+  faqs={faqs}
+  related={[{ href: route('home', lang), name: label('home', lang), description: 'Net pay, contributions and withholding for any salary.' }, { href: route('credit', lang), name: label('credit', lang), description: 'The reduction payroll subtracts every month.' }, { href: route('fourteen', lang), name: label('fourteen', lang), description: 'Why the year is divided into fourteen payments.' }]}
+  sources={[ART60_SOURCE.en, src('tax_scale', lang), src('tax_credit', lang), src('efka_rates', lang)]}>
+  <div data-chrome><MiniSim client:load kind="withholding" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>The annualisation rule</h2>
+  <p>Article 60(1) says that monthly employment and pension income, including benefits in kind, daily wages and lump sums, is subject to withholding under the article 15 scale and the article 16 reduction “after first being converted to an annual figure”. The exact method of conversion is set by a decision of the Finance Minister, as paragraph 3 of the same article provides. Our calculator follows the method used in the Ministry of Labour’s worked examples: fourteen payments a year.</p>
+  <p>For {$(g)} gross a month, the arithmetic runs as follows. Fourteen payments make {$(s.annualGross)}. The employee contribution of {$(s.efkaAnnual)} is deducted, leaving {$(s.taxableAnnual)}. The scale produces {$(s.scaleAnnual)} of tax, the employee tax reduction removes {$(s.creditAnnual)}, and the remaining {$(s.taxAnnual)} is split into fourteen equal parts of {$2(s.tax)}.</p>
+
+  <h2>Withholding per payment at eight salaries</h2>
+  <ContentTable headers={['Monthly gross', 'Withheld, no children', 'Withheld, 1 child', 'Withheld, age up to 25', 'Annual tax, no children']} align={['l', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={3} />
+  <p>Amounts are per payment for an employee over 30, fourteen payments a year, unless the column says otherwise. The youth column shows how the {F.youthU25} rate on the first {F.youthLimit} wipes out withholding on most entry-level salaries. Remember that payroll can only apply the child and youth rates if it has the information; the next section shows what happens when it does not.</p>
+
+  <h2>Why payroll and your tax return disagree</h2>
+  <p>The employer sees one salary, at one moment, and assumes it lasts all year. It knows nothing about a second job, rental income or freelance work. Three situations account for most of the gaps that newcomers to Greece run into, and none of them means payroll got it wrong.</p>
+  <p><strong>Arriving or leaving mid-year.</strong> Someone who starts in September on {$(g)} a month is withheld at the full-year rate. Over roughly {arrPayments} payments, including the pro-rata Christmas bonus, about {$(arrWithheld)} is withheld, whereas the tax on that Greek income alone is about {$(arrReal)}. The annual return refunds the difference. This simplified example leaves aside any income earned abroad earlier in the year, which may also have to be declared.</p>
+  <p><strong>Two employers.</strong> A main job at {$(1900)} and a weekend job at {$(600)} are each taxed as if they were the only one. Each employer starts from the lowest band and deducts the full reduction; the smaller job, on its own, pays {$(j2.taxAnnual)}. On the return the incomes are combined, the reduction counts once, and {$(jDue)} becomes payable.</p>
+  <p><strong>Children not declared.</strong> If payroll does not know about your dependent child, it withholds as for a childless employee: {$(nk.taxAnnual)} a year on {$(g)} instead of {$(wk.taxAnnual)}. The {$(nk.taxAnnual - wk.taxAnnual)} comes back with the return, months later. Declaring the child to payroll fixes it from the next payment.</p>
+
+  <div data-chrome><MiniSim client:load kind="twojobs" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>A raise during the year</h2>
+  <p>When pay changes, payroll simply annualises the new figure. An employee moving from {$(2100)} to {$(2400)} gross sees withholding rise from {$2(r0.tax)} to {$2(r1.tax)} per payment, because the calculation now assumes the higher salary for the whole year. The months before the raise were withheld on the old basis and the months after on the new one, so the year’s total usually lands close to the final tax. Any small difference is settled on the return.</p>
+
+  <h2>Twelve payments instead of fourteen</h2>
+  <p>Some contracts, especially at senior level, spread the annual salary over twelve equal payments. The annual tax is identical; only its division changes. On {$(2100 * 14)} a year, withholding is {$2(t14.tax)} per payment over fourteen and {$2(t12.tax)} over twelve, on a larger monthly salary. The guide to <a href={route('fourteen', lang)}>fourteen salaries a year</a> explains how to compare the two kinds of offer.</p>
+
+  <h2>Flat rates in article 60</h2>
+  <p>Two kinds of payment skip the annualisation. Back pay, and extra remuneration that is not part of regular pay, are withheld at a flat {p(ART60.extra)} whatever year they relate to. Net pay of day workers on fixed-term engagements shorter than a year is withheld at {p(ART60.shortDaily)}. Both are advances, credited against the tax on your annual return.</p>
+  <p>The Christmas and Easter bonuses and the leave allowance are statutory, recurring pay. In our calculation, as in the Ministry of Labour’s minimum-wage examples, they are part of the fourteen payments and share the annual tax equally with the monthly salaries.</p>
+
+  <h2>Checking your own payslip</h2>
+  <p>Multiply your monthly gross by fourteen, subtract {F.efkaEe} for e-EFKA, find the tax on the <a href={route('brackets', lang)}>income tax brackets</a>, subtract the <a href={route('credit', lang)}>employee tax credit</a> and divide by fourteen. If the ΦΜΥ line differs by more than a few euros, check whether payroll has your correct age and number of children. Or let the main <a href={route('home', lang)}>Greek salary calculator</a> do it in one step.</p>
+</GuideLayout>

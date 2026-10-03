@@ -1,0 +1,77 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, incomeTax, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+import { ART29_SOURCE } from '../../lib/mini-extra-b';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const T = P.tax;
+const M = P.minimum_wage;
+const far = T.brackets[3].upTo as number;
+const capU25 = incomeTax(far).tax - incomeTax(far, 0, 'u25').tax;
+const capMid = incomeTax(far).tax - incomeTax(far, 0, '26_30').tax;
+const grosses = [M.monthly, 1200, 1400, 1600, 1900, 2200, 2700, 3500];
+const rows = grosses.map((g) => { const o = salary({ gross: g }), y = salary({ gross: g, age: 'u25' }), m = salary({ gross: g, age: '26_30' }); return [$(g), $(y.net), $(m.net), $(o.net), $(o.taxAnnual - y.taxAnnual), $(o.taxAnnual - m.taxAnnual)]; });
+// A graduate's first job.
+const g1 = 1400;
+const a = salary({ gross: g1, age: 'u25' }), b = salary({ gross: g1, age: '26_30' }), c = salary({ gross: g1 });
+// A higher earner under 25.
+const g2 = 2700;
+const hy = salary({ gross: g2, age: 'u25' }), ho = salary({ gross: g2 });
+const edgeGross = T.youth_income_limit / (14 * (1 - P.efka.employee_rate));
+const minY = salary({ gross: M.monthly, age: 'u25' });
+const q = salary({ gross: 1500 }), qy = salary({ gross: 1500, age: 'u25' }), qm = salary({ gross: 1500, age: '26_30' });
+const nU25 = 3, n2630 = 5;
+const total = nU25 * (q.taxAnnual - qy.taxAnnual) + n2630 * (q.taxAnnual - qm.taxAnnual);
+const p4 = salary({ gross: 2000, age: '26_30', children: 4 }), p0 = salary({ gross: 2000, age: '26_30' });
+const faqs = [
+  { q: 'I am 24 and starting my first job in Greece. Do I pay any income tax?', a: `Not on the first ${F.youthLimit} of taxable income in ${F.year}. Taxpayers up to 25 pay ${F.youthU25} on the first two bands of the scale. On ${$(g1)} gross a month, paid fourteen times, your whole taxable income stays below that limit, so you keep ${$(a.net)} per payment: the gross minus only the ${F.efkaEe} social security contribution.` },
+  { q: 'Does the youth rate apply to foreign nationals working in Greece?', a: `The law grants the rates by age, to taxpayers taxed on the Greek scale, without a nationality condition. If you are taxed in Greece on your salary under article 15 of the Income Tax Code and you are 25 or under, your employer should apply ${F.youthU25} on the first ${F.youthLimit}. If another tax regime applies to your salary, a Greek accountant can confirm which rules take precedence.` },
+  { q: 'What do I gain at 28 compared with a colleague of 35 on the same pay?', a: `Between 26 and 30 the first two bands are taxed at ${F.youth2630} instead of ${F.r[0]} and ${F.r[1]}. On ${$(g1)} gross a month you pay ${$(b.taxAnnual)} a year, against ${$(c.taxAnnual)} for the older colleague, a difference of ${$(c.taxAnnual - b.taxAnnual)}. The most anyone in this age group can save, without children, is ${$(capMid)} a year.` },
+  { q: 'Is social security also reduced for young workers in Greece?', a: `No. The reform only touches income tax. Young employees pay the same e-EFKA contribution as everyone else, ${F.efkaEe} of gross pay under the standard code ${F.kpk}, and their employer pays ${F.efkaEr} on top. That is why a 23-year-old on the minimum wage of ${F.minWage} still takes home ${$(minY.net)} rather than the full gross.` },
+  { q: `I am 27 with four children. Do I pay the ${F.youth2630} youth rate?`, a: `No, you pay nothing on the first two bands. The law says expressly that the ${F.youth2630} rate for ages 26 to 30 gives way to the zero rate for parents of four or more children. On ${$(2000)} gross a month that means ${$(p4.taxAnnual)} of annual tax instead of ${$(p0.taxAnnual)} for a childless 27-year-old.` },
+];
+---
+<GuideLayout lang={lang} id="youth" breadcrumbLabel={label('youth', lang)}
+  title={`Youth Income Tax Greece ${F.year}: ${F.youthU25} to 25, ${F.youth2630} from 26 to 30`}
+  h1={`Income tax for young workers in Greece: ${F.youthU25} up to 25, ${F.youth2630} to 30`}
+  description={`Youth income tax Greece ${F.year}: ${F.youthU25} up to age 25 and ${F.youth2630} from 26 to 30 on the first ${F.youthLimit} of taxable income. Net pay by salary, the limit and worked examples.`}
+  intro={`Since ${F.year}, workers in Greece aged 25 or under pay no income tax on their first ${F.youthLimit} of taxable income, and those aged 26 to 30 pay ${F.youth2630}.`}
+  resume={`Law 5246/2025 introduced age-based rates on the first two bands of the Greek income tax scale, which together cover the first ${F.youthLimit} of taxable income. Up to age 25 the rate on those bands is ${F.youthU25}; from 26 to 30 it is ${F.youth2630}, instead of the normal ${F.r[0]} and ${F.r[1]}. Income above ${F.youthLimit} is taxed on the ordinary scale. For a graduate on ${$(g1)} gross a month, paid fourteen times, this means ${$(a.net)} net per payment at 24, ${$(b.net)} at 28 and ${$(c.net)} for an otherwise identical colleague over 30. Without children, the most a worker up to 25 can save is ${$(capU25)} a year, and ${$(capMid)} for ages 26 to 30. Social security contributions are unchanged at ${F.efkaEe}, and parents of four or more children pay nothing on the two bands at any age. The calculator below shows the saving on your own salary.`}
+  faqs={faqs}
+  related={[{ href: route('home', lang), name: label('home', lang), description: 'Net pay with your age and children.' }, { href: route('brackets', lang), name: label('brackets', lang), description: `The full ${F.year} scale for comparison.` }, { href: route('credit', lang), name: label('credit', lang), description: 'Why the tax reduction is idle below the youth limit.' }]}
+  sources={[src('tax_scale', lang), src('tax_credit', lang), src('efka_rates', lang), src('min_wage', lang), ART29_SOURCE.en]}>
+  <div data-chrome><MiniSim client:load kind="youth" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Net pay by salary and age group</h2>
+  <ContentTable headers={['Monthly gross', 'Net up to 25', 'Net 26-30', 'Net over 30', 'Saving/year to 25', 'Saving/year 26-30']} align={['l', 'r', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={2} />
+  <p>Net figures are per payment, with fourteen payments a year and no dependent children. The first row is the minimum wage of {F.minWage}. The saving keeps rising with the salary until taxable income passes {F.youthLimit}, which happens at roughly {$(edgeGross)} gross a month, and then stays flat: from that point the youth rate has been used in full and every extra euro is taxed like anyone else’s.</p>
+
+  <h2>How the limit works</h2>
+  <p>The relief is attached to the first two bands, not to a salary ceiling. Nobody loses it by earning more. A 23-year-old developer on {$(g2)} gross a month has more taxable income than the limit; the first {F.youthLimit} is still taxed at {F.youthU25}, the rest at {F.r[2]} and above, and the article 16 employee tax reduction is subtracted from that remainder. The result is {$(hy.taxAnnual)} of tax a year, against {$(ho.taxAnnual)} for a colleague over 30 on the same pay.</p>
+  <p>Below the limit, the tax reduction has nothing to work on. A worker up to 25 who stays under {F.youthLimit} has no scale tax at all, so the {F.credit[0]} reduction is simply not used. It is not paid out and cannot be carried forward. The mechanics are explained in the guide to the <a href={route('credit', lang)}>employee tax credit</a>.</p>
+
+  <h2>Turning 26 or 31 during the year</h2>
+  <p>The text of the law refers to taxpayers “up to 25 years old” and “from 26 to 30 years old”. It does not spell out, in the same provision, whether age is counted on your date of birth or by year of birth. If your birthday falls in the middle of the tax year, ask the payroll office which age group it is using and check the result on your annual return. Our calculator lets you compare both groups side by side.</p>
+
+  <div data-chrome><MiniSim client:load kind="youthage" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>What a pay rise is worth under 25</h2>
+  <p>Because the marginal rate on the first {F.youthLimit} is zero, a young employee keeps more of every raise. From each {$(100)} of extra gross pay, a worker up to 25 under the limit loses only the social security share and keeps {$(100 * (1 - P.efka.employee_rate))}. A colleague over 30 earning {$(g1)} would keep roughly {$(100 * (1 - P.efka.employee_rate) * (1 - (c.marginal + T.credit_taper_per_1000 / 1000)))}, after the band rate and the shrinking tax reduction. For someone choosing between two offers early in their career, the gross difference translates almost fully into net pay.</p>
+
+  <h2>Adding it up to age 30</h2>
+  <p>The saving is worth looking at over several years rather than one. Picture a graduate who starts at 23 on {$(1500)} gross a month and, to keep the example simple, never gets a raise. For {nU25} years, up to 25, the youth rate saves {$(q.taxAnnual - qy.taxAnnual)} a year. For the {n2630} years from 26 to 30 it saves {$(q.taxAnnual - qm.taxAnnual)} a year. By the 31st birthday the total comes to about {$(total)}, provided the rules stay in force for the whole period.</p>
+  <p>Relocation decisions are often made at exactly this age. For someone under 30 weighing a Greek offer against one elsewhere, the youth rates narrow the gap in net pay more than the gross figures suggest, especially on salaries just below the {F.youthLimit} limit.</p>
+
+  <h2>Young parents</h2>
+  <p>The youth rates and the child rates combine in the taxpayer’s favour. A 27-year-old with three children already has a {F.second[3]} second band because of the children, the same as the youth rate. With four or more children, the zero rate applies to both bands whatever the age. Children also lower the third band ({F.third[1]} with one, {F.third[2]} with two) and raise the tax reduction, as explained on the page about the <a href={route('children', lang)}>tax reduction for children</a>.</p>
+
+  <h2>Two jobs, or a job plus freelance work</h2>
+  <p>Each employer applies the youth rate to the salary it pays, as if it were your only income. If two part-time jobs together take you over {F.youthLimit}, the payroll will have withheld too little and the annual return will show tax to pay. Freelance profits are added to your salary to find the band, but they do not benefit from the article 16 reduction. For a precise figure on a single salary, use the main <a href={route('home', lang)}>salary calculator</a> with your age group selected.</p>
+</GuideLayout>
