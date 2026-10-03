@@ -622,14 +622,14 @@
     "el": "Ν. 5246/2025, άρθρο 3: νέα κλίμακα του άρθρου 15 ΚΦΕ (κωδικοποιημένο κείμενο)",
     "en": "Law 5246/2025, article 3: new scale of article 15 of the Income Tax Code (consolidated text)"
    },
-   "url": "https://www.taxheaven.gr/law/5246/2025/article/3/view"
+   "url": "https://www.taxheaven.gr/law/5246/2025/arthro/3"
   },
   "tax_credit": {
    "label": {
     "el": "Άρθρο 16 ΚΦΕ (ν. 4172/2013): μείωση φόρου μισθωτών",
     "en": "Income Tax Code (Law 4172/2013), article 16: employee tax reduction"
    },
-   "url": "https://www.taxheaven.gr/law/4172/2013/article/16/view"
+   "url": "https://www.taxheaven.gr/law/4172/2013/arthro/16"
   },
   "efka_rates": {
    "label": {
@@ -692,77 +692,77 @@
     "el": "Ν. 4808/2021, άρθρο 64: κατάργηση διάκρισης υπαλλήλων και εργατοτεχνιτών",
     "en": "Law 4808/2021, article 64: one dismissal regime for white- and blue-collar workers"
    },
-   "url": "https://www.taxheaven.gr/law/4808/2021/article/64/view"
+   "url": "https://www.taxheaven.gr/law/4808/2021/arthro/64"
   },
   "law_3198_5": {
    "label": {
     "el": "Ν. 3198/1955, άρθρο 5: βάση υπολογισμού και ανώτατο όριο αποζημίωσης",
     "en": "Law 3198/1955, article 5: severance base and earnings cap"
    },
-   "url": "https://www.taxheaven.gr/law/3198/1955/article/5/view"
+   "url": "https://www.taxheaven.gr/law/3198/1955/arthro/5"
   },
   "parental": {
    "label": {
     "el": "Ν. 4808/2021, άρθρο 28: γονική άδεια και επίδομα της ΔΥΠΑ",
     "en": "Law 4808/2021, article 28: parental leave and the DYPA benefit"
    },
-   "url": "https://www.taxheaven.gr/law/4808/2021/article/28/view"
+   "url": "https://www.taxheaven.gr/law/4808/2021/arthro/28"
   },
   "road_tax": {
    "label": {
     "el": "Ν. 2948/2001, άρθρο 20: ετήσια τέλη κυκλοφορίας (κυβισμός, CO2 NEDC και WLTP)",
     "en": "Law 2948/2001, article 20: annual road tax (engine size, NEDC and WLTP CO2)"
    },
-   "url": "https://www.taxheaven.gr/law/2948/2001/article/20/view"
+   "url": "https://www.taxheaven.gr/law/2948/2001/arthro/20"
   },
   "road_tax_idle": {
    "label": {
     "el": "Ν. 2367/1953, άρθρο 22: ακινησία οχήματος και άρση της",
     "en": "Law 2367/1953, article 22: taking a vehicle off the road and back"
    },
-   "url": "https://www.taxheaven.gr/law/2367/1953/article/22/view"
+   "url": "https://www.taxheaven.gr/law/2367/1953/arthro/22"
   },
   "enfia": {
    "label": {
     "el": "Κώδικας Φορολογίας Περιουσίας (ν. 5219/2025), άρθρο 11: υπολογισμός κύριου φόρου ΕΝΦΙΑ",
     "en": "Property Tax Code (Law 5219/2025), article 11: ENFIA main tax"
    },
-   "url": "https://www.taxheaven.gr/law/5219/2025/article/11/view"
+   "url": "https://www.taxheaven.gr/law/5219/2025/arthro/11"
   },
   "enfia_reductions": {
    "label": {
     "el": "Κώδικας Φορολογίας Περιουσίας, άρθρο 13: εκπτώσεις ΕΝΦΙΑ",
     "en": "Property Tax Code, article 13: ENFIA reductions"
    },
-   "url": "https://www.taxheaven.gr/law/5219/2025/article/13/view"
+   "url": "https://www.taxheaven.gr/law/5219/2025/arthro/13"
   },
   "enfia_exemptions": {
    "label": {
     "el": "Κώδικας Φορολογίας Περιουσίας, άρθρο 10: απαλλαγές και μείωση για ασφαλισμένες κατοικίες",
     "en": "Property Tax Code, article 10: exemptions and the insured-home reduction"
    },
-   "url": "https://www.taxheaven.gr/law/5219/2025/article/10/view"
+   "url": "https://www.taxheaven.gr/law/5219/2025/arthro/10"
   },
   "enfia_2026": {
    "label": {
     "el": "Κώδικας Φορολογίας Περιουσίας, άρθρο 17 παρ. 3: μείωση 50 % το 2026 σε οικισμούς έως 1.500 κατοίκους",
     "en": "Property Tax Code, article 17(3): 50% cut in 2026 for settlements up to 1,500 people"
    },
-   "url": "https://www.taxheaven.gr/law/5219/2025/article/17/view"
+   "url": "https://www.taxheaven.gr/law/5219/2025/arthro/17"
   },
   "pension_national": {
    "label": {
     "el": "Ν. 4387/2016, άρθρο 7: εθνική σύνταξη",
     "en": "Law 4387/2016, article 7: national pension"
    },
-   "url": "https://www.taxheaven.gr/law/4387/2016/article/7/view"
+   "url": "https://www.taxheaven.gr/law/4387/2016/arthro/7"
   },
   "pension": {
    "label": {
     "el": "Ν. 4387/2016, άρθρο 8: ανταποδοτική σύνταξη και ποσοστά αναπλήρωσης",
     "en": "Law 4387/2016, article 8: contributory pension and accrual rates"
    },
-   "url": "https://www.taxheaven.gr/law/4387/2016/article/8/view"
+   "url": "https://www.taxheaven.gr/law/4387/2016/arthro/8"
   },
   "pension_ministry": {
    "label": {
@@ -776,7 +776,7 @@
     "el": "Ν. 4387/2016, άρθρο 38 παρ. 2: ανώτατο όριο ασφαλιστέων αποδοχών",
     "en": "Law 4387/2016, article 38(2): maximum insurable earnings"
    },
-   "url": "https://www.taxheaven.gr/law/4387/2016/article/38/view"
+   "url": "https://www.taxheaven.gr/law/4387/2016/arthro/38"
   }
  },
  "part_time": {

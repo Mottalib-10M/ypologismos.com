@@ -15,9 +15,9 @@ export const SCALE_2025 = [
 export const SCALE_2025_SOURCE = { el: { name: 'Taxheaven: κλίμακα φορολογίας μισθωτών, φορολογικό έτος 2025', url: 'https://www.taxheaven.gr/klimakes?year=2025' }, en: { name: 'Taxheaven: income tax scale for employees, tax year 2025', url: 'https://www.taxheaven.gr/klimakes?year=2025' } };
 /** Art. 60 ΚΦΕ par. 4 : retenue de 20 % sur les arriérés et les rémunérations additionnelles hors paie
  *  régulière ; 5 % sur les salariés journaliers à durée déterminée de moins d'un an. Par. 5 : versement
- *  au plus tard à la fin du deuxième mois. taxheaven.gr/law/4172/2013/article/60/view */
+ *  au plus tard à la fin du deuxième mois. taxheaven.gr/law/4172/2013/arthro/60 */
 export const ART60 = { extra: 0.2, shortDaily: 0.05, remitMonths: 2 };
-export const ART60_SOURCE = { el: { name: 'Άρθρο 60 ΚΦΕ (ν. 4172/2013): παρακράτηση φόρου μισθωτών', url: 'https://www.taxheaven.gr/law/4172/2013/article/60/view' }, en: { name: 'Article 60 of the Income Tax Code (Law 4172/2013): payroll withholding', url: 'https://www.taxheaven.gr/law/4172/2013/article/60/view' } };
+export const ART60_SOURCE = { el: { name: 'Άρθρο 60 ΚΦΕ (ν. 4172/2013): παρακράτηση φόρου μισθωτών', url: 'https://www.taxheaven.gr/law/4172/2013/arthro/60' }, en: { name: 'Article 60 of the Income Tax Code (Law 4172/2013): payroll withholding', url: 'https://www.taxheaven.gr/law/4172/2013/arthro/60' } };
 /** e-ΕΦΚΑ, circulaire 38/2024 (source `efka_rates`) : santé 6,10 % = en nature 5,45 % (1,65 salarié,
  *  3,80 employeur) + en espèces 0,65 % (0,40 salarié, 0,25 employeur) ; baisse de 0,5 point chacun au
  *  1-1-2025 ; ΚΠΚ 103 (sans ΙΚΑ-ΤΕΑΜ) 10,37 / 18,79 ; ΚΠΚ 105 (pénibles, ΙΚΑ-ΤΕΑΜ) 16,82 / 23,94. */
@@ -31,13 +31,13 @@ export const ART15_1A = { real: 6000, presumed: 9500 };
 
 /** Art. 11 ΚΦΕ : enfant à charge = célibataire mineur (≤ 18 ans), ou ≤ 25 ans étudiant, inscrit au chômage
  *  (ΔΥΠΑ, ex-ΟΑΕΔ) ou au service militaire ; handicap ≥ 67 % sans limite d'âge ; pas à charge si son revenu
- *  imposable annuel dépasse 3 000 € (cohabitant). taxheaven.gr/law/4172/2013/article/11/view */
+ *  imposable annuel dépasse 3 000 € (cohabitant). taxheaven.gr/law/4172/2013/arthro/11 */
 export const ART11 = { incomeLimit: 3000, disability: 0.67 };
-export const ART11_SOURCE = { el: { name: 'Άρθρο 11 ΚΦΕ (ν. 4172/2013): εξαρτώμενα μέλη', url: 'https://www.taxheaven.gr/law/4172/2013/article/11/view' }, en: { name: 'Article 11 of the Income Tax Code (Law 4172/2013): dependent members', url: 'https://www.taxheaven.gr/law/4172/2013/article/11/view' } };
+export const ART11_SOURCE = { el: { name: 'Άρθρο 11 ΚΦΕ (ν. 4172/2013): εξαρτώμενα μέλη', url: 'https://www.taxheaven.gr/law/4172/2013/arthro/11' }, en: { name: 'Article 11 of the Income Tax Code (Law 4172/2013): dependent members', url: 'https://www.taxheaven.gr/law/4172/2013/arthro/11' } };
 
 /** Art. 29 par. 1 ΚΦΕ : les bénéfices d'activité indépendante s'ajoutent aux salaires pour l'échelle, sans la
  *  réduction de l'art. 16 ; en cas de salaire, la réduction est celle qui correspond à la part salariale. */
-export const ART29_SOURCE = { el: { name: 'Άρθρο 29 ΚΦΕ (ν. 4172/2013): φόρος επιχειρηματικής δραστηριότητας', url: 'https://www.taxheaven.gr/law/4172/2013/article/29/view' }, en: { name: 'Article 29 of the Income Tax Code (Law 4172/2013): tax on business income', url: 'https://www.taxheaven.gr/law/4172/2013/article/29/view' } };
+export const ART29_SOURCE = { el: { name: 'Άρθρο 29 ΚΦΕ (ν. 4172/2013): φόρος επιχειρηματικής δραστηριότητας', url: 'https://www.taxheaven.gr/law/4172/2013/arthro/29' }, en: { name: 'Article 29 of the Income Tax Code (Law 4172/2013): tax on business income', url: 'https://www.taxheaven.gr/law/4172/2013/arthro/29' } };
 
 /** Impôt 2025 (ancienne échelle, sans enfants) après la réduction de l'art. 16, inchangée en 2026. */
 export function tax2025(taxable: number): number {

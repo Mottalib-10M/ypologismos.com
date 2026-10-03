@@ -85,11 +85,11 @@ const SPECS: Record<string, (l: L) => CalcSpec> = {
   }),
   road: (l) => ({
     fields: [
-      { id: 'y', label: T(l, 'Έτος πρώτης ταξινόμησης (ΕΕ)', 'Year first registered (EU)'), kind: 'number', def: 2018, max: 2026, help: T(l, 'Για 2010: από Νοέμβριο και μετά επιλέξτε 11.', 'For 2010, from November onwards choose 11.') },
-      { id: 'm', label: T(l, 'Μήνας', 'Month'), kind: 'number', def: 6, max: 12 },
+      { id: 'y', label: T(l, 'Έτος πρώτης ταξινόμησης (ΕΕ)', 'Year first registered (EU)'), kind: 'number', def: 2018, max: 2026, help: T(l, 'Πεδίο B της άδειας κυκλοφορίας.', 'Field B of the registration certificate.') },
+      { id: 'm', label: T(l, 'Μήνας', 'Month'), kind: 'number', def: 6, max: 12, help: T(l, 'Μετράει μόνο για το 2010 (από τον 11ο).', 'Only matters for 2010 (from month 11).') },
+      { id: 'co2', label: T(l, 'Εκπομπές CO₂ (άδεια, πεδίο V.7)', 'CO₂ emissions (licence, field V.7)'), kind: 'number', def: 125, unit: 'g/km', max: 999, help: T(l, 'Χρησιμοποιείται για ταξινόμηση από 1.11.2010.', 'Used for cars registered from 1.11.2010.') },
+      { id: 'cc', label: T(l, 'Κυβισμός', 'Engine size'), kind: 'number', def: 1400, unit: 'cc', max: 20000, help: T(l, 'Χρησιμοποιείται για ταξινόμηση έως 31.10.2010.', 'Used for cars registered up to 31.10.2010.') },
       { id: 'f', label: T(l, 'Κινητήρας', 'Powertrain'), kind: 'toggle', def: 'ice', options: [{ value: 'ice', label: T(l, 'Θερμικός', 'Combustion') }, { value: 'ev', label: T(l, 'Ηλεκτρικό', 'Electric') }] },
-      { id: 'co2', label: T(l, 'Εκπομπές CO₂ (άδεια, πεδίο V.7)', 'CO₂ emissions (licence, field V.7)'), kind: 'number', def: 125, unit: 'g/km', max: 999, show: (v) => n(v, 'y') > 2010 || (n(v, 'y') === 2010 && n(v, 'm') >= 11) },
-      { id: 'cc', label: T(l, 'Κυβισμός', 'Engine size'), kind: 'number', def: 1400, unit: 'cc', max: 20000, show: (v) => n(v, 'y') < 2010 || (n(v, 'y') === 2010 && n(v, 'm') <= 10) },
     ],
     run: (v) => {
       const cat = roadCategoryFor(n(v, 'y'), n(v, 'm') || 12, s(v, 'f') === 'ev') as RoadCategory;
