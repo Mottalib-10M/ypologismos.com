@@ -1,0 +1,45 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import ToolCalc from '../../components/calc/ToolCalc';
+import { SITE_URL } from '../../data/site-config';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts } from '../../lib/facts';
+import { breadcrumbSchema } from '../../lib/seo';
+const lang = 'el';
+const F = facts(lang);
+const host = SITE_URL.replace(/^https?:\/\//, '');
+const code = `<iframe src="${SITE_URL}/embed/misthos/" title="Υπολογισμός καθαρού μισθού" width="100%" height="820" style="border:0;max-width:760px" loading="lazy"></iframe>`;
+const codeEn = `<iframe src="${SITE_URL}/embed/misthos/?lang=en" title="Greek net salary calculator" width="100%" height="820" style="border:0;max-width:760px" loading="lazy"></iframe>`;
+const title = `Widget υπολογισμού μισθού ${F.year} δωρεάν για τη σελίδα σας`;
+const description = `Δωρεάν υπολογιστής καθαρού μισθού ${F.year} για τον ιστότοπό σας: ένας κώδικας iframe, ελληνικά ή αγγλικά, χωρίς εγγραφή, χωρίς cookies, ενημερωμένοι συντελεστές.`;
+---
+<PageLayout title={title} description={description} lang={lang} noindex={true}
+  jsonLd={[breadcrumbSchema([{ name: label('home', lang), path: route('home', lang) }, { name: label('widget', lang), path: route('widget', lang) }])]}
+  breadcrumbs={[{ label: label('widget', lang) }]} showAuthor={false}>
+  <header class="mb-6">
+    <h1 class="text-3xl font-bold text-navy-900 md:text-4xl">Ο υπολογιστής μισθού στη δική σας σελίδα</h1>
+    <p class="mt-3 text-lg text-navy-600">Ένας κώδικας για αντιγραφή, χωρίς εγγραφή και χωρίς χρέωση. Το widget φορτώνει τον πλήρη υπολογιστή καθαρών (μικτά, ηλικία, τέκνα, 14 ή 12 καταβολές) σε ένα iframe που σερβίρεται από αυτόν τον ιστότοπο. Λογιστικό γραφείο, τμήμα προσωπικού, σελίδα αγγελιών εργασίας ή blog προσωπικών οικονομικών το βάζει σε ένα λεπτό.</p>
+  </header>
+  <div class="prose prose-slate max-w-none">
+    <h2>Ο κώδικας</h2>
+    <p>Επικολλήστε το παρακάτω HTML εκεί όπου θέλετε να εμφανίζεται ο υπολογιστής. Το ύψος του πλαισίου δεν προσαρμόζεται αυτόματα: τα 820 px αρκούν σε φαρδιά στήλη, σε κινητό ή στενή στήλη βάλτε καλύτερα 1100 px.</p>
+    <pre class="overflow-x-auto rounded-lg bg-navy-900 p-4 text-sm text-white"><code>{code}</code></pre>
+    <p>Για αγγλόφωνους αναγνώστες, π.χ. εργαζόμενους από το εξωτερικό, η μόνη διαφορά είναι η παράμετρος <code>?lang=en</code> στη διεύθυνση:</p>
+    <pre class="overflow-x-auto rounded-lg bg-navy-900 p-4 text-sm text-white"><code>{codeEn}</code></pre>
+
+    <h2>Τι περιλαμβάνει</h2>
+    <p>Τον ίδιο μηχανισμό με τις σελίδες μας και τους συντελεστές του {F.year}: εισφορές e-ΕΦΚΑ {F.efkaEe} έως το πλαφόν των {F.ceiling}, την κλίμακα {F.r[0]} έως {F.r[5]} με τις μειώσεις για τέκνα και νέους έως 30 ετών, τη μείωση φόρου του άρθρου 16. Ο αναγνώστης βλέπει καθαρά ανά καταβολή, ετήσια, σε 12μηνη βάση, και το κόστος του εργοδότη. Όταν αλλάζει ένας συντελεστής, ενημερώνουμε τα δεδομένα στον δικό μας διακομιστή και το widget σας δείχνει τα νέα ποσά χωρίς καμία ενέργεια από εσάς.</p>
+
+    <h2>Όροι χρήσης</h2>
+    <p>Το widget είναι δωρεάν, και σε εμπορικούς ιστότοπους. Ο σύνδεσμος προς {host} κάτω από τον υπολογιστή πρέπει να μένει ορατός, και ο κώδικας δεν τροποποιείται πέρα από το πλάτος και το ύψος του πλαισίου. Η παρουσίαση δεν πρέπει να αφήνει να εννοηθεί ότι πρόκειται για εργαλείο της ΑΑΔΕ, του e-ΕΦΚΑ ή δικό σας προϊόν. Τα αποτελέσματα είναι ενδεικτικά, δεν αποτελούν φορολογική συμβουλή, και δεν εγγυόμαστε αδιάλειπτη λειτουργία. Οι πλήρεις κανόνες βρίσκονται στους <a href={route('terms', lang)}>όρους χρήσης</a>.</p>
+
+    <h2>Τα δεδομένα των αναγνωστών σας</h2>
+    <p>Κανένα στοιχείο των επισκεπτών σας δεν φτάνει σε εμάς: ο υπολογισμός γίνεται στον browser τους, το πλαίσιο δεν αποθηκεύει cookies και δεν φορτώνει εργαλεία μέτρησης. Δεν χρειάζεται λοιπόν να μας προσθέσετε στην πολιτική cookies σας (λεπτομέρειες στη σελίδα <a href={route('privacy', lang)}>απορρήτου</a>). Χρειάζεστε άλλο μέγεθος ή έχετε ερώτηση; Γράψτε μας από τη σελίδα <a href={route('contact', lang)}>επικοινωνίας</a>.</p>
+
+    <h2>Ζωντανή προεπισκόπηση</h2>
+    <p>Έτσι εμφανίζεται ο υπολογιστής μέσα στο πλαίσιο:</p>
+  </div>
+  <div class="mx-auto mt-4 max-w-3xl"><ToolCalc client:load kind="salary" lang={lang} compact={true} methodHref={route('method', lang)} /></div>
+  <p class="mt-2 text-center text-xs text-navy-600">{host} · υπολογισμός στον browser σας</p>
+</PageLayout>

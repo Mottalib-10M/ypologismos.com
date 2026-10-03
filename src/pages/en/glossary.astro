@@ -1,0 +1,89 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts } from '../../lib/facts';
+import { salary, roadTax, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney, formatDecimal, pct } from '../../lib/format';
+import { breadcrumbSchema } from '../../lib/seo';
+
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const s = salary({ gross: 2000 });
+const E = P.enfia, Q = P.pension, S = P.severance, R = P.road_tax;
+const nedc = roadTax({ category: 'co2_nedc', co2: 130 });
+interface Term { id: string; term: string; greek: string; def: string; link?: { id: string; text: string } }
+const groups: Array<{ h: string; terms: Term[] }> = [
+  { h: 'Pay and the payslip', terms: [
+    { id: 'mikta', term: 'Mikta', greek: 'μικτά', def: `Gross pay, the salary in your contract before social security and tax. The full-time minimum wage is ${F.minWage} gross from 1 April ${F.year}.`, link: { id: 'minimum', text: 'minimum wage' } },
+    { id: 'kathara', term: 'Kathara', greek: 'καθαρά', def: `Net pay, what reaches your account. On ${$(2000)} gross, over 30 with no children, you keep ${$(s.net)} per payment.`, link: { id: 'home', text: 'salary calculator' } },
+    { id: 'ekkatharistiko', term: 'Ekkatharistiko misthodosias', greek: 'εκκαθαριστικό μισθοδοσίας', def: 'The payslip: gross, the e-EFKA contribution, tax withheld and net for each payment. The tax office issues a different document with a similar name, the annual tax assessment.' },
+    { id: 'katavoles', term: '14 katavoles', greek: '14 καταβολές', def: 'Fourteen payments: twelve monthly salaries plus the Christmas bonus, the Easter bonus and the leave allowance. Divide the annual net by twelve to compare with a job abroad.', link: { id: 'fourteen', text: 'fourteen salaries' } },
+    { id: 'doro-christougennon', term: 'Doro Christougennon', greek: 'δώρο Χριστουγέννων', def: `Christmas bonus: one month’s pay or ${F.xmasDaily} daily wages for 1 May to 31 December, plus the leave-allowance share (${F.leaveShare}), due by 21 December.`, link: { id: 'christmas', text: 'Christmas bonus calculator' } },
+    { id: 'doro-pascha', term: 'Doro Pascha', greek: 'δώρο Πάσχα', def: `Easter bonus: half a month or ${F.easterDaily} daily wages for 1 January to 30 April, due by Holy Wednesday.`, link: { id: 'easter', text: 'Easter bonus' } },
+    { id: 'epidoma-adeias', term: 'Epidoma adeias', greek: 'επίδομα αδείας', def: `Leave allowance: equal to leave pay, capped at half a month or ${F.leaveDaily} daily wages, paid when the leave starts.`, link: { id: 'leave', text: 'leave allowance' } },
+    { id: 'trietia', term: 'Trietia', greek: 'τριετία', def: `A three-year seniority increment: each one adds ${F.triennium} to the minimum wage, up to ${F.trienniumMax}, giving ${F.minWithT(1)}, ${F.minWithT(2)} and ${F.minWithT(3)}.`, link: { id: 'trienniums', text: 'seniority increments' } },
+    { id: 'imeromisthio', term: 'Imeromisthio', greek: 'ημερομίσθιο', def: `A daily wage, the usual pay basis for manual workers (ergatotechnites). The daily minimum is ${F.minDaily}; for severance, ${F.sevDailyMonth} daily wages count as one month.`, link: { id: 'daily', text: 'daily wage' } },
+  ] },
+  { h: 'Social security and public bodies', terms: [
+    { id: 'efka', term: 'e-EFKA', greek: 'e-ΕΦΚΑ', def: `The unified social security fund. Under the standard private-sector code, ${F.efkaEe} is withheld from the employee and the employer pays ${F.efkaEr}.`, link: { id: 'efka', text: 'EFKA contributions' } },
+    { id: 'kpk', term: 'KPK', greek: 'ΚΠΚ, Κωδικός Πακέτου Κάλυψης', def: `The coverage package code that sets which insurance branches and rates apply to an employee. Code ${F.kpk} is the general private-sector case and the only one our calculators use.`, link: { id: 'method', text: 'methodology' } },
+    { id: 'plafon', term: 'Plafon', greek: 'πλαφόν', def: `The contribution ceiling: no contributions are due on monthly pay above ${F.ceiling} in ${F.year}, so the employee’s maximum is ${$2(P.efka.ceiling_monthly * P.efka.employee_rate)} a month.`, link: { id: 'ceiling', text: 'contribution ceiling' } },
+    { id: 'dypa', term: 'DYPA', greek: 'ΔΥΠΑ', def: `The public employment service, formerly OAED. Among other things it pays the first ${F.parentalMonths} months of parental leave at ${F.parentalMonthly} a month.`, link: { id: 'parental', text: 'parental leave benefit' } },
+    { id: 'ergani', term: 'ERGANI', greek: 'ΕΡΓΑΝΗ', def: `The Ministry of Labour’s information system for employment relationships. The Ministry put the 2025 average salary recorded there at ${F.avgWage}.` },
+    { id: 'aade', term: 'AADE', greek: 'ΑΑΔΕ', def: 'The Independent Authority for Public Revenue, Greece’s tax administration. Its annual assessment, not the monthly withholding, fixes your final income tax.' },
+    { id: 'afm', term: 'AFM', greek: 'ΑΦΜ', def: 'Your tax identification number. None of our calculators needs it, and you should black it out on any payslip you send us.' },
+  ] },
+  { h: 'Income tax', terms: [
+    { id: 'kfe', term: 'KFE', greek: 'ΚΦΕ', def: 'The Income Tax Code, Law 4172/2013. Article 15 sets the scale, article 16 the employee tax reduction and article 60 the withholding by employers.', link: { id: 'brackets', text: 'income tax brackets' } },
+    { id: 'klimaka', term: 'Forologiki klimaka', greek: 'φορολογική κλίμακα', def: `The tax scale: six brackets at ${F.r.join(', ')}, with thresholds at ${F.limits.slice(0, 5).join(', ')}. Children and age up to 30 lower the first rates.`, link: { id: 'youth', text: 'tax for workers under 30' } },
+    { id: 'meiosi-forou', term: 'Meiosi forou', greek: 'μείωση φόρου', def: `The article 16 reduction subtracted from scale tax: ${F.credit[0]} with no children, ${F.credit[1]} with one, ${F.credit[2]} with two, tapered by ${F.creditTaper} per ${$(1000)} of taxable income above ${F.creditThreshold}.`, link: { id: 'credit', text: 'employee tax credit' } },
+    { id: 'fmy', term: 'FMY', greek: 'ΦΜΥ, Φόρος Μισθωτών Υπηρεσιών', def: `Tax withheld by the employer from each payment: the year’s tax divided over the fourteen payments. On ${$(2000)} gross it is ${$(s.tax)} per payment.`, link: { id: 'withholding', text: 'payroll tax withholding' } },
+    { id: 'forologiteo', term: 'Forologiteo eisodima', greek: 'φορολογητέο εισόδημα', def: `Taxable income: for an employee, annual gross minus their own contributions, ${$(s.taxableAnnual)} on ${$(2000)} × 14.` },
+    { id: 'oriakos', term: 'Oriakos syntelestis', greek: 'οριακός συντελεστής', def: `Marginal rate, the one applied to your last euro and therefore to a pay rise: ${pct(s.marginal, lang)} on ${$(2000)} gross, against an average rate of ${pct(s.averageTax, lang)}.`, link: { id: 'children', text: 'tax reduction for children' } },
+  ] },
+  { h: 'Property and cars', terms: [
+    { id: 'enfia', term: 'ENFIA', greek: 'ΕΝΦΙΑ', def: `The annual property tax. For a building: m² × the basic tax of its zone (${$2(E.zone_bands[0].rate)} to ${$2(E.zone_bands[E.zone_bands.length - 1].rate)} per m²) × age, floor and façade factors, less reductions of up to ${pct(E.value_reductions[0].rate, lang)}.`, link: { id: 'enfia', text: 'ENFIA calculator' } },
+    { id: 'timi-zonis', term: 'Timi zonis', greek: 'τιμή ζώνης', def: `Zone price, the official value per m² of an area. It places a property in one of ${E.zone_bands.length} ENFIA zone bands and is used to estimate its value.`, link: { id: 'zone', text: 'zone price' } },
+    { id: 'e9', term: 'E9', greek: 'Ε9', def: 'The property declaration listing each property with its area, floor, age and ownership share. ENFIA is computed from these entries.' },
+    { id: 'palaiotita', term: 'Syntelestis palaiotitas', greek: 'συντελεστής παλαιότητας', def: `ENFIA age factor, based on the latest building permit: ${formatDecimal(E.age_factors[0].factor, 2, lang)} up to ${E.age_factors[0].maxYears} years, ${formatDecimal(E.age_factors[E.age_factors.length - 1].factor, 2, lang)} from ${(E.age_factors[E.age_factors.length - 2].maxYears as number) + 1} years, ${formatDecimal(E.age_factor_over_100, 2, lang)} beyond 100.`, link: { id: 'enfiadisc', text: 'ENFIA reductions' } },
+    { id: 'teli', term: 'Teli kykloforias', greek: 'τέλη κυκλοφορίας', def: `Annual road tax: by engine size for cars first registered up to 31 October 2010, by CO₂ after that. A car rated 130 g/km under NEDC pays ${$2(nedc.amount)}.`, link: { id: 'road', text: 'road tax calculator' } },
+    { id: 'wltp', term: 'NEDC and WLTP', greek: 'NEDC, WLTP', def: `The two CO₂ test cycles. Cars registered from 1 November 2010 to the end of 2020 are taxed on NEDC values, those from 2021 on WLTP, with no tax up to ${R.co2_wltp[0].upTo} g/km.`, link: { id: 'roadco2', text: 'CO₂ bands' } },
+    { id: 'akinisia', term: 'Akinisia', greek: 'ακινησία', def: 'Taking a car off the road for a whole year, declared on gov.gr before the year starts, with the plates handed in. For a car that is not exempt it is the only way to owe no road tax that year; lifting it means paying the year’s tax.', link: { id: 'roadmonth', text: 'road tax per month' } },
+  ] },
+  { h: 'Dismissal and pension', terms: [
+    { id: 'apozimiosi', term: 'Apozimiosi apolysis', greek: 'αποζημίωση απόλυσης', def: `Severance pay: from ${S.table_months[0].months} months’ pay after the first year up to ${S.table_months[S.table_months.length - 1].months} from ${S.table_months[S.table_months.length - 1].fromYears} years, plus 1/6 for the bonuses, on a monthly base capped at ${F.sevCap}.`, link: { id: 'severance', text: 'severance calculator' } },
+    { id: 'proeidopoiisi', term: 'Proeidopoiisi', greek: 'προειδοποίηση', def: `Written notice of dismissal, ${S.notice_months[0].months} to ${S.notice_months[S.notice_months.length - 1].months} months ahead depending on service. When it is given, severance is halved.`, link: { id: 'notice', text: 'dismissal notice' } },
+    { id: 'ethniki', term: 'Ethniki syntaxi', greek: 'εθνική σύνταξη', def: `National pension, the flat part: ${F.nationalFull} with ${Q.national_years_full} years of insurance (the last amount the Ministry published, from 1 January 2025), minus ${pct(Q.national_reduction_per_year, lang)} per year short of ${Q.national_years_full}.`, link: { id: 'national', text: 'national pension' } },
+    { id: 'antapodotiki', term: 'Antapodotiki syntaxi', greek: 'ανταποδοτική σύνταξη', def: `Contributory pension: career average pay × the accrual rate, from ${pct(Q.replacement_rates[0].rate, lang)} a year for the first 15 years up to ${pct(Math.max(...Q.replacement_rates.map((r) => r.rate)), lang)} for years 36 to 40.`, link: { id: 'pension', text: 'pension calculator' } },
+  ] },
+];
+const count = groups.reduce((n, g) => n + g.terms.length, 0);
+const title = `Payroll Glossary Greece ${F.year}: Mikta, EFKA, FMY, ENFIA`;
+const description = `${count} Greek payroll, tax and property terms for ${F.year}, transliterated and explained in plain English, from mikta and kathara to the ${F.ceiling} plafon and akinisia.`;
+---
+<PageLayout title={title} description={description} lang={lang} noindex={true}
+  jsonLd={[breadcrumbSchema([{ name: label('home', lang), path: route('home', lang) }, { name: label('glossary', lang), path: route('glossary', lang) }])]}
+  breadcrumbs={[{ label: label('glossary', lang) }]} showAuthor={false}>
+  <div class="prose prose-slate max-w-none">
+    <h1>Greek payroll, tax and property terms</h1>
+    <p class="lead">{count} words you will meet on a Greek payslip, in an employment contract, on the E9 form and in our calculators, each with its transliteration and the Greek spelling. Amounts come from the same parameter file as the calculations, so they match the {F.year} results.</p>
+    <p class="text-sm">Jump to: {groups.map((g, i) => <>{i > 0 && ' · '}<a href={`#g${i + 1}`}>{g.h}</a></>)}</p>
+    {groups.map((g, i) => (
+      <section>
+        <h2 id={`g${i + 1}`}>{g.h}</h2>
+        <dl>
+          {g.terms.map((x) => (
+            <>
+              <dt id={x.id} class="font-semibold text-navy-900"><em>{x.term}</em> <span lang="el" class="font-normal text-navy-600">({x.greek})</span></dt>
+              <dd class="mb-4 ml-0">{x.def}{x.link && <> <a href={route(x.link.id, lang)}>More: {x.link.text}</a>.</>}</dd>
+            </>
+          ))}
+        </dl>
+      </section>
+    ))}
+    <p>Missing a term? Tell us through the <a href={route('contact', lang)}>contact page</a>. How these terms feed into the calculation is shown in the <a href={route('method', lang)}>methodology</a>.</p>
+  </div>
+</PageLayout>

@@ -1,0 +1,61 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import MiniSim from '../../components/calc/MiniSim';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { t } from '../../i18n/ui';
+import { facts, src } from '../../lib/facts';
+import { salary, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney, displayDate } from '../../lib/format';
+import { faqSchema, webPageSchema, breadcrumbSchema } from '../../lib/seo';
+import { LANG_TAGS, AUTHOR_NAME, CONTACT_EMAIL, REVIEW_CYCLE_MONTHS } from '../../data/site-config';
+
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const checked = displayDate(F.retrieved, LANG_TAGS[lang]);
+const maxDiff = Math.max(...P.minimum_wage.official_examples.map((e) => Math.abs(salary({ gross: e.gross, children: e.children }).net - e.net)));
+const offer = salary({ gross: 2500 });
+
+const faqs = [
+  { q: 'Is the English version a translation, or does it calculate the same thing?', a: `It calculates exactly the same thing. Both languages call one engine with one set of ${F.year} parameters, so a gross salary gives the same net in Greek and in English. The English pages are written for people working in Greece who do not read Greek law: terms such as mikta (gross), FMY (tax withheld) or doro (bonus) are explained, and amounts use the English number format.` },
+  { q: 'I was offered a salary in Greece. Can I trust the net figure for my decision?', a: `As an estimate, yes: for a private-sector employee the engine matches the Ministry of Labour’s twelve published examples to within ${$2(maxDiff)}. A ${$(2500)} gross offer, for instance, gives ${$(offer.net)} net per payment and ${$(offer.netPer12)} a month on a twelve-month basis. What it cannot know is your tax residence, other income or special regime, so check those with an accountant before signing.` },
+  { q: 'Does anything I type leave my browser?', a: `No. The calculation runs on your device and the code sends nothing to a server; there is no account, no database of salaries and no analytics script loaded today. After you change a field, the values are written into the page address so you can share the result. That address stays in your browser history, so use a private window if you would rather not keep it.` },
+  { q: 'Why does my Greek payslip show a different net from your calculator?', a: `A gap of a euro or two is rounding: payroll software rounds each line, while we round once at the end. Larger gaps usually come from children not declared to the employer, a different age band for the young-worker rates, allowances paid on top of salary, or deductions that are not tax at all, such as a loan or union dues. The payslip checker on this page shows the size of the gap.` },
+  { q: 'Does it work if I am self-employed or a civil servant?', a: `Only partly. The salary calculator models private-sector employees on social security package code ${F.kpk}, with ${F.efkaEe} withheld from pay and ${F.efkaEr} paid by the employer. The income tax scale and the article 16 reduction apply to all employees, but civil servants, arduous occupations and the self-employed (eleftheroi epaggelmaties) pay different contributions, which the engine does not model.` },
+  { q: 'How quickly do you update the figures when Greek rules change?', a: `As soon as a change affecting take-home pay is enacted or published: a new minimum wage, an e-EFKA circular raising the ceiling, an amended tax scale or ENFIA rule. Announcements alone do not count until they are law. Independently of that, the whole parameter file is reviewed at least every ${REVIEW_CYCLE_MONTHS} months. The last full check was on ${checked}, the date shown at the top of each page.` },
+  { q: 'Which calculations can I do on this site?', a: `Ten calculators: net pay from gross, gross from a target net, employer cost, Christmas bonus, Easter bonus, leave allowance, severance pay, road tax (teli kykloforias), ENFIA property tax and a pension estimate. Every guide also carries a small calculator for its own topic. All of them share the same engine and the same ${F.year} parameters, so the figures agree from page to page.` },
+  { q: 'Can I show the result to a landlord, a bank or a court?', a: `As an estimate it helps, as evidence it does not. Binding figures come from your employer’s payroll, your e-EFKA record and the tax assessment issued by AADE, the Greek tax authority. Our result is useful to check a payslip, compare offers or prepare a negotiation. In a dispute over unpaid wages or a dismissal, the Labour Inspectorate or a lawyer is the right place; for tax questions, an accountant.` },
+  { q: 'Who runs this site, and is it linked to the Greek government?', a: `The site is published by ${AUTHOR_NAME}, which produces free salary and tax calculators with a published method. It is not linked to AADE, e-EFKA, the Ministry of Labour or any other public body and does not speak for them. Every rate points to a law, a circular or an official announcement, listed under sources on each page, and the editorial policy explains how they are checked.` },
+  { q: 'I think a result is wrong. How do I report it?', a: `Email ${CONTACT_EMAIL} with the link to your calculation, which carries every option you chose, plus the figure you expected and where it comes from, for example your payslip with names and tax number removed. We check each report against the law. If you are right, we fix the engine, add your case to the automated tests and update the date on the pages concerned.` },
+];
+
+const title = `Salary and Tax Calculator ${F.year}: Questions and Answers`;
+const description = `Questions about the ${F.year} calculators for Greece: accuracy, privacy, updates, payslip gaps, who the salary model covers, and how to share or report a result.`;
+const path = route('faq', lang);
+const h1 = 'Questions about the calculators';
+const jsonLd = [webPageSchema({ name: h1, description, path, lang }), breadcrumbSchema([{ name: t(lang).breadcrumbHome, path: route('home', lang) }, { name: label('faq', lang), path }]), faqSchema(faqs, lang)];
+const groups = [
+  { h: 'Pay and tax', ids: ['minimum', 'brackets', 'youth', 'children', 'efka', 'fourteen', 'withholding'] },
+  { h: 'Bonuses, dismissal, pension', ids: ['christmas', 'easter', 'leave', 'severance', 'notice', 'pension'] },
+  { h: 'Cars and property', ids: ['road', 'roadco2', 'enfia', 'enfiadisc', 'zone'] },
+];
+---
+<PageLayout title={title} description={description} lang={lang} jsonLd={jsonLd} faqs={faqs} breadcrumbs={[{ label: label('faq', lang) }]}
+  sources={[src('tax_scale', lang), src('efka_rates', lang), src('min_wage', lang)]}
+  related={[{ href: route('home', lang), name: label('home', lang), description: 'Net pay from gross, with children, age and 14 or 12 payments.' }, { href: route('method', lang), name: label('method', lang), description: 'Formulas, tests and the limits of the engine.' }, { href: route('widget', lang), name: label('widget', lang), description: 'Put the calculator on your own site for free.' }]}>
+  <article>
+    <header class="mb-6">
+      <h1 class="text-3xl font-bold text-navy-900 md:text-4xl">{h1}</h1>
+      <p class="mt-3 text-lg text-navy-600">What happens to the figures you enter, how close the results are to a real payslip, and where they stop.</p>
+    </header>
+    <div class="prose prose-slate max-w-none">
+      <p>These answers are about the site itself rather than about any single Greek rule. Questions on the tax scale, the bonuses or severance are answered in their own guides, each with its calculator. To check a payslip straight away, enter its gross and net below. The most common surprise for newcomers is the payment count: a {$(2500)} gross salary is paid fourteen times, so the {$(offer.net)} net you see in each payment becomes {$(offer.netPer12)} once the bonuses are spread over twelve months.</p>
+      <div data-chrome><MiniSim client:load kind="payslipcheck" lang={lang} href={route('home', lang)} /></div>
+      <h2>Guides by topic</h2>
+      {groups.map((g) => <p><strong>{g.h}:</strong> {g.ids.map((id, i) => <>{i > 0 && ' · '}<a href={route(id, lang)}>{label(id, lang)}</a></>)}</p>)}
+      <p>The step-by-step formulas are in the <a href={route('method', lang)}>methodology</a>, and Greek payroll words are explained in the <a href={route('glossary', lang)}>glossary</a>.</p>
+    </div>
+  </article>
+</PageLayout>

@@ -1,0 +1,141 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import MiniSim from '../../components/calc/MiniSim';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { t } from '../../i18n/ui';
+import { facts, src } from '../../lib/facts';
+import { salary, christmasBonus, easterBonus, leaveAllowance, severance, roadTax, enfia, pension, grossForNet, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney, formatDecimal, pct, displayDate } from '../../lib/format';
+import { webPageSchema, breadcrumbSchema } from '../../lib/seo';
+import { LANG_TAGS } from '../../data/site-config';
+
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const checked = displayDate(F.retrieved, LANG_TAGS[lang]);
+const M = P.minimum_wage;
+
+// Worked example
+const G = 2000;
+const s = salary({ gross: G });
+const s12 = salary({ gross: G * 14 / 12, payments: 12 });
+const inv = grossForNet(Math.round(s.net));
+
+// The twelve Ministry of Labour examples
+const checks = M.official_examples.map((e) => { const r = salary({ gross: e.gross, children: e.children }); return { ...e, engine: r.net, diff: r.net - e.net }; });
+const maxDiff = Math.max(...checks.map((c) => Math.abs(c.diff)));
+const sign = (x: number) => `${x > 0.005 ? '+' : x < -0.005 ? '−' : ''}${$2(Math.abs(x))}`;
+const checkRows = checks.map((c) => [$(c.gross), String(c.children), $(c.net), $2(c.engine), sign(c.diff)]);
+const nTests = 50;
+
+const xm = christmasBonus({ pay: G }), xmDaily = christmasBonus({ pay: M.daily, daily: true }), ea = easterBonus({ pay: G }), eaPart = easterBonus({ pay: G, days: 60 }), lv = leaveAllowance({ pay: G });
+const sev = severance({ pay: G, years: 12 }), sevN = severance({ pay: G, years: 12, notice: true });
+const nedc = roadTax({ category: 'co2_nedc', co2: 145 }), cc = roadTax({ category: 'cc_2001_2005', cc: 1400 });
+const en = enfia({ sqm: 100, zonePrice: 2200, buildYear: 2010, floor: 'f4_5', insured: true });
+const pen = pension({ years: 35, avgEarnings: 1800 });
+const R = P.road_tax, E = P.enfia, Q = P.pension, S = P.severance;
+const lim = P.tax.brackets.map((b, i) => `${i === 0 ? '0' : $(P.tax.brackets[i - 1].upTo as number)}–${b.upTo === null ? '…' : $(b.upTo)}: ${pct(b.rate, lang)}`).join(' · ');
+const L = (k: keyof typeof P.sources) => P.sources[k].label[lang];
+const paramRows = [
+  ['Minimum wage and daily minimum (from 1 April)', `${F.minWage} · ${F.minDaily}`, L('min_wage')],
+  ['Seniority increment on the minimum wage', `${F.triennium}, up to ${F.trienniumMax} increments`, L('min_wage')],
+  ['Contributions, package code 101, employee and employer', `${F.efkaEe} · ${F.efkaEr}`, L('efka_rates')],
+  ['Of which health insurance', `${F.efkaHealthEe} · ${F.efkaHealthEr}`, L('efka_rates')],
+  ['Contribution ceiling', `${F.ceiling} a month`, L('efka_ceiling')],
+  ['Income tax scale', lim, L('tax_scale')],
+  ['2nd bracket with 1, 2, 3 children', F.second.slice(1).join(' · '), L('tax_scale')],
+  ['3rd bracket with 1 to 4 children', `${F.third.slice(1).join(' · ')}, −${F.thirdStep} per further child`, L('tax_scale')],
+  ['Young taxpayers, first two brackets', `${F.youthU25} up to 25 · ${F.youth2630} from 26 to 30, up to ${F.youthLimit}`, L('tax_scale')],
+  ['Article 16 tax reduction (0 to 5 children)', `${F.credit.join(' · ')}, +${F.creditStep} per further child`, L('tax_credit')],
+  ['Taper of the reduction', `${F.creditTaper} per ${$(1000)} above ${F.creditThreshold}`, L('tax_credit')],
+  ['Christmas / Easter bonus', `1 month or ${F.xmasDaily} daily wages · ½ month or ${F.easterDaily}, + ${F.leaveShare}`, L('hli_christmas')],
+  ['Leave allowance', `up to ½ month or ${F.leaveDaily} daily wages`, L('hli_bonuses')],
+  ['Severance pay', `${S.table_months[0].months} to ${S.table_months[S.table_months.length - 1].months} months, cap ${F.sevCap}, + 1/6`, L('severance')],
+  ['Road tax, engine-size tables', `${$(Math.min(...R.cc_from_2006))} to ${$(Math.max(...R.cc_from_2006))}`, L('road_tax')],
+  ['Road tax, WLTP rate per gram', `${$2(0)} to ${$2(R.co2_wltp[R.co2_wltp.length - 1].rate)}`, L('road_tax')],
+  ['ENFIA basic tax per m²', `${$2(E.zone_bands[0].rate)} to ${$2(E.zone_bands[E.zone_bands.length - 1].rate)} over ${E.zone_bands.length} zones`, L('enfia')],
+  ['ENFIA reductions', `up to ${pct(E.value_reductions[0].rate, lang)} by value · ${F.insurance} insurance · ${F.village} small settlements`, L('enfia_reductions')],
+  ['National pension (2025 amount)', F.nationalFull, L('pension_national')],
+  ['Accrual rates', `${pct(Q.replacement_rates[0].rate, lang)} to ${pct(Math.max(...Q.replacement_rates.map((r) => r.rate)), lang)} per year`, L('pension')],
+];
+const sources = (Object.keys(P.sources) as Array<keyof typeof P.sources>).map((k) => src(k, lang));
+
+const title = `Net Salary Greece ${F.year}: Methodology, Formulas, Sources`;
+const description = `How gross becomes net in ${F.year}: pay × 14, EFKA ${F.efkaEe} up to the ceiling, the tax scale and the article 16 credit, checked against 12 official Ministry examples.`;
+const path = route('method', lang);
+const h1 = `How the numbers are worked out: ${F.year} methodology`;
+const jsonLd = [webPageSchema({ name: h1, description, path, lang }), breadcrumbSchema([{ name: t(lang).breadcrumbHome, path: route('home', lang) }, { name: label('method', lang), path }])];
+---
+<PageLayout title={title} description={description} lang={lang} jsonLd={jsonLd} sources={sources} breadcrumbs={[{ label: label('method', lang) }]}
+  related={[{ href: route('home', lang), name: label('home', lang), description: 'Net pay from any gross salary, with age, children and payment count.' }, { href: route('fourteen', lang), name: label('fourteen', lang), description: 'Why a Greek salary arrives in fourteen instalments.' }, { href: route('faq', lang), name: label('faq', lang), description: 'Privacy, updates and payslip differences.' }]}>
+  <article>
+    <header class="mb-6">
+      <h1 class="text-3xl font-bold text-navy-900 md:text-4xl">{h1}</h1>
+      <p class="mt-3 text-lg text-navy-600">Every formula behind the calculators, in the order the code applies it, with the limits we know about and the source of each rate.</p>
+    </header>
+    <p class="mb-6 text-navy-700">If you are used to a payroll system elsewhere in Europe, two things about Greek pay will surprise you, and both shape the method. First, salaried staff are paid fourteen times a year: twelve monthly salaries plus a Christmas bonus, an Easter bonus and a leave allowance. Second, the employer works out income tax on the whole year and then spreads it evenly, which is why the tax line on your payslip barely moves from month to month. Our engine reproduces exactly that: it multiplies the monthly gross by fourteen, deducts the employee’s e-EFKA social security contribution of {F.efkaEe} up to the monthly ceiling of {F.ceiling}, applies the {F.year} scale with the rates that depend on your age and children, subtracts the employee tax reduction of article 16 of the Income Tax Code and divides the result back into payments. All of this runs in your browser. No rate is typed into the code: everything is read from one parameter file with an official source next to each value, last checked in full on {checked}. Against the twelve net figures the Ministry of Labour published, our results differ by at most {$2(maxDiff)}.</p>
+
+    <div data-chrome><MiniSim client:load kind="methodsteps" lang={lang} href={route('home', lang)} /></div>
+
+    <div class="prose prose-slate max-w-none">
+      <h2>Salary: the eight steps</h2>
+      <p>Take a monthly gross of {$(G)}, an employee over 30 with no dependent children.</p>
+      <ol>
+        <li><strong>Annual gross</strong> = monthly gross × 14, or × 12 if your contract already folds the bonuses into the monthly figure: {$(s.annualGross)}.</li>
+        <li><strong>Insurable pay</strong> = the lower of the gross and the {F.ceiling} ceiling. Nothing above the ceiling attracts contributions, for you or the employer.</li>
+        <li><strong>Employee contribution</strong> = insurable pay × {F.efkaEe}, the rate of package code {F.kpk} (<em>KPK</em>, the standard private-sector code): {$2(s.efka)} per payment, {$2(s.efkaAnnual)} a year.</li>
+        <li><strong>Taxable income</strong> = annual gross − annual contributions = {$2(s.taxableAnnual)}.</li>
+        <li><strong>Scale tax</strong>: each slice of income is taxed at its bracket’s rate. Children lower the 2nd bracket ({F.second.slice(1).join(', ')} with one to three) and the 3rd ({F.third.slice(1).join(', ')} with one to four); with four children the first two brackets fall to zero. Up to age 25 the first two brackets are taxed at {F.youthU25}, from 26 to 30 at {F.youth2630}, and the more favourable rate wins when both rules apply. Here: {$2(s.scaleAnnual)}.</li>
+        <li><strong>Article 16 reduction</strong> = {F.credit[0]} with no children, up to {F.credit[5]} with five, reduced by {F.creditTaper} for every {$(1000)} of taxable income above {F.creditThreshold} (no taper from five children up) and never more than the scale tax. Here: {$2(s.creditAnnual)}.</li>
+        <li><strong>Tax for the year</strong> = scale tax − reduction = {$2(s.taxAnnual)}; withheld per payment, the Greek <em>FMY</em>: {$2(s.tax)}.</li>
+        <li><strong>Net</strong> = (annual gross − contributions − tax) ÷ 14 = {$2(s.net)}. On a twelve-month basis, the figure to compare with a job abroad, it is {$2(s.netPer12)}.</li>
+      </ol>
+      <p>The same yearly amount paid in twelve instalments of {$2(G * 14 / 12)} gives an identical annual net, {$(s12.netAnnual)}, because tax and contributions are computed on the year. The employer adds {F.efkaEr} of insurable pay on top, so this salary costs {$2(s.cost)} per payment. The net-to-gross calculator has no separate formula: it searches for the gross that produces the net you typed, to the cent, by bisection. Asking for {$(Math.round(s.net))} net returns {$2(inv)} gross.</p>
+      <p>Arithmetic is done in cents and results are shown in whole euros. Payroll software usually rounds line by line, so a one-euro gap with your payslip is normal.</p>
+
+      <h2>Validation: twelve official examples, {nTests} automated tests</h2>
+      <p>When the {F.minWage} minimum wage was announced, the Ministry of Labour published twelve net amounts: the minimum wage with no, one, two and three seniority increments (<em>trieties</em>), each for zero, one and two children. The engine reproduces all twelve, the largest gap being {$2(maxDiff)}. The table below is computed when the page is built, so it would show at once if a parameter change broke the match.</p>
+    </div>
+    <ContentTable headers={['Gross', 'Children', 'Ministry', 'Engine', 'Gap']} align={['r', 'r', 'r', 'r', 'r']} rows={checkRows} />
+    <div class="prose prose-slate max-w-none">
+      <p>Before each release {nTests} automated tests run against the engine. Besides the twelve examples they cover the bracket rates for children and young workers, the article 16 taper, the ceiling, the equivalence of 12 and 14 payments, the bonus pro-rata rules, the severance table with and without notice, WLTP, NEDC and engine-size road tax, ENFIA with its reductions, the pension accrual rates and the parental leave benefit. A single failure blocks publication.</p>
+
+      <h2>Holiday bonuses and leave allowance</h2>
+      <p>The Christmas bonus (<em>doro Christougennon</em>) is one month’s salary, or {F.xmasDaily} daily wages for staff paid by the day, for anyone employed from 1 May to 31 December ({F.xmasDays} days). For a shorter stretch the engine pays 2/25 of the monthly salary, or two daily wages, for every 19 days, and a proportional fraction of the remainder. The Easter bonus (<em>doro Pascha</em>) is half a month or {F.easterDaily} daily wages for 1 January to 30 April ({F.easterDays} days), pro-rated at 1/15 of the half-month per 8 days. Both are increased by the leave-allowance share of {F.leaveShare}. On {$(G)} a month that gives {$2(xm.amount)} at Christmas and {$2(ea.amount)} at Easter, or {$2(eaPart.amount)} after 60 days of work; a worker on the {F.minDaily} daily minimum gets {$2(xmDaily.amount)} at Christmas.</p>
+      <p>The leave allowance (<em>epidoma adeias</em>) equals leave pay, capped at half a month or {F.leaveDaily} daily wages: {$2(lv.amount)} here. When the entitlement is partial, the engine pro-rates it by months worked, a simplification listed below. Net amounts for any bonus use the payment’s own contributions and the employee’s average tax rate for the year.</p>
+
+      <h2>Severance pay</h2>
+      <p>The base is the regular pay of the last full-time month, with {F.sevDailyMonth} daily wages counted as a month for manual workers, capped under article 5 of Law 3198/1955 at {S.cap_daily_multiple} times the unskilled daily wage times {S.cap_days}, currently {F.sevCap}. The number of months comes from the Law 4093/2012 table: none in the first year, {S.table_months[0].months} from one year, rising to {S.table_months[S.table_months.length - 1].months} from {S.table_months[S.table_months.length - 1].fromYears} years. Written notice halves the amount. Staff who already had {S.extra_2012_from_years} or more years with the same employer on 12 November 2012 receive up to {S.extra_2012_max_months} extra months on pay capped at {F.sevExtraCap}. One sixth is then added for the bonus and leave-allowance share. Twelve years on {$(G)}: {sev.months} months and {$2(sev.total)}, or {$2(sevN.total)} with notice.</p>
+
+      <h2>Road tax</h2>
+      <p>The table depends on the date of first registration in the EU or EEA. Up to 31 October 2010 the tax is a fixed amount per engine-size band, from three tables (up to 2000, 2001 to 2005, from 2006). From 1 November 2010 to the end of 2020 it follows NEDC CO₂ emissions, and from 2021 WLTP: every gram is multiplied by the rate of the band the car falls into. A 145 g/km NEDC car therefore pays {$2(nedc.amount)} and a 1,400 cc car registered in 2003 pays {$(cc.amount)}. Electric and hydrogen cars pay nothing. For passenger cars the tax covers the whole year and cannot be split, so the engine never divides it into months.</p>
+
+      <h2>ENFIA property tax</h2>
+      <p>The main tax on a building = floor area × the basic tax of its zone ({$2(E.zone_bands[0].rate)} to {$2(E.zone_bands[E.zone_bands.length - 1].rate)} per m² across {E.zone_bands.length} zone-price bands) × an age factor ({formatDecimal(E.age_factors[0].factor, 2, lang)} for new buildings down to {formatDecimal(E.age_factor_over_100, 2, lang)} beyond 100 years) × a floor or detached-house factor × a façade factor × your ownership share. Ancillary spaces count at {formatDecimal(E.auxiliary_factor, 2, lang)}. Above {$(E.right_tax_from_value)} of total property value a tax on value is added, above {$(E.surcharge_from_value)} a surcharge, and then the reductions apply: by total value, for an insured home ({F.insurance} or {F.insuranceHigh}) and, in {F.year}, {F.village} for a main home in a settlement of up to {F.villagePop} people. A 100 m² flat on the 4th floor in a {$(2200)} zone, permit 2010, insured: {$2(en.total)}.</p>
+
+      <h2>Pension</h2>
+      <p>The estimate follows articles 7 and 8 of Law 4387/2016. Contributory part = average pensionable earnings × the sum of the accrual rates for each year of insurance, never more than the earnings themselves. National pension = {F.nationalFull} with {Q.national_years_full} years of insurance and {Q.residence_years_full} years of residence, minus {pct(Q.national_reduction_per_year, lang)} for each year short of {Q.national_years_full} (minimum {F.minYears} years, {F.national15}), multiplied by residence years over {Q.residence_years_full}. Thirty-five years on an average of {$(1800)}: accrual {pct(pen.rate, lang)}, contributory {$2(pen.contributory)}, national {$2(pen.national)}, total {$2(pen.total)} gross.</p>
+
+      <h2>What the engine does not cover</h2>
+      <p>These are the cases where our figures can differ from reality:</p>
+      <ul>
+        <li>Contributions: only package code {F.kpk} for private-sector employees. Other codes, arduous and unhealthy occupations (<em>varea</em>), civil servants and the self-employed are not modelled.</li>
+        <li>Young workers: the law speaks of taxpayers “up to 25” and “from 26 to 30”; we apply no birth-year rule, you pick the band.</li>
+        <li>Leave allowance: pro-rated by months worked, not by the exact leave days you are owed.</li>
+        <li>ENFIA: one building at a time, no plots of land, no low-income reductions; if you leave total value blank it is estimated as m² × zone price × share.</li>
+        <li>Pension: the national pension is the last amount the Ministry published ({F.nationalFull}, from 1 January 2025), which is indexed every year; the 1/200-per-month cut for early reduced pensions and the rules for the uniformed services are not applied.</li>
+        <li>Severance: shown gross, without any tax that may apply to it.</li>
+        <li>Road tax: no late-payment penalties.</li>
+        <li>Salary: deductions that are not tax or social security (union dues, loans, garnishments) and your other income are unknown to the engine.</li>
+      </ul>
+      <p>If the engine disagrees with your payroll by more than rounding, <a href={route('contact', lang)}>tell us</a>: every confirmed error becomes a new test. How sources are chosen is set out in the <a href={route('editorial', lang)}>editorial policy</a>, and Greek payroll terms are explained in the <a href={route('glossary', lang)}>glossary</a>.</p>
+
+      <h2>Parameters and sources</h2>
+      <p>This table is generated from the parameter file; full titles and links are in the sources list at the foot of the page.</p>
+    </div>
+    <ContentTable headers={['Parameter', `${F.year} value`, 'Source']} align={['l', 'l', 'l']} rows={paramRows} />
+  </article>
+</PageLayout>

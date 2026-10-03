@@ -1,0 +1,53 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import LegalIdentity from '../../components/LegalIdentity.astro';
+import { AUTHOR_NAME, LAST_UPDATED, LANG_TAGS, LEGAL } from '../../data/site-config';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts } from '../../lib/facts';
+import { displayDate } from '../../lib/format';
+import { breadcrumbSchema } from '../../lib/seo';
+const lang = 'en';
+const F = facts(lang);
+const updated = displayDate(LAST_UPDATED, LANG_TAGS[lang]);
+const title = `Terms of Use ${F.year}: Publisher, Liability and Embedding`;
+const description = `Who publishes the site and where it is hosted, what the ${F.year} results are (an estimate, not tax advice), liability, copyright and the rules for the widget.`;
+---
+<PageLayout title={title} description={description} lang={lang} noindex={true}
+  jsonLd={[breadcrumbSchema([{ name: label('home', lang), path: route('home', lang) }, { name: label('terms', lang), path: route('terms', lang) }])]}
+  breadcrumbs={[{ label: label('terms', lang) }]} showAuthor={false}>
+  <div class="prose prose-slate max-w-none">
+    <h1>Terms of use and legal notice</h1>
+    <p class="lead">By using this site you accept the terms below. They cover every page, every calculator and the widget embedded on other sites. Use is free and needs no registration.</p>
+
+    <h2>Legal notice</h2>
+    <h3>Publisher</h3>
+    <LegalIdentity lang={lang} />
+    <p>Responsible for content: {AUTHOR_NAME}.</p>
+    <h3>Hosting</h3>
+    <LegalIdentity mode="hosting" lang={lang} />
+
+    <h2>What the site is, and what it is not</h2>
+    <p>The site offers free calculators for net salary, employer cost, holiday bonuses, leave allowance, severance pay, road tax, ENFIA and pensions in Greece, with guides explaining them. <strong>Results are estimates only and do not constitute tax, legal or financial advice.</strong> They rest on the {F.year} rules and rates published in Greek law, e-EFKA circulars and Ministry of Labour announcements, and on the assumptions set out in the <a href={route('method', lang)}>methodology</a>.</p>
+    <p>What you are actually paid depends on your employer’s payroll, your other income and your personal situation; final income tax is settled in the annual return. The site is independent: it is not linked to AADE, e-EFKA, the Ministry of Labour or any other authority and does not act on their behalf.</p>
+
+    <h2>Accuracy and liability</h2>
+    <p>We update the parameters whenever the law changes and test the engine on reference cases, but we do not guarantee that results are free of errors or cover every situation. The calculators do not take into account, among other things, social security codes other than the general private-sector one, special tax regimes or individual arrangements with an employer. To the extent the law allows, we are not liable for losses arising from a decision based solely on a result from this site, nor for interruptions of service. This does not exclude liability that cannot lawfully be excluded. If you spot an error, write to us through the <a href={route('contact', lang)}>contact page</a>; the correction process is described in the <a href={route('editorial', lang)}>editorial policy</a>.</p>
+
+    <h2>Copyright</h2>
+    <p>The texts, design, data tables and code of the site are protected and belong to the publisher. Copying or republishing them without permission is not allowed, except for short quotations that name the source and link to the page quoted. The laws and official documents we refer to are not the publisher’s copyright.</p>
+
+    <h2>Embedding the calculator</h2>
+    <p>You may embed the salary calculator free of charge in an iframe on your site, provided the visible link back to this site stays in place and the presentation does not suggest an official service or your own product. The code and detailed conditions are on the <a href={route('widget', lang)}>widget page</a>.</p>
+
+    <h2>Links to other sites</h2>
+    <p>Links to laws and public offices are there so you can check our sources. We do not control those pages and are not responsible for their content.</p>
+
+    <h2>Personal data and cookies</h2>
+    <p>What you type into the calculators never leaves your browser. Data processing is described in the <a href={route('privacy', lang)}>privacy policy</a> and cookies on the <a href={route('cookies', lang)}>cookies page</a>.</p>
+
+    <h2>Governing law and changes</h2>
+    <p>These terms are governed by the law of the publisher’s country of establishment ({LEGAL.jurisdiction}). This does not deprive consumers of the protection given by the mandatory rules of the country where they normally live. The terms may change; the version published on this page, dated below, applies.</p>
+    <p>Version of {updated}.</p>
+  </div>
+</PageLayout>

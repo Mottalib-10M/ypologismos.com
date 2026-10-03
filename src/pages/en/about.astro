@@ -1,0 +1,44 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import LegalIdentity from '../../components/LegalIdentity.astro';
+import { AUTHOR_NAME, CONTACT_EMAIL, REVIEW_CYCLE_MONTHS, LANG_TAGS } from '../../data/site-config';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts } from '../../lib/facts';
+import { salary } from '../../lib/engine/gr';
+import { formatMoney, displayDate } from '../../lib/format';
+import { organizationSchema, breadcrumbSchema } from '../../lib/seo';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const checked = displayDate(F.retrieved, LANG_TAGS[lang]);
+const s = salary({ gross: 3000 });
+const title = `Salary Calculator for Greece: Who Runs It and How It Works`;
+const description = `Who publishes this site, why each result shows net per payment and on a 12-month basis, where the ${F.year} rates come from, who funds it, how to report a mistake.`;
+---
+<PageLayout title={title} description={description} lang={lang} noindex={true}
+  jsonLd={[organizationSchema(lang), breadcrumbSchema([{ name: label('home', lang), path: route('home', lang) }, { name: label('about', lang), path: route('about', lang) }])]}
+  breadcrumbs={[{ label: label('about', lang) }]} showAuthor={false}>
+  <div class="prose prose-slate max-w-none">
+    <h1>Who we are and why this calculator exists</h1>
+    <p class="lead">This site is published by {AUTHOR_NAME}, which produces free salary, tax and benefit calculators for several countries. This one is about Greece: fourteen-payment salaries, holiday bonuses, severance, road tax and ENFIA, with a source next to every rate.</p>
+
+    <h2>Why another salary calculator</h2>
+    <p>Because most Greek calculators are written for people who already understand Greek payroll. Someone arriving from abroad with a {$(3000)} gross offer needs to know that it is paid fourteen times, that the {$(s.net)} net in each payment is worth {$(s.netPer12)} a month once the bonuses are spread over the year, and that the employer’s real cost is {$(s.cost)} per payment. Every result here shows those figures side by side. The English pages are not a machine translation: they are written for readers meeting words like <em>FMY</em>, <em>KPK</em> or <em>akinisia</em> for the first time, and the Greek pages for readers who know them well.</p>
+
+    <h2>Where the figures come from</h2>
+    <p>Every {F.year} parameter lives in one file, with a link to its official source and the date it was read: consolidated law texts, e-EFKA circulars, Ministry of Labour announcements and Labour Inspectorate guidance. The calculators and the guide texts read only that file. Last full check: {checked}. Before each release the engine runs automated tests, including the twelve net pay examples the Ministry published for the minimum wage. The formulas are in the <a href={route('method', lang)}>methodology</a> and the checking rules in the <a href={route('editorial', lang)}>editorial policy</a>. A full review takes place at least every {REVIEW_CYCLE_MONTHS} months and whenever the law changes.</p>
+
+    <h2>How the site is funded</h2>
+    <p>The calculators are free and need no account. Today the site shows no advertising and runs no audience measurement. If advertising ever appears, it will never sit above a calculator and will not influence any result or guide. We do not sell data because we hold none: the calculation happens on your device. We have no arrangement with accountants, banks or insurers and accept no payment for mentions. Details are in the <a href={route('privacy', lang)}>privacy policy</a>.</p>
+
+    <h2>What it does not replace</h2>
+    <p>A result is a documented estimate for a typical case, not tax or legal advice. We do not know your other income, your tax residence or any special arrangement with your employer. Before a decision with lasting effects, such as accepting a job or contesting a dismissal, show the figures to an accountant (<em>logistis</em>) or a lawyer. We are not linked to AADE, e-EFKA, the Ministry of Labour or any other public body.</p>
+
+    <h2>Spotted a mistake?</h2>
+    <p>Every report is checked against the source. The most useful things to send are the link to your calculation, which carries all your options, and the figure you expected, for example from a payslip. Write to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>; the <a href={route('contact', lang)}>contact page</a> explains what helps. To show the calculator on your own site, see the <a href={route('widget', lang)}>widget</a>.</p>
+
+    <h2>Publisher</h2>
+    <LegalIdentity lang={lang} />
+  </div>
+</PageLayout>

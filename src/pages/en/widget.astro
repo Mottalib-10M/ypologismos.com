@@ -1,0 +1,45 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import ToolCalc from '../../components/calc/ToolCalc';
+import { SITE_URL } from '../../data/site-config';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts } from '../../lib/facts';
+import { breadcrumbSchema } from '../../lib/seo';
+const lang = 'en';
+const F = facts(lang);
+const host = SITE_URL.replace(/^https?:\/\//, '');
+const codeEn = `<iframe src="${SITE_URL}/embed/misthos/?lang=en" title="Greek net salary calculator" width="100%" height="820" style="border:0;max-width:760px" loading="lazy"></iframe>`;
+const codeEl = `<iframe src="${SITE_URL}/embed/misthos/" title="Υπολογισμός καθαρού μισθού" width="100%" height="820" style="border:0;max-width:760px" loading="lazy"></iframe>`;
+const title = `Salary Calculator Widget ${F.year}: Free Embed for Your Site`;
+const description = `Put a free ${F.year} Greek net salary calculator on your website: one iframe snippet, English or Greek, no sign-up, no cookies, and rates we keep up to date for you.`;
+---
+<PageLayout title={title} description={description} lang={lang} noindex={true}
+  jsonLd={[breadcrumbSchema([{ name: label('home', lang), path: route('home', lang) }, { name: label('widget', lang), path: route('widget', lang) }])]}
+  breadcrumbs={[{ label: label('widget', lang) }]} showAuthor={false}>
+  <header class="mb-6">
+    <h1 class="text-3xl font-bold text-navy-900 md:text-4xl">Embed the Greek salary calculator</h1>
+    <p class="mt-3 text-lg text-navy-600">One snippet to copy, free of charge and with no account. It loads the full net pay calculator (gross, age, children, 14 or 12 payments) in an iframe served from this site. Relocation services, international schools, expat forums, recruiters and HR teams hiring people from abroad use it to answer the question every newcomer asks: what will I actually be paid?</p>
+  </header>
+  <div class="prose prose-slate max-w-none">
+    <h2>The code</h2>
+    <p>Paste this HTML where the calculator should appear. The frame does not resize itself: 820 px is enough in a wide column, but on a narrow column or a phone layout 1100 px is safer.</p>
+    <pre class="overflow-x-auto rounded-lg bg-navy-900 p-4 text-sm text-white"><code>{codeEn}</code></pre>
+    <p>If your readers are Greek, drop the <code>?lang=en</code> parameter and the calculator appears in Greek:</p>
+    <pre class="overflow-x-auto rounded-lg bg-navy-900 p-4 text-sm text-white"><code>{codeEl}</code></pre>
+
+    <h2>What your readers get</h2>
+    <p>The engine behind our own pages, with the {F.year} rules: the e-EFKA employee contribution of {F.efkaEe} up to the {F.ceiling} ceiling, the {F.r[0]} to {F.r[5]} tax scale with its reductions for children and for workers up to 30, and the article 16 employee tax credit. The result shows net per payment, per year, on a twelve-month basis, and the employer’s cost. When a rate changes we update our data, and your widget shows the new figures without any work on your side.</p>
+
+    <h2>Terms of use</h2>
+    <p>The widget is free, including on commercial sites. The link to {host} below the calculator must stay visible, and the code may not be changed beyond the frame’s width and height. The way you present it must not suggest that it is a tool of AADE, e-EFKA or your own product. Results are estimates only and not tax advice, and we do not guarantee uninterrupted service. The full rules are in the <a href={route('terms', lang)}>terms of use</a>.</p>
+
+    <h2>Your visitors’ data</h2>
+    <p>Nothing your visitors type reaches us: the calculation runs in their browser, and the frame sets no cookies and loads no analytics. You therefore do not need to list us in your own cookie notice (see our <a href={route('privacy', lang)}>privacy policy</a>). Need another size or have a question? Write to us through the <a href={route('contact', lang)}>contact page</a>.</p>
+
+    <h2>Live preview</h2>
+    <p>This is what appears inside the frame:</p>
+  </div>
+  <div class="mx-auto mt-4 max-w-3xl"><ToolCalc client:load kind="salary" lang={lang} compact={true} methodHref={route('method', lang)} /></div>
+  <p class="mt-2 text-center text-xs text-navy-600">{host} · calculated in your browser</p>
+</PageLayout>
