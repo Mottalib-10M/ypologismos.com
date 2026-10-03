@@ -1,0 +1,72 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { roadTax, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const n = F.num;
+const R = P.road_tax;
+type T = 'co2_nedc' | 'co2_wltp';
+const tax = (t: T, g: number) => roadTax({ category: t, co2: g }).amount;
+const cliffs = (t: T, name: string) => R[t].filter((r) => r.upTo !== null).map((r) => {
+  const g = r.upTo as number;
+  return [name, `${n(g)} → ${n(g + 1)}`, $2(tax(t, g)), $2(tax(t, g + 1)), `+${$2(tax(t, g + 1) - tax(t, g))}`];
+});
+const cliffRows = [...cliffs('co2_nedc', 'NEDC'), ...cliffs('co2_wltp', 'WLTP')];
+const nedcFree = R.co2_nedc[0].upTo as number, wltpFree = R.co2_wltp[0].upTo as number;
+const nTop = R.co2_nedc[R.co2_nedc.length - 1], wTop = R.co2_wltp[R.co2_wltp.length - 1];
+const same = [130, 150, 180, 220].map((g) => [`${n(g)} g/km`, $2(tax('co2_nedc', g)), $2(tax('co2_wltp', g))]);
+const w208 = { a: tax('co2_wltp', 208), b: tax('co2_wltp', 209) };
+const n120 = { a: tax('co2_nedc', 120), b: tax('co2_nedc', 121) };
+const n250 = { a: tax('co2_nedc', 250), b: tax('co2_nedc', 251) };
+const w139 = { a: tax('co2_wltp', 139), b: tax('co2_wltp', 140) };
+const keep = 7;
+const faqs = [
+  { q: 'Two trims of the same model are 1 g/km apart. Can that really change my Greek road tax?', a: `It can, if the gram crosses a band limit. On the NEDC table a car at ${n(120)} g/km owes ${$2(n120.a)} and one at ${n(121)} g/km owes ${$2(n120.b)}. On the WLTP table the steepest step is between ${n(208)} and ${n(209)} g/km, from ${$2(w208.a)} to ${$2(w208.b)}. Inside a band, one gram only adds the band’s rate.` },
+  { q: 'My car was first registered in Spain in November 2020 and moved to Greece in 2023. Which CO₂ table applies?', a: `The NEDC table. Greece looks at the first registration in any EU or EEA country, not at the date the car got Greek plates, and the NEDC table covers 1 November 2010 to 31 December 2020. At ${n(150)} g/km the tax is ${$2(tax('co2_nedc', 150))} a year; the same figure on the WLTP table would give ${$2(tax('co2_wltp', 150))}, but you cannot choose.` },
+  { q: 'What is the lowest CO₂ figure that triggers Greek road tax?', a: `${n(nedcFree + 1)} g/km for cars on the NEDC table (registered from November 2010 to 2020) and ${n(wltpFree + 1)} g/km for cars on the WLTP table (from 2021). Below those figures the band rate is zero. Crossing the line costs at once: a WLTP car at ${n(wltpFree + 1)} g/km owes ${$2(tax('co2_wltp', wltpFree + 1))} for the year.` },
+  { q: 'Over seven years, what does a band limit cost me?', a: `Multiply the annual step by the years you keep the car. A WLTP car at ${n(209)} g/km instead of ${n(208)} pays ${$2(w208.b - w208.a)} more each year, so ${$2((w208.b - w208.a) * keep)} over ${keep} years. Near the ${n(139)}/${n(140)} g/km limit the step is only ${$2(w139.b - w139.a)} a year, so the choice of trim matters far less there.` },
+];
+---
+<GuideLayout lang={lang} id="roadco2" breadcrumbLabel={label('roadco2', lang)}
+  title={`Road Tax CO₂ Bands Greece ${F.year}: NEDC and WLTP Tables`}
+  h1={`Greek road tax CO₂ bands in ${F.year}: NEDC, WLTP and the cliffs between them`}
+  description={`Road tax CO₂ bands in Greece ${F.year}: NEDC (2010-2020) and WLTP (from 2021) rates per gram, zero up to ${n(wltpFree)} g/km WLTP, and what one extra gram costs at each limit.`}
+  intro={`Cars first registered in Greece or elsewhere in the EU from November 2010 pay road tax per gram of CO₂, on one of two tables chosen by the registration date.`}
+  resume={`Greek road tax for cars first registered from 1 November 2010 is the car’s CO₂ figure multiplied by a rate in euros per gram, and in ${F.year} two tables in article 20 of Law 2948/2001 set those rates. The NEDC table covers first registrations up to 31 December 2020: zero up to ${n(nedcFree)} g/km, then nine bands rising to ${$2(nTop.rate)} a gram above ${n(R.co2_nedc[R.co2_nedc.length - 2].upTo as number)} g/km. The WLTP table covers registrations from 1 January 2021, with a wider zero band up to ${n(wltpFree)} g/km and lower rates topping out at ${$2(wTop.rate)}. The catch is that the band rate applies to every gram, not just those above the threshold, so each limit is a cliff: a WLTP car at ${n(208)} g/km pays ${$2(w208.a)}, at ${n(209)} g/km ${$2(w208.b)}. You do not choose the table; the date in field B of your registration certificate does, and the CO₂ figure is the one in field V.7 when it matches the certificate of conformity. The tool below shows your band and what the band underneath would cost.`}
+  faqs={faqs}
+  related={[{ href: route('road', lang), name: label('road', lang), description: 'Road tax for any car, by engine size or CO₂.' }, { href: route('roadcc', lang), name: label('roadcc', lang), description: 'The tables for cars registered up to October 2010.' }, { href: route('roadmonth', lang), name: label('roadmonth', lang), description: 'Why the bill is always for a full year.' }]}
+  sources={[src('road_tax', lang), src('road_tax_idle', lang), { name: 'Directive 1999/37/EC, Annex I: registration certificate codes (B, V.7)', url: 'https://www.legislation.gov.uk/eudr/1999/37/annex/I' }]}>
+  <div data-chrome><MiniSim client:load kind="roadco2" lang={lang} href={route('road', lang)} /></div>
+
+  <h2>Why Greece has two CO₂ tables</h2>
+  <p>NEDC, the New European Driving Cycle, and WLTP, the Worldwide Harmonised Light Vehicles Test Procedure, are two laboratory procedures for measuring a car’s emissions. Rather than convert one result into the other, the Greek legislator wrote a separate table for each and tied it to a registration window. A car first registered in an EU or EEA state from 1 November 2010 to 31 December 2020 is taxed on the NEDC table; one first registered on or after 1 January 2021 on the WLTP table. Nothing else decides it: not the model year, not the cycle printed in your documents, not the owner’s preference.</p>
+  <p>The CO₂ value comes from field V.7 of the registration certificate, with one safeguard. Article 20 uses that figure only if it matches the certificate of conformity, or the document lodged with customs for the registration tax; if not, the certificate’s figure is used. Anyone buying a car rated a gram or two above a limit should look at both documents.</p>
+
+  <h2>Rates per gram</h2>
+  <p>On the NEDC table the rate climbs from {$2(R.co2_nedc[1].rate)} a gram in the first paying band to {$2(nTop.rate)} at the top. On the WLTP table it starts at {$2(R.co2_wltp[1].rate)} and peaks at {$2(wTop.rate)}, and the zero band is wider: {n(wltpFree)} g/km against {n(nedcFree)}. The full tables, with the bill at the start and end of each band, are on the <a href={route('road', lang)}>road tax calculator</a> page. What matters here is the edge of each band.</p>
+
+  <h2>The cliff at every limit, computed</h2>
+  <ContentTable headers={['Table', 'From → to (g/km)', 'Tax at the limit', 'One gram more', 'Step']} align={['l', 'l', 'r', 'r', 'r']} rows={cliffRows} />
+  <p>Inside a band, an extra gram costs the band’s rate, a matter of cents or a euro or two. At the limit it costs the gap between two rates multiplied by every gram the car emits. On the NEDC table the biggest step of all is at {n(250)} g/km ({$2(n250.a)} → {$2(n250.b)}), while for ordinary family cars the {n(120)} g/km limit already adds {$2(n120.b - n120.a)}. On the WLTP table the first gram above the zero band costs {$2(tax('co2_wltp', wltpFree + 1))} straight away, and the {n(208)} → {n(209)} g/km step more than doubles the bill.</p>
+  <p>For a buyer, the practical lesson is to compare trims rather than models. Two versions of one car can carry different CO₂ figures on their certificates, and if one sits just under a limit the saving repeats every year you own it. The tool at the top of the page shows the bill one band lower for exactly this reason.</p>
+
+  <h2>Same grams, different table</h2>
+  <ContentTable headers={['CO₂', 'If NEDC applies', 'If WLTP applies']} align={['l', 'r', 'r']} rows={same} />
+  <p>For the same number of grams, the WLTP table gives a lower bill, often much lower. That does not make a 2021 car automatically cheaper to tax than a 2019 one, because the two procedures do not necessarily produce the same figure for the same car, and the law makes no adjustment between them. The only valid comparison uses each car’s own V.7 figure on its own table.</p>
+
+  <h2>Imported used cars: the date that picks the table</h2>
+  <p>Expats often bring a car with them or buy one abroad. The table is chosen by the first registration in any EU or EEA country, so a car first registered in the Netherlands in September 2020 and brought to Greece in {F.year} is taxed on the NEDC table, while an identical one first registered in January 2021 is taxed on the WLTP table. Two months apart in registration, two different tables, and possibly a very different bill.</p>
+  <p>For cars first registered before 1 November 2010, CO₂ plays no role at all: engine size alone counts, as our <a href={route('roadcc', lang)}>engine-size guide</a> explains. The same goes for used cars whose first year on the international market was before 2002, whenever they entered the EU, because measuring CO₂ was not compulsory for them.</p>
+
+  <div data-chrome><MiniSim client:load kind="roadev" lang={lang} href={route('roadev', lang)} /></div>
+
+  <h2>Where the CO₂ tables stop</h2>
+  <p>Both tables concern private passenger cars. Taxis and other public-use cars have their own, simpler CO₂ tables in the same article, and lorries are taxed by weight. Motorhomes and armoured passenger cars are excluded from CO₂ measurement and pay by engine size. Electric cars, with zero grams, pay nothing, as our page on <a href={route('roadev', lang)}>electric cars and road tax</a> details. Whatever the band, the amount is owed for the whole year, as explained in <a href={route('roadmonth', lang)}>road tax per month</a>; to see how the bill compares with your pay, use the <a href={route('home', lang)}>Greek salary calculator</a>.</p>
+</GuideLayout>

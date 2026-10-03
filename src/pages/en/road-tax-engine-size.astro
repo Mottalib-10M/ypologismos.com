@@ -1,0 +1,71 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { roadTax, ccBandIndex, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const n = F.num;
+const R = P.road_tax;
+const LET = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+const band = (i: number) => i === 0 ? `up to ${n(R.cc_bands[0])}` : i < R.cc_bands.length ? `${n(R.cc_bands[i - 1] + 1)}-${n(R.cc_bands[i])}` : `${n(R.cc_bands[R.cc_bands.length - 1] + 1)} and over`;
+const table = (arr: number[]) => arr.map((v, i) => [LET[i], band(i), $(v)]);
+type C = 'cc_until_2000' | 'cc_2001_2005' | 'cc_from_2006';
+const t = (c: C, cc: number) => roadTax({ category: c, cc }).amount;
+const engines = [999, 1197, 1398, 1598, 1798, 1997, 2497, 2998];
+const engRows = engines.map((e) => [`${n(e)} cc`, $(t('cc_until_2000', e)), $(t('cc_2001_2005', e)), $(t('cc_from_2006', e))]);
+const moto = [125, 300, 650, 1200].map((e) => [`${n(e)} cc`, band(ccBandIndex(e)), $(t('cc_from_2006', e))]);
+const j1928 = { a: t('cc_from_2006', 1928), b: t('cc_from_2006', 1929) };
+const j1357 = { a: t('cc_from_2006', 1357), b: t('cc_from_2006', 1358) };
+const faqs = [
+  { q: 'I am shipping my 2005 Land Cruiser to Greece. How much road tax will it pay?', a: `It depends only on the engine and the first EU registration date. If the car was first registered in an EU country in 2005, the second engine table applies: a ${n(2982)} cc engine falls in the ${band(8)} band and owes ${$(t('cc_2001_2005', 2982))} a year. A ${n(4164)} cc version would owe ${$(t('cc_2001_2005', 4164))}. Fuel and CO₂ play no part for a car of that age.` },
+  { q: 'Do scooters and motorbikes in Greece pay road tax by CO₂ like new cars?', a: `No. Two- and three-wheeled motorcycles always pay by engine size, whatever their registration date. A bike registered today uses the table for vehicles registered from 2006: a ${n(125)} cc scooter owes ${$(t('cc_from_2006', 125))} a year and a ${n(1200)} cc tourer ${$(t('cc_from_2006', 1200))}. Mopeds are simpler still, with a flat ${$(R.moped)}.` },
+  { q: 'Why does a 1.4-litre car pay almost twice as much as a 1.3?', a: `Because ${n(R.cc_bands[3])} cc is a band limit. On the table for cars first registered from 2006 to October 2010, an engine of ${n(1357)} cc owes ${$(j1357.a)}, and one of ${n(1358)} cc owes ${$(j1357.b)}. The engine capacity printed in field P.1 of the registration certificate decides the band, to the cubic centimetre.` },
+  { q: 'I bought a 2017 car at a Greek state auction. Why is its road tax based on engine size?', a: `Article 20 sets that rule for passenger cars sold by the State or its surplus-goods agency (ODDY) and put on the road for private use: their road tax is worked out on engine size alone, using the third table. A ${n(1598)} cc car bought that way owes ${$(t('cc_from_2006', 1598))} a year, whatever CO₂ figure its registration certificate shows.` },
+];
+---
+<GuideLayout lang={lang} id="roadcc" breadcrumbLabel={label('roadcc', lang)}
+  title={`Road Tax by Engine Size Greece ${F.year}: Cars to 2010, Bikes`}
+  h1={`Greek road tax by engine size: older cars and motorcycles in ${F.year}`}
+  description={`Road tax by engine size in Greece ${F.year}: the three article 20 tables (to 2000, 2001-2005, 2006-10/2010), ${$(R.cc_until_2000[0])} to ${$(R.cc_from_2006[R.cc_from_2006.length - 1])}, plus how motorcycles and mopeds pay.`}
+  intro={`Cars first registered up to 31 October 2010, and every motorcycle whatever its age, pay Greek road tax on engine capacity alone.`}
+  resume={`Greek road tax by engine size applies in ${F.year} to two groups: passenger cars first registered in the EU up to 31 October 2010, and all two- and three-wheeled motorcycles, whenever they were registered. Article 20 of Law 2948/2001 sets three tables, one for first registration up to 2000, one for 2001 to 2005 and one from 2006, each with the same eleven engine bands. Each band carries a fixed amount, from ${$(R.cc_until_2000[0])} for engines up to ${n(R.cc_bands[0])} cc to ${$(R.cc_from_2006[R.cc_from_2006.length - 1])} above ${n(R.cc_bands[R.cc_bands.length - 1])} cc. Up to ${n(R.cc_bands[3])} cc all three tables charge the same; above that, the more recent the registration, the higher the tax. A 1.6-litre car from 2008 owes ${$(t('cc_from_2006', 1598))}. Fuel, power and emissions are ignored. The sharpest step is at ${n(R.cc_bands[6])} cc, where the bill more than doubles, and mopeds pay a flat ${$(R.moped)}. Enter the engine capacity from field P.1 of your registration certificate below to see all three tables at once.`}
+  faqs={faqs}
+  related={[{ href: route('road', lang), name: label('road', lang), description: 'The calculator for any registration year.' }, { href: route('roadco2', lang), name: label('roadco2', lang), description: 'For cars registered from November 2010.' }, { href: route('roadmonth', lang), name: label('roadmonth', lang), description: 'Taking an old car off the road for a year.' }]}
+  sources={[src('road_tax', lang), src('road_tax_idle', lang), { name: 'Directive 1999/37/EC, Annex I: registration certificate codes (B, P.1)', url: 'https://www.legislation.gov.uk/eudr/1999/37/annex/I' }]}>
+  <div data-chrome><MiniSim client:load kind="roadcc" lang={lang} href={route('road', lang)} /></div>
+
+  <h2>First registered up to 2000</h2>
+  <ContentTable headers={['Band', 'Engine (cc)', 'Annual tax']} align={['l', 'l', 'r']} rows={table(R.cc_until_2000)} />
+  <p>The oldest table covers cars that received their first licence in an EU or EEA state up to the end of 2000. It is the cheapest for mid-sized and large engines: a {n(1598)} cc car from that era owes {$(t('cc_until_2000', 1598))}, a three-litre {$(t('cc_until_2000', 2998))}.</p>
+
+  <h2>First registered 2001 to 2005</h2>
+  <ContentTable headers={['Band', 'Engine (cc)', 'Annual tax']} align={['l', 'l', 'r']} rows={table(R.cc_2001_2005)} />
+  <p>Same limits, with amounts that part company from band E ({band(4)} cc) upwards. The gap with the previous table is modest, {$(R.cc_2001_2005[4] - R.cc_until_2000[4])} in band E and {$(R.cc_2001_2005[10] - R.cc_until_2000[10])} in the top band, but it recurs every year.</p>
+
+  <h2>First registered 2006 to 31 October 2010</h2>
+  <ContentTable headers={['Band', 'Engine (cc)', 'Annual tax']} align={['l', 'l', 'r']} rows={table(R.cc_from_2006)} highlightRow={5} />
+  <p>The law heads this table “from 2006 onwards”, yet for passenger cars it stops on 31 October 2010, since CO₂ takes over the next day. It remains in use for motorcycles registered from 2006 to the present and for a handful of special cases covered below. In the top band, a car from this period pays {$(R.cc_from_2006[10] - R.cc_until_2000[10])} more a year than one from 2000.</p>
+
+  <h2>Common engines across the three tables</h2>
+  <ContentTable headers={['Engine', 'To 2000', '2001-2005', '2006-10/2010']} align={['l', 'r', 'r', 'r']} rows={engRows} />
+  <p>Two limits stand out in the used-car market. At {n(R.cc_bands[3])} cc the third table jumps from {$(j1357.a)} to {$(j1357.b)}. At {n(R.cc_bands[6])} cc it goes from {$(j1928.a)} to {$(j1928.b)}, so one cubic centimetre adds {$(j1928.b - j1928.a)} a year. If you are choosing between a 1.9 and a 2.0 of the same model, that difference comes back every year for as long as you own the car.</p>
+  <p>Engine capacity appears in field P.1 of the registration certificate and the date of first registration in field B. For an imported used car, the date that picks the table is the first registration in any EU or EEA state, not the date it was registered in Greece.</p>
+
+  <h2>Motorcycles: always by engine size</h2>
+  <ContentTable headers={['Motorcycle (registered from 2006)', 'Band', 'Annual tax']} align={['l', 'l', 'r']} rows={moto} />
+  <p>For two- and three-wheeled motorcycles article 20 never switched systems: they pay by engine capacity regardless of their date of first registration. A bike registered in {F.year} uses the third table, exactly like a car from 2008. Since most bikes have small or mid-sized engines, the amounts are low, and many expats who commute on a scooter pay {$(t('cc_from_2006', 125))} a year. Mopeds sit outside the tables at a flat {$(R.moped)}. As with cars, the bike’s road tax is owed for the whole year.</p>
+
+  <h2>Newer vehicles that still pay by engine size</h2>
+  <p>Engine-size tables are not only for old cars. Article 20 sends several categories of newer vehicles to them. Used cars whose first year on the international market was before 1 January 2002 pay by engine size whenever they entered the EU, because CO₂ measurement was not compulsory for them. Motorhomes and armoured passenger cars are exempt from CO₂ measurement and pay by engine size too. Cars bought from the State or its surplus agency and put into private use are taxed on the third table. Vehicles approved as one-off builds from used parts have their own table, with the amounts of the first. Private cars under temporary customs admission are also taxed on engine size alone, under rules our calculator does not cover.</p>
+
+  <div data-chrome><MiniSim client:load kind="roadmonth" lang={lang} href={route('roadmonth', lang)} /></div>
+
+  <h2>The old car question: keep, sell or take off the road?</h2>
+  <p>For a twenty-year-old car, road tax can be the largest fixed cost of the year. A two-litre from 2004 owes {$(t('cc_2001_2005', 1997))}, a three-litre from 2009 {$(t('cc_from_2006', 2998))}. If the car will not move at all next year, akinisia declared on gov.gr before 1 January removes that year’s tax, provided the plates come off and the car stays at the declared address; our guide to <a href={route('roadmonth', lang)}>road tax per month</a> explains what happens if you change your mind mid-year. To compare an old car with a newer one, the <a href={route('roadco2', lang)}>CO₂ band guide</a> and the <a href={route('road', lang)}>road tax calculator</a> show what each would pay, and the <a href={route('home', lang)}>salary calculator</a> helps fit the amount into a monthly budget.</p>
+</GuideLayout>

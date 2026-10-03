@@ -1,0 +1,80 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { christmasBonus, bonusNet, salary, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const B = P.bonuses;
+const M = P.minimum_wage;
+const ex = 1800;
+const full = christmasBonus({ pay: ex });
+const fullNet = bonusNet(full.amount, { gross: ex });
+const minB = christmasBonus({ pay: M.monthly });
+const minNet = bonusNet(minB.amount, { gross: M.monthly });
+const dailyB = christmasBonus({ pay: M.daily, daily: true });
+const step = ex * B.christmas_prorata_numerator / B.christmas_prorata_denominator;
+const salRows = [M.monthly, 1200, 1500, 1800, 2200, 2800, 3500].map((g) => { const b = christmasBonus({ pay: g }); const n = bonusNet(b.amount, { gross: g }); return [$(g), $(b.amount), $(n.efka), $(n.tax), $(n.net), $(salary({ gross: g }).net)]; });
+const dayMs = 86400000;
+const yr = P.year;
+const end = Date.UTC(yr, 11, 31);
+const daysFrom = (m: number, d: number) => Math.round((end - Date.UTC(yr, m - 1, d)) / dayMs) + 1;
+const hires: Array<[number, number, string]> = [[5, 1, '1 May'], [5, 15, '15 May'], [6, 15, '15 June'], [7, 15, '15 July'], [8, 15, '15 August'], [9, 15, '15 September'], [10, 15, '15 October'], [11, 15, '15 November'], [12, 1, '1 December']];
+const hireRows = hires.map(([m, d, lbl]) => { const days = daysFrom(m, d); const b = christmasBonus({ pay: ex, days }); return [lbl, String(days), F.pct(b.share), $(b.amount), $(bonusNet(b.amount, { gross: ex }).net)]; });
+const oct = christmasBonus({ pay: ex, days: daysFrom(10, 15) });
+const leaverDays = Math.round((Date.UTC(yr, 8, 30) - Date.UTC(yr, 4, 1)) / dayMs) + 1;
+const leaver = christmasBonus({ pay: ex, days: leaverDays });
+const faqs = [
+  { q: 'I start a job in Athens in mid-October. Do I get any Christmas bonus this year?', a: `Yes, a pro-rated one. From 15 October to 31 December you count ${daysFrom(10, 15)} days, and every 19 days earns 2/25 of a month’s pay, with a proportional fraction for leftover days. On ${$(ex)} gross that comes to ${$(oct.amount)} gross, about ${F.pct(oct.share)} of the full bonus. It is paid by 21 December like everyone else’s.` },
+  { q: 'Is the doro Christougennon taxed like normal salary?', a: `Yes. It carries the same ${F.efkaEe} employee social security contribution and is taxed as employment income. Payroll usually applies roughly your average tax rate for the year, so on ${$(ex)} gross the ${$(full.amount)} bonus leaves around ${$(fullNet.net)} net. There is no flat or reduced rate for holiday bonuses in Greece.` },
+  { q: 'My contract ends on 30 September. Do I lose the Christmas bonus?', a: `No. You are owed the share for the days worked from 1 May to the end of the contract, paid with your final settlement, and it is based on your pay on the day the contract ends. Five months of work on ${$(ex)} gross is worth ${$(leaver.amount)} gross. This applies whether you resign or are dismissed.` },
+  { q: 'Can my employer replace the Christmas bonus with a hamper or gift vouchers?', a: `No. The Ministry of Labour is explicit that the Christmas bonus is paid in money, never in kind. A hamper, gift card or company dinner can be a nice extra but cannot be set against the legal amount. At the minimum wage of ${F.minWage} the cash amount owed is ${$(minB.amount)} gross.` },
+  { q: 'Why is my Christmas bonus slightly more than one month’s salary?', a: `Because Greek law adds the matching share of the leave allowance to holiday bonuses. Our calculator applies it as ${F.leaveShare}, or one twenty-fourth: on ${$(ex)} gross that is ${$(full.leaveShare)} on top of the month’s pay, for ${$(full.amount)} in all. Payslips often show it as a separate line, which confuses many newcomers.` },
+];
+---
+<GuideLayout lang={lang} id="christmas" breadcrumbLabel={label('christmas', lang)}
+  title={`Christmas Bonus Greece ${F.year}: Amount, Pro Rata, Net Pay`}
+  h1={`Christmas bonus in Greece ${F.year}: how much, when, and after tax`}
+  description={`Christmas bonus Greece ${F.year}: one month’s pay or ${F.xmasDaily} daily wages, 2/25 per 19 days worked from 1 May, paid by 21 December. Free calculator with net amount.`}
+  intro={`Every private-sector employee in Greece is owed a Christmas bonus, the doro Christougennon: roughly one month’s pay, due by 21 December.`}
+  resume={`If you have worked for the same Greek employer from 1 May to 31 December ${F.year}, you are owed a full Christmas bonus: one month’s gross salary, or ${F.xmasDaily} daily wages if you are paid by the day, plus the matching share of the leave allowance, which our calculator applies as ${F.leaveShare}. On ${$(ex)} gross a month the bonus is ${$(full.amount)} gross and roughly ${$(fullNet.net)} net after the ${F.efkaEe} e-EFKA contribution and income tax at your average rate for the year. At the minimum wage of ${F.minWage} it is ${$(minB.amount)} gross, ${$(minNet.net)} net. Started after 1 May, or leaving before the year ends? Then the bonus is pro-rated: 2/25 of a month’s pay, or two daily wages, for every 19 days of employment. The legal deadline is 21 December, and the amount is based on your regular pay on 10 December. It must be paid in cash; vouchers and hampers do not count.`}
+  faqs={faqs}
+  related={[{ href: route('home', lang), name: label('home', lang), description: 'Monthly net pay from any gross salary.' }, { href: route('fourteen', lang), name: label('fourteen', lang), description: 'Why a Greek year has fourteen paydays.' }, { href: route('leave', lang), name: label('leave', lang), description: 'The half-month paid when you take your holiday.' }]}
+  sources={[src('hli_christmas', lang), src('hli_bonuses', lang), src('efka_rates', lang), src('tax_credit', lang)]}>
+  <div data-outil><ToolCalc client:load kind="christmas" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>A thirteenth payday most newcomers do not expect</h2>
+  <p>Greek salaries are quoted per month but paid fourteen times a year, and the Christmas bonus is the largest of the two extra payments. If your contract says {$(ex)} gross a month, December brings that salary plus a bonus of {$(full.amount)}. Many people arriving from countries where a thirteenth month is a perk, not a legal right, are surprised to learn that here it is statutory: the employer cannot skip it, cut it to save cash, or replace it with a dinner. Our page on the <a href={route('fourteen', lang)}>fourteen salaries</a> shows how this changes the annual figure you should compare with an offer from abroad.</p>
+  <p>The calculator above takes your gross monthly salary or daily wage, the days you were employed between 1 May and 31 December, and optionally your age and children, which affect the tax. It returns the gross bonus, the leave allowance share inside it, the deductions and the net amount.</p>
+
+  <h2>Gross and net bonus by salary</h2>
+  <ContentTable headers={['Monthly gross', 'Gross bonus', 'EFKA', 'Tax', 'Net bonus', 'Normal monthly net']} align={['l', 'r', 'r', 'r', 'r', 'r']} rows={salRows} highlightRow={3} />
+  <p>Figures assume a full-time employee over 30 with no dependent children, employed for the whole period. The last column, your usual net salary, is there for comparison: the net bonus is a little higher than a normal month at most salary levels, because the leave share is added and the bonus is taxed at your average rate rather than at the rate your top euros pay.</p>
+
+  <h2>Joined during the year? Your bonus by start date</h2>
+  <ContentTable headers={['Start date', 'Days to 31 Dec', 'Share of full bonus', 'Gross bonus', 'Net']} align={['l', 'r', 'r', 'r', 'r']} rows={hireRows} highlightRow={6} />
+  <p>Based on {$(ex)} gross a month and continuous employment until the end of the year. Each block of 19 days is worth {$2(step)} before the leave share is added. The reference period has {F.xmasDays} days, which holds just under thirteen such blocks, so anyone employed since 1 May reaches the cap of one month. Leftover days below nineteen still count, as a proportional fraction.</p>
+  <p>The same arithmetic applies in reverse when a job ends before Christmas. You count from 1 May, or from your start date if later, to your last day, and the share is paid in your final settlement. For a dismissal this is separate from, and on top of, any <a href={route('severance', lang)}>severance pay</a>.</p>
+
+  <h2>Days that do not count towards the bonus</h2>
+  <p>Disputes are rarely about the formula and usually about the days. According to the Labour Inspectorate, unjustified absences, strike days, unpaid leave and sick days paid by the social security fund rather than by the employer are taken out of the count. Your annual paid holiday counts in full, and so does maternity leave. If you were off sick for two weeks with an e-EFKA benefit, subtract those days from {F.xmasDays} before using the calculator.</p>
+
+  <h2>Which salary is used, and when the money arrives</h2>
+  <p>The bonus is calculated on your regular pay as it stands on 10 December, not on an average of the year. A pay rise from October goes straight into the bonus; one effective from 15 December does not. If the contract ended earlier, the reference is your pay on the last day.</p>
+  <p>The deadline is 21 December. The law lets the employer pay the small slice that corresponds to 21 to 31 December by the end of the month, but the bulk must be in your account before the 21st. If it is late or short, the <em>Epitheorisi Ergasias</em> (Labour Inspectorate) handles complaints, and the starting point is usually a written request to the employer with your own calculation attached.</p>
+
+  <h2>Day workers, part-timers and seasonal staff</h2>
+  <p>If you are paid a daily wage, as many workers in construction, hospitality and agriculture are, the full bonus is {F.xmasDaily} daily wages rather than a month, and the pro-rata is two daily wages per 19 days. At the minimum daily wage of {F.minDaily}, a full bonus is {$(dailyB.amount)} gross. Part-time staff get the same rules applied to their reduced pay. Seasonal workers on the islands, typically employed from May to October, receive their share when the season ends rather than in December.</p>
+
+  <div data-chrome><MiniSim client:load kind="easter" lang={lang} href={route('easter', lang)} /></div>
+
+  <h2>Limits of this calculator</h2>
+  <p>It applies the statutory minimum. Some collective agreements and individual contracts are more generous, and some include variable pay such as commission or regular overtime in the base; the tool cannot know that. It does not count your absences for you. And it estimates the tax with your average rate for the year, while a payroll office may adjust the December withholding to correct earlier months. The <a href={route('method', lang)}>methodology page</a> explains every assumption, and the main <a href={route('home', lang)}>salary calculator</a> uses the same engine.</p>
+</GuideLayout>
