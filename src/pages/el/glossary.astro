@@ -1,0 +1,89 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts } from '../../lib/facts';
+import { salary, roadTax, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney, formatDecimal, pct } from '../../lib/format';
+import { breadcrumbSchema } from '../../lib/seo';
+
+const lang = 'el';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const s = salary({ gross: 1500 });
+const E = P.enfia, Q = P.pension, S = P.severance, R = P.road_tax;
+const wltp = roadTax({ category: 'co2_wltp', co2: 150 });
+interface Term { id: string; term: string; def: string; link?: { id: string; text: string } }
+const groups: Array<{ h: string; terms: Term[] }> = [
+  { h: 'Μισθός και εκκαθαριστικό', terms: [
+    { id: 'mikta', term: 'Μικτά (μικτές αποδοχές)', def: `Ο μισθός της σύμβασης πριν από εισφορές και φόρο. Ο κατώτατος μισθός πλήρους απασχόλησης είναι ${F.minWage} μικτά από την 1η Απριλίου ${F.year}.`, link: { id: 'minimum', text: 'κατώτατος μισθός' } },
+    { id: 'kathara', term: 'Καθαρά (καθαρές αποδοχές)', def: `Ό,τι μπαίνει στον λογαριασμό: μικτά μείον εισφορές e-ΕΦΚΑ και παρακράτηση φόρου. Με ${$(1500)} μικτά, άνω των 30 χωρίς τέκνα, μένουν ${$(s.net)} ανά καταβολή.`, link: { id: 'home', text: 'υπολογισμός μισθού' } },
+    { id: 'katavoles', term: '14 καταβολές', def: 'Οι δώδεκα μηνιαίοι μισθοί συν το δώρο Χριστουγέννων, το δώρο Πάσχα και το επίδομα αδείας. Γι’ αυτό το «καθαρό τον μήνα» διαφέρει αν το μετράτε ανά καταβολή ή σε 12μηνη βάση.', link: { id: 'fourteen', text: '14 μισθοί τον χρόνο' } },
+    { id: 'doro-xristougennon', term: 'Δώρο Χριστουγέννων', def: `Ένας μισθός ή ${F.xmasDaily} ημερομίσθια για την περίοδο 1/5 έως 31/12, με την αναλογία επιδόματος αδείας (${F.leaveShare}). Καταβάλλεται έως τις 21 Δεκεμβρίου.`, link: { id: 'christmas', text: 'υπολογιστής δώρου' } },
+    { id: 'doro-pasxa', term: 'Δώρο Πάσχα', def: `Μισός μισθός ή ${F.easterDaily} ημερομίσθια για την περίοδο 1/1 έως 30/4, πληρωτέο έως τη Μεγάλη Τετάρτη.`, link: { id: 'easter', text: 'δώρο Πάσχα' } },
+    { id: 'epidoma-adeias', term: 'Επίδομα αδείας', def: `Ίσο με τις αποδοχές της άδειας, με ανώτατο μισό μισθό ή ${F.leaveDaily} ημερομίσθια. Δίνεται στην αρχή της άδειας.`, link: { id: 'leave', text: 'επίδομα αδείας' } },
+    { id: 'trietia', term: 'Τριετία', def: `Κάθε τρία χρόνια προϋπηρεσίας προσθέτουν ${F.triennium} στον κατώτατο μισθό, έως ${F.trienniumMax} τριετίες: ${F.minWithT(1)}, ${F.minWithT(2)}, ${F.minWithT(3)}.`, link: { id: 'trienniums', text: 'τριετίες' } },
+    { id: 'imeromisthio', term: 'Ημερομίσθιο', def: `Αμοιβή ανά ημέρα εργασίας, κυρίως για εργατοτεχνίτες. Το κατώτατο ημερομίσθιο είναι ${F.minDaily}.`, link: { id: 'daily', text: 'ημερομίσθιο' } },
+    { id: 'ergatotexnitis', term: 'Υπάλληλος και εργατοτεχνίτης', def: `Ο υπάλληλος αμείβεται με μηνιαίο μισθό, ο εργατοτεχνίτης με ημερομίσθιο. Από το 2022 έχουν ενιαίο καθεστώς απόλυσης· για την αποζημίωση ο μήνας του εργατοτεχνίτη λογίζεται ${F.sevDailyMonth} ημερομίσθια.`, link: { id: 'sevworkers', text: 'αποζημίωση εργατοτεχνιτών' } },
+  ] },
+  { h: 'Εισφορές και φορείς', terms: [
+    { id: 'efka', term: 'e-ΕΦΚΑ', def: `Ο Ηλεκτρονικός Εθνικός Φορέας Κοινωνικής Ασφάλισης. Στον γενικό κωδικό του ιδιωτικού τομέα παρακρατείται ${F.efkaEe} από τον εργαζόμενο και πληρώνει ${F.efkaEr} ο εργοδότης.`, link: { id: 'efka', text: 'εισφορές ΕΦΚΑ' } },
+    { id: 'kpk', term: 'ΚΠΚ (Κωδικός Πακέτου Κάλυψης)', def: `Ο κωδικός που ορίζει ποιες ασφαλιστικές καλύψεις και ποια ποσοστά ισχύουν για κάθε εργαζόμενο. Ο ΚΠΚ ${F.kpk} είναι η γενική περίπτωση του ιδιωτικού τομέα και ο μόνος που χρησιμοποιούν οι υπολογιστές μας.`, link: { id: 'method', text: 'μεθοδολογία' } },
+    { id: 'plafon', term: 'Πλαφόν (ανώτατο όριο ασφαλιστέων αποδοχών)', def: `Το μηνιαίο ποσό πάνω από το οποίο δεν υπολογίζονται εισφορές: ${F.ceiling} από 1/1/${F.year}. Η μέγιστη εισφορά εργαζομένου είναι ${$2(P.efka.ceiling_monthly * P.efka.employee_rate)} τον μήνα.`, link: { id: 'ceiling', text: 'πλαφόν εισφορών' } },
+    { id: 'dypa', term: 'ΔΥΠΑ', def: `Η Δημόσια Υπηρεσία Απασχόλησης, πρώην ΟΑΕΔ. Πληρώνει, μεταξύ άλλων, τους ${F.parentalMonths} πρώτους μήνες της γονικής άδειας, ${F.parentalMonthly} τον μήνα.`, link: { id: 'parental', text: 'επίδομα γονικής άδειας' } },
+    { id: 'ergani', term: 'ΕΡΓΑΝΗ', def: `Το πληροφοριακό σύστημα του Υπουργείου Εργασίας για τις σχέσεις εργασίας. Από τα στοιχεία του, ο μέσος μισθός του 2025 ήταν ${F.avgWage} σύμφωνα με το Υπουργείο.` },
+  ] },
+  { h: 'Φόρος εισοδήματος', terms: [
+    { id: 'aade', term: 'ΑΑΔΕ', def: 'Η Ανεξάρτητη Αρχή Δημοσίων Εσόδων, η φορολογική διοίκηση. Εκδίδει το εκκαθαριστικό της δήλωσης, το οποίο, και όχι ο μηνιαίος ΦΜΥ, ορίζει τον τελικό φόρο του έτους.' },
+    { id: 'afm', term: 'ΑΦΜ', def: 'Ο Αριθμός Φορολογικού Μητρώου, ο προσωπικός αριθμός κάθε φορολογούμενου. Δεν χρειάζεται για κανέναν υπολογισμό μας και δεν πρέπει να τον στέλνετε μαζί με εκκαθαριστικά.' },
+    { id: 'kfe', term: 'ΚΦΕ', def: 'Ο Κώδικας Φορολογίας Εισοδήματος (ν. 4172/2013). Το άρθρο 15 ορίζει την κλίμακα, το άρθρο 16 τη μείωση φόρου των μισθωτών και το άρθρο 60 την παρακράτηση.', link: { id: 'brackets', text: 'φορολογική κλίμακα' } },
+    { id: 'klimaka', term: 'Φορολογική κλίμακα', def: `Έξι κλιμάκια, ${F.r.join(', ')}, με όρια στα ${F.limits.slice(0, 5).join(', ')}. Με τέκνα και για νέους έως 30 ετών οι πρώτοι συντελεστές μειώνονται.`, link: { id: 'brackets', text: 'κλίμακα 2026' } },
+    { id: 'meiosi-forou', term: 'Μείωση φόρου (άρθρο 16)', def: `Ποσό που αφαιρείται από τον φόρο της κλίμακας: ${F.credit[0]} χωρίς τέκνα, ${F.credit[1]} με ένα, ${F.credit[2]} με δύο, μειωμένο κατά ${F.creditTaper} ανά ${$(1000)} πάνω από ${F.creditThreshold} φορολογητέου.`, link: { id: 'credit', text: 'μείωση φόρου μισθωτών' } },
+    { id: 'fmy', term: 'ΦΜΥ (Φόρος Μισθωτών Υπηρεσιών)', def: `Ο φόρος που παρακρατεί ο εργοδότης από κάθε καταβολή: ο ετήσιος φόρος μοιρασμένος στις 14 πληρωμές. Με ${$(1500)} μικτά είναι ${$(s.tax)} ανά καταβολή.`, link: { id: 'withholding', text: 'παρακράτηση φόρου' } },
+    { id: 'forologiteo', term: 'Φορολογητέο εισόδημα', def: `Για τον μισθωτό, οι ετήσιες μικτές αποδοχές μείον τις εισφορές του. Με ${$(1500)} × 14 είναι ${$(s.taxableAnnual)}.` },
+    { id: 'oriakos', term: 'Οριακός συντελεστής', def: `Ο συντελεστής του κλιμακίου όπου πέφτει το τελευταίο ευρώ του εισοδήματος: σε αυτόν φορολογείται μια αύξηση. Με ${$(1500)} μικτά είναι ${pct(s.marginal, lang)}, ενώ ο μέσος φόρος είναι ${pct(s.averageTax, lang)}.`, link: { id: 'children', text: 'μείωση φόρου για παιδιά' } },
+  ] },
+  { h: 'Ακίνητα και αυτοκίνητο', terms: [
+    { id: 'enfia', term: 'ΕΝΦΙΑ', def: `Ο Ενιαίος Φόρος Ιδιοκτησίας Ακινήτων. Για ένα κτίριο: m² × βασικός φόρος της ζώνης (${$2(E.zone_bands[0].rate)} έως ${$2(E.zone_bands[E.zone_bands.length - 1].rate)} ανά m²) × συντελεστές παλαιότητας, ορόφου και προσόψεων, με εκπτώσεις έως ${pct(E.value_reductions[0].rate, lang)}.`, link: { id: 'enfia', text: 'υπολογιστής ΕΝΦΙΑ' } },
+    { id: 'timi-zonis', term: 'Τιμή ζώνης', def: `Η αντικειμενική αξία ανά m² της περιοχής. Κατατάσσει το ακίνητο σε μία από ${E.zone_bands.length} ζώνες τιμών του ΕΝΦΙΑ και χρησιμεύει για την εκτίμηση της αξίας του.`, link: { id: 'zone', text: 'τιμή ζώνης' } },
+    { id: 'e9', term: 'Ε9', def: 'Η δήλωση στοιχείων ακινήτων, όπου καταγράφεται κάθε ακίνητο με τα τετραγωνικά, τον όροφο, την παλαιότητα και το ποσοστό. Από αυτά τα στοιχεία προκύπτει ο ΕΝΦΙΑ.' },
+    { id: 'palaiotita', term: 'Συντελεστής παλαιότητας', def: `Πολλαπλασιαστής του ΕΝΦΙΑ με βάση την πιο πρόσφατη οικοδομική άδεια: ${formatDecimal(E.age_factors[0].factor, 2, lang)} για κτίρια έως ${E.age_factors[0].maxYears} ετών, ${formatDecimal(E.age_factors[E.age_factors.length - 1].factor, 2, lang)} από ${(E.age_factors[E.age_factors.length - 2].maxYears as number) + 1} ετών, ${formatDecimal(E.age_factor_over_100, 2, lang)} άνω των 100.`, link: { id: 'enfiadisc', text: 'έκπτωση ΕΝΦΙΑ' } },
+    { id: 'teli', term: 'Τέλη κυκλοφορίας', def: `Το ετήσιο τέλος του οχήματος, με βάση τον κυβισμό για ταξινομήσεις έως 31/10/2010 και τις εκπομπές CO₂ μετά. Ένα αυτοκίνητο WLTP με 150 g/km πληρώνει ${$2(wltp.amount)}.`, link: { id: 'road', text: 'υπολογιστής τελών' } },
+    { id: 'wltp', term: 'NEDC και WLTP', def: `Οι δύο κύκλοι μέτρησης CO₂. Τα αυτοκίνητα 1/11/2010 έως 31/12/2020 φορολογούνται με τις τιμές NEDC, όσα ταξινομήθηκαν από 1/1/2021 με WLTP, που είναι αφορολόγητα έως ${R.co2_wltp[0].upTo} g/km.`, link: { id: 'roadco2', text: 'κλιμάκια CO₂' } },
+    { id: 'akinisia', term: 'Ακινησία', def: 'Η δήλωση ότι το όχημα δεν θα κυκλοφορήσει όλο το έτος, μέσω gov.gr πριν από την αρχή του έτους, με παράδοση πινακίδων. Για επιβατικό που δεν απαλλάσσεται είναι ο μόνος τρόπος να μην οφείλονται τέλη, και η άρση της απαιτεί πληρωμή των τελών του έτους.', link: { id: 'roadmonth', text: 'τέλη με το μήνα' } },
+  ] },
+  { h: 'Απόλυση και σύνταξη', terms: [
+    { id: 'apozimiosi', term: 'Αποζημίωση απόλυσης', def: `Από ${S.table_months[0].months} μισθούς μετά τον πρώτο χρόνο έως ${S.table_months[S.table_months.length - 1].months} από ${S.table_months[S.table_months.length - 1].fromYears} έτη, συν 1/6 για τα δώρα, με ανώτατη μηνιαία βάση ${F.sevCap}.`, link: { id: 'severance', text: 'υπολογιστής αποζημίωσης' } },
+    { id: 'proeidopoiisi', term: 'Προειδοποίηση', def: `Έγγραφη ειδοποίηση της απόλυσης ${S.notice_months[0].months} έως ${S.notice_months[S.notice_months.length - 1].months} μήνες νωρίτερα, ανάλογα με τα έτη. Όταν δίνεται, η αποζημίωση μειώνεται στο μισό.`, link: { id: 'notice', text: 'προειδοποίηση απόλυσης' } },
+    { id: 'ethniki', term: 'Εθνική σύνταξη', def: `Το σταθερό μέρος της σύνταξης: ${F.nationalFull} με ${Q.national_years_full} έτη ασφάλισης (τελευταίο ποσό που δημοσίευσε το Υπουργείο, από 1/1/2025), μειωμένο κατά ${pct(Q.national_reduction_per_year, lang)} ανά έτος κάτω από τα ${Q.national_years_full}.`, link: { id: 'national', text: 'εθνική σύνταξη' } },
+    { id: 'antapodotiki', term: 'Ανταποδοτική σύνταξη', def: `Το μέρος που εξαρτάται από τις αποδοχές όλης της σταδιοδρομίας: μέσος μισθός × ποσοστό αναπλήρωσης, από ${pct(Q.replacement_rates[0].rate, lang)} ανά έτος για τα πρώτα 15 έτη έως ${pct(Math.max(...Q.replacement_rates.map((r) => r.rate)), lang)} από 36 έως 40.`, link: { id: 'pension', text: 'υπολογισμός σύνταξης' } },
+  ] },
+];
+const count = groups.reduce((n, g) => n + g.terms.length, 0);
+const title = `Γλωσσάρι μισθοδοσίας ${F.year}: μικτά, ΕΦΚΑ, ΦΜΥ, ΕΝΦΙΑ, τέλη`;
+const description = `${count} όροι του εκκαθαριστικού, του φόρου και του ΕΝΦΙΑ ${F.year} με απλά λόγια: από μικτά και καθαρά, ΚΠΚ και πλαφόν ${F.ceiling} έως τιμή ζώνης, Ε9 και ακινησία.`;
+---
+<PageLayout title={title} description={description} lang={lang} noindex={true}
+  jsonLd={[breadcrumbSchema([{ name: label('home', lang), path: route('home', lang) }, { name: label('glossary', lang), path: route('glossary', lang) }])]}
+  breadcrumbs={[{ label: label('glossary', lang) }]} showAuthor={false}>
+  <div class="prose prose-slate max-w-none">
+    <h1>Γλωσσάρι μισθού, φόρων και ΕΝΦΙΑ</h1>
+    <p class="lead">{count} όροι που συναντάτε στο εκκαθαριστικό, στη σύμβαση, στο Ε9 και στους υπολογιστές μας. Τα ποσά προέρχονται από το ίδιο αρχείο παραμέτρων με τους υπολογισμούς, άρα συμφωνούν με τα αποτελέσματα του {F.year}.</p>
+    <p class="text-sm">Μετάβαση σε: {groups.map((g, i) => <>{i > 0 && ' · '}<a href={`#g${i + 1}`}>{g.h}</a></>)}</p>
+    {groups.map((g, i) => (
+      <section>
+        <h2 id={`g${i + 1}`}>{g.h}</h2>
+        <dl>
+          {g.terms.map((x) => (
+            <>
+              <dt id={x.id} class="font-semibold text-navy-900">{x.term}</dt>
+              <dd class="mb-4 ml-0">{x.def}{x.link && <> <a href={route(x.link.id, lang)}>Περισσότερα: {x.link.text}</a>.</>}</dd>
+            </>
+          ))}
+        </dl>
+      </section>
+    ))}
+    <p>Λείπει κάποιος όρος; Γράψτε μας από τη σελίδα <a href={route('contact', lang)}>επικοινωνίας</a>. Πώς χρησιμοποιούνται όλα αυτά στον υπολογισμό, δείχνει η <a href={route('method', lang)}>μεθοδολογία</a>.</p>
+  </div>
+</PageLayout>

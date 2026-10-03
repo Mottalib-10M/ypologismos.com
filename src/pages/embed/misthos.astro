@@ -1,0 +1,43 @@
+---
+/**
+ * Page d'iframe (RECETTE §13) : calculateur de salaire nu, sans navigation ni encart auteur,
+ * lien de crédit visible, noindex, hors sitemap. `?lang=en` bascule en anglais.
+ * Hydratation (§17.5) : le HTML servi contient les deux versions, chacune rendue au build avec
+ * ses valeurs par défaut ; le script en ligne retire celle qui ne sert pas avant que les îles ne
+ * s'hydratent, si bien que chaque île hydrate exactement le HTML de son premier rendu (grec par
+ * défaut) et qu'aucun identifiant de champ n'est dupliqué dans la page.
+ */
+import '../../styles/global.css';
+import ToolCalc from '../../components/calc/ToolCalc';
+import { SITE_URL } from '../../data/site-config';
+import { route } from '../../i18n/routes';
+const host = SITE_URL.replace(/^https?:\/\//, '');
+---
+<!doctype html>
+<html lang="el-GR">
+  <head>
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Υπολογισμός μισθού: widget</title>
+    <meta name="robots" content="noindex" />
+    <base target="_blank" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="bg-white p-2 text-navy-900">
+    <div id="w-el"><ToolCalc client:load kind="salary" lang="el" compact={true} methodHref={`${SITE_URL}${route('method', 'el')}`} /></div>
+    <div id="w-en" hidden><ToolCalc client:load kind="salary" lang="en" compact={true} methodHref={`${SITE_URL}${route('method', 'en')}`} /></div>
+    <p class="mt-2 text-center text-xs text-navy-600"><a id="w-credit" href={`${SITE_URL}${route('home', 'el')}`} target="_blank" rel="noopener" class="font-medium hover:underline">{host}</a> · <span id="w-note">υπολογισμός στον browser σας</span></p>
+    <script is:inline define:vars={{ enHref: `${SITE_URL}${route('home', 'en')}` }}>
+      (function () {
+        var en = new URLSearchParams(location.search).get('lang') === 'en';
+        var drop = document.getElementById(en ? 'w-el' : 'w-en');
+        if (drop) drop.remove();
+        if (!en) return;
+        document.getElementById('w-en').hidden = false;
+        document.documentElement.lang = 'en-GR';
+        document.title = 'Greek salary calculator: widget';
+        document.getElementById('w-credit').href = enHref;
+        document.getElementById('w-note').textContent = 'calculated in your browser';
+      })();
+    </script>
+  </body>
+</html>

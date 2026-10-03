@@ -1,0 +1,53 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import { AUTHOR_NAME, CONTACT_EMAIL, REVIEW_CYCLE_MONTHS, LANG_TAGS } from '../../data/site-config';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts } from '../../lib/facts';
+import { displayDate } from '../../lib/format';
+import { breadcrumbSchema } from '../../lib/seo';
+const lang = 'en';
+const F = facts(lang);
+const checked = displayDate(F.retrieved, LANG_TAGS[lang]);
+const title = `Editorial Policy ${F.year}: Sources, Checks and Corrections`;
+const description = `Where our ${F.year} Greek rates come from, who is responsible, how often they are checked (at least every ${REVIEW_CYCLE_MONTHS} months), how the engine is tested, how errors are fixed.`;
+---
+<PageLayout title={title} description={description} lang={lang} noindex={true}
+  jsonLd={[breadcrumbSchema([{ name: label('home', lang), path: route('home', lang) }, { name: label('editorial', lang), path: route('editorial', lang) }])]}
+  breadcrumbs={[{ label: label('editorial', lang) }]} showAuthor={false}>
+  <div class="prose prose-slate max-w-none">
+    <h1>Editorial policy and corrections</h1>
+    <p class="lead">People use this site to decide whether to accept a job, how to budget a year or whether a severance offer is fair. This page explains where the numbers come from, who answers for them and what happens when one turns out to be wrong.</p>
+
+    <h2>Who is responsible</h2>
+    <p>{AUTHOR_NAME} is responsible for the texts, the data and the calculation engine. Nothing is published anonymously, and no third-party content goes online unchecked. Editorial questions: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
+
+    <h2>Official sources only</h2>
+    <p>We never copy rates from other calculators, news articles or forums. Every parameter comes from an official text:</p>
+    <ul>
+      <li><strong>Consolidated Greek law</strong>: the Income Tax Code with the Law 5246/2025 scale, the Property Tax Code for ENFIA, Law 2948/2001 for road tax, Laws 4093/2012 and 3198/1955 for severance, Law 4387/2016 for pensions and Law 4808/2021 for parental leave;</li>
+      <li><strong>e-EFKA</strong>: the circulars setting contribution rates by package code ({F.efkaEe} and {F.efkaEr} under code {F.kpk}) and the contribution ceiling ({F.ceiling});</li>
+      <li><strong>Ministry of Labour</strong>: the minimum wage ({F.minWage}) with its official net examples, its FAQ on employment contracts and the national pension amount;</li>
+      <li><strong>Labour Inspectorate</strong>: the rules on holiday bonuses, leave allowance and the severance base.</li>
+    </ul>
+    <p>All of it sits in a single data file with the source address and the date each value was read. Last full check: {checked}. The rule is simple: no amount or rate is typed by hand into a text. Figures in the guides are read from that file or computed by the engine when the page is built, so the words and the calculator cannot drift apart.</p>
+
+    <h2>What we do not publish</h2>
+    <p>If we have not confirmed something in the law or on an official page, we do not present it as fact. That applies above all to announced reforms, deadlines and figures quoted from memory. One example: until an official {F.year} national pension amount is published, we say that we use the last one available. Where a rule can be read in more than one way, we state the assumption the calculator makes instead of pretending the question is simple. Those assumptions are collected in the <a href={route('method', lang)}>methodology</a>.</p>
+
+    <h2>Tests before every release</h2>
+    <p>The engine carries automated tests on reference cases: the twelve official minimum-wage examples, the scale with children and for young workers, the article 16 reduction, the ceiling, the holiday bonuses and their pro-rata rules, the severance table, road tax, ENFIA and pensions. They run on every release; if one fails, the new version is not deployed and the previous one stays online.</p>
+
+    <h2>Update rhythm</h2>
+    <p>A full review of every parameter takes place at least every {REVIEW_CYCLE_MONTHS} months. In addition we update whenever a change affects the amounts: a new minimum wage, an e-EFKA circular, an amended tax scale, ENFIA or road tax rule. The update date on each page changes only when data was actually checked or changed.</p>
+
+    <h2>How errors are corrected</h2>
+    <p>Every report is compared with the source. When an error is confirmed we fix the data or the code and add the case to the tests so it cannot return; the affected page gets a new date; and if the mistake changed results materially, we say so on the page rather than swapping numbers silently. We never delete a page to hide an error. The <a href={route('contact', lang)}>contact page</a> explains how to report one.</p>
+
+    <h2>Independence</h2>
+    <p>The site is free and currently carries no advertising. If ads ever appear, they will not sit above a calculator and will have no influence on calculations or guides. We do not pass visitors on to accountants, banks or insurers and take no payment for mentions. We are not linked to AADE, e-EFKA or the Ministry of Labour.</p>
+
+    <h2>The limits of a calculator</h2>
+    <p>A result is an estimate for a typical case and does not replace your employer’s payroll, a decision by a public office or an accountant’s advice. More about us on the <a href={route('about', lang)}>about page</a>.</p>
+  </div>
+</PageLayout>

@@ -1,0 +1,48 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import LegalIdentity from '../../components/LegalIdentity.astro';
+import { AUTHOR_NAME, CONTACT_EMAIL, REVIEW_CYCLE_MONTHS } from '../../data/site-config';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts } from '../../lib/facts';
+import { contactPageSchema, breadcrumbSchema } from '../../lib/seo';
+const lang = 'en';
+const F = facts(lang);
+const title = `Contact Us ${F.year}: Report an Error in a Salary Calculation`;
+const description = `Our email address, what we need to check a calculation (the link, gross, children, age band), how fast we reply in ${F.year} and which questions we cannot answer.`;
+const path = route('contact', lang);
+---
+<PageLayout title={title} description={description} lang={lang} noindex={true}
+  jsonLd={[contactPageSchema({ name: title, description, path, lang }), breadcrumbSchema([{ name: label('home', lang), path: route('home', lang) }, { name: label('contact', lang), path }])]}
+  breadcrumbs={[{ label: label('contact', lang) }]} showAuthor={false}>
+  <div class="prose prose-slate max-w-none">
+    <h1>Contact the editors</h1>
+    <p class="lead">We read every message, in English or Greek, at one address: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
+
+    <h2>Your payslip does not match our result</h2>
+    <p>These are the reports that improve the site most. To reproduce your case we need:</p>
+    <ol>
+      <li><strong>the link from your address bar</strong>, copied after filling in the fields, since the calculator stores every option in it. Without it, give us the gross, the number of children, your age band and whether you are paid 14 or 12 times;</li>
+      <li>the figure you expected and where it comes from: your payslip (<em>ekkatharistiko</em>), the AADE tax assessment, an accountant’s calculation, a road tax or ENFIA notice;</li>
+      <li>the month or year concerned.</li>
+    </ol>
+    <p>Please do not send documents showing your tax number (AFM), social security number (AMKA) or employer details. The amounts are enough.</p>
+    <p>A gap of a euro or two is usually rounding. Anything larger we treat as a possible error: we check the rule and, if you are right, fix the engine, add your case to the tests and record the correction as the <a href={route('editorial', lang)}>editorial policy</a> describes. What the engine covers and what it leaves out is listed in the <a href={route('method', lang)}>methodology</a>.</p>
+
+    <h2>Press and analysis</h2>
+    <p>Journalists can ask us for tables from the engine, for instance net pay across salary levels with and without children, or how the {F.ceiling} contribution ceiling affects high earners. Tell us the outlet, the topic and the deadline.</p>
+
+    <h2>The calculator on your own site</h2>
+    <p>Relocation firms, recruiters, HR teams and expat forums can embed the calculator for free in an iframe. The code and conditions are on the <a href={route('widget', lang)}>widget page</a>.</p>
+
+    <h2>What we cannot do</h2>
+    <p>We do not give personal tax or legal advice, review contracts or file returns. For your own tax position contact AADE or an accountant, for contributions e-EFKA, and for disputes with an employer the Labour Inspectorate. We cannot intervene with an employer or a public office on your behalf.</p>
+
+    <h2>When we reply</h2>
+    <p>We aim to answer within five working days and handle calculation errors first. Independently of reports, every parameter is reviewed at least every {REVIEW_CYCLE_MONTHS} months.</p>
+
+    <h2>Publisher</h2>
+    <LegalIdentity lang={lang} />
+    <p>Responsible for content: {AUTHOR_NAME}. Full details and the rules of use are in the <a href={route('terms', lang)}>terms of use</a>.</p>
+  </div>
+</PageLayout>
