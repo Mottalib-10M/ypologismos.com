@@ -1,0 +1,68 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { enfia, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const E = P.enfia;
+const Y = P.year;
+const base = { sqm: 110, zonePrice: 650, buildYear: 1985, detached: true, facades: 2 } as const;
+const a = enfia(base), b = enfia({ ...base, smallSettlement: true });
+// Island village house bought by a foreign couple who moved to Greece: 95 m², zone €1,100, renovated with a 2019 permit.
+const isl = { sqm: 95, zonePrice: 1100, buildYear: 2019, detached: true, facades: 1 } as const;
+const i0 = enfia(isl), i1 = enfia({ ...isl, smallSettlement: true });
+const bIns = enfia({ ...base, smallSettlement: true, insured: true });
+const half = enfia({ ...base, share: 0.5, smallSettlement: true }), halfNo = enfia({ ...base, share: 0.5 });
+const cases = [[70, 500, 1965], [110, 650, 1985], [130, 850, 2002], [160, 1100, 2012], [200, 1500, 2022]] as const;
+const rows = cases.map(([s, z, y]) => { const x = enfia({ sqm: s, zonePrice: z, buildYear: y, detached: true, facades: 2 }), v = enfia({ sqm: s, zonePrice: z, buildYear: y, detached: true, facades: 2, smallSettlement: true }); return [`${s} m², zone price ${$(z)}, permit ${y}`, $(x.total), $(v.total), $(x.total - v.total)]; });
+const faqs = [
+  { q: 'We moved from abroad to a Greek village. Do we get the ENFIA village cut?', a: `Only once you are Greek tax residents and the village house is the main home in your Greek income tax return for the previous year. The settlement must have at most ${F.villagePop} inhabitants at the latest census (${F.villagePopBorder} in the listed border areas), lie outside mainland Attica, and the home must be worth up to ${F.villageValue}. Then its ${Y} ENFIA is halved, and from 2027 it is exempt.` },
+  { q: 'Our Greek island house is a holiday home. Does the small-settlement relief apply?', a: `No. Both the ${Y} cut of ${F.village} and the exemption from 2027 cover only the rights on the owner’s main home, and only for Greek tax residents. A holiday house owned by someone who lives in London, Berlin or Athens pays ENFIA in full, with the ordinary value reduction and, if it is insured for earthquake, fire and flood, the insurance reduction.` },
+  { q: `Which border areas use the ${F.villagePopBorder}-inhabitant limit?`, a: `The whole region of Western Macedonia, the whole regional unit of Evros, and those municipalities of Central Macedonia, Eastern Macedonia and Thrace, and Epirus that touch the country’s borders. In those places a settlement of up to ${F.villagePopBorder} people qualifies instead of ${F.villagePop}. An inland municipality of Epirus that does not border another country keeps the ordinary limit.` },
+  { q: 'Is the village relief a one-off for 2026?', a: `The ${F.village} cut is written for ${Y} only, in article 17(3) of the Property Tax Code. From 2027, article 10(1)(ia) replaces it with a full exemption under the same population, location and value conditions. For the ${base.sqm} m² stone house used as our example, that means ${$(b.total)} in ${Y} instead of ${$(a.total)}, and nothing from 2027 onwards.` },
+];
+---
+<GuideLayout lang={lang} id="enfiavillage" breadcrumbLabel={label('enfiavillage', lang)}
+  title={`ENFIA Small Settlements ${Y}: ${F.village} Cut, Exempt from 2027`}
+  h1={`ENFIA in small Greek settlements: half the tax in ${Y}, none from 2027`}
+  description={`ENFIA ${Y} small settlements relief: ${F.village} off the main home in villages of up to ${F.villagePop} people (${F.villagePopBorder} near borders), home value up to ${F.villageValue}, exempt from 2027.`}
+  intro={`If your main home in Greece is in a village, its ENFIA is halved this year and disappears from 2027, provided a handful of conditions hold.`}
+  resume={`In ${Y} Greece halves ENFIA on the main home of Greek tax residents who live in a settlement of up to ${F.villagePop} inhabitants at the latest census, anywhere in the country except mainland Attica; the Attica islands such as Aegina and Hydra are included. In Western Macedonia, Evros and the border municipalities of Central Macedonia, Eastern Macedonia and Thrace, and Epirus, the limit rises to ${F.villagePopBorder} inhabitants. The home must be worth no more than ${F.villageValue} and must be the main residence shown in the previous year’s Greek income tax return. A ${base.sqm} m² detached stone house at a zone price of ${$(base.zonePrice)} with a ${base.buildYear} permit pays ${$(b.total)} instead of ${$(a.total)}. From 2027 the same home pays nothing, under article 10 of the Property Tax Code. Holiday homes, second homes and other property in the village get no relief, and owners who are tax resident abroad are outside the rule altogether.`}
+  faqs={faqs}
+  related={[{ href: route('enfia', lang), name: label('enfia', lang), description: 'Compute the tax on your home, with the small-settlement option.' }, { href: route('enfiadisc', lang), name: label('enfiadisc', lang), description: 'The value, low-income and insurance reductions.' }, { href: route('enfiains', lang), name: label('enfiains', lang), description: 'Cut the bill further by insuring the house.' }]}
+  sources={[src('enfia_2026', lang), src('enfia_exemptions', lang), src('enfia', lang), src('enfia_reductions', lang)]}>
+  <div data-chrome><MiniSim client:load kind="enfiavillage" lang={lang} href={route('enfia', lang)} /></div>
+
+  <h2>What the relief is worth on typical village houses</h2>
+  <ContentTable headers={['Detached house', 'ENFIA without relief', `ENFIA ${Y}`, `Saved in ${Y}`]} align={['l', 'r', 'r', 'r']} rows={rows} highlightRow={1} />
+  <p>Every row is a detached house with two street frontages and no other Greek property, so the ordinary value reduction also applies. At zone prices like these ENFIA stays modest, so the relief is therefore worth tens or a few hundred euros a year rather than thousands. It matters more for a newer or recently renovated house, because a recent building permit raises the age factor. A foreign couple who bought a {isl.sqm} m² island village house, renovated under a 2019 permit, would see {$(i0.total)} fall to {$(i1.total)} once they are tax resident and the house is their declared main home.</p>
+
+  <h2>The settlement, not the municipality</h2>
+  <p>Article 17(3) speaks of settlements (<em>oikismoi</em>) with up to {F.villagePop} inhabitants according to the most recent population census. The unit is the village or hamlet itself, not the municipal unit and not the municipality. A small hill village inside a big municipality on Crete or in the Peloponnese can qualify while the municipal seat does not. The census count is what matters, not the number of people registered as voters there.</p>
+  <p>Mainland Attica is excluded in full, including its small villages. The exclusion does not reach the regional unit of the Islands (<em>Perifereiaki Enotita Nison</em>), so Aegina, Hydra and the other islands of that unit are treated like the rest of Greece.</p>
+
+  <h2>The higher limit near the borders</h2>
+  <p>The law raises the limit to {F.villagePopBorder} inhabitants in the whole of Western Macedonia, in the whole regional unit of Evros, and in those municipalities of Central Macedonia, of Eastern Macedonia and Thrace, and of Epirus that border another country. For a settlement of {F.num(1600)} people in Epirus, the answer depends on whether its municipality touches the border.</p>
+
+  <div data-chrome><MiniSim client:load kind="villagecheck" lang={lang} href={route('enfia', lang)} /></div>
+
+  <h2>Main home, tax residence and the value limit</h2>
+  <p>Three conditions trip up newcomers. First, tax residence: the relief is reserved for individuals who are Greek tax residents. Moving to Greece and registering with the tax office is not the same as becoming resident for tax purposes, which depends on Greek income tax rules; ask an accountant if you are in your first year. Second, the main home is read from the Greek income tax return of the previous year whose deadline had passed when the tax was assessed. If that return still showed a flat in Athens, or if you did not file one in Greece, the village house is taxed in full for {Y}. Third, the {F.villageValue} limit concerns the home itself, valued at 100% of full ownership, not your total property; a co-owned house is measured as a whole.</p>
+  <p>The relief also covers only the rights on that main home. A couple who live in the village and let out a flat in Thessaloniki pay the flat’s ENFIA as usual, with the value reduction set by their total property value. In our calculator the village check runs on the value used for the whole computation, so if other property pushes that figure above {F.villageValue}, check the limit against the house value alone.</p>
+
+  <h2>Families split between village and city</h2>
+  <p>Greek families often keep the old family house in the village with the parents holding the usufruct (<em>epikarpia</em>) and the children the bare ownership. ENFIA is charged on both rights. The provision, though, reduces the tax on rights in the main home of the people who live there. Read that way, the parents’ usufruct gets the cut, while the bare ownership held by a son who lives and files his taxes in Athens does not.</p>
+  <p>Co-ownership works the same way. If two siblings each own half of the {base.sqm} m² house and only one lives there, that sibling pays {$(half.total)} on the half instead of {$(halfNo.total)}; the other pays in full. The {F.villageValue} limit is always measured on the whole house.</p>
+  <p>The village cut also sits on top of the other reductions rather than replacing them. Our calculator applies the value reduction first, then the insurance cut, then the {F.village} for the settlement, each on what is left. Insure the example stone house against earthquake, fire and flood for the whole previous year and its {Y} bill falls from {$(a.total)} to {$(bIns.total)}.</p>
+  <p>Before your assessment arrives, three checks save surprises. Look up your settlement’s population in the latest census results, published by ELSTAT, the Hellenic Statistical Authority, settlement by settlement. Open your last Greek income tax return and confirm the main home address. And consider the value: a modest village house is usually far below the limit, but a large new villa on a sought-after island may not be.</p>
+
+  <h2>From 2027: the exemption</h2>
+  <p>The {Y} cut is transitional. From 2027, article 10(1)(ia) exempts the main home outright under the same conditions: Greek tax resident, settlement of up to {F.villagePop} inhabitants or {F.villagePopBorder} in the border areas, outside mainland Attica, home worth up to {F.villageValue}. The provision says the main home will be taken from the property register known as MIDA (<em>Mitroo Idioktisias kai Diacheirisis Akiniton</em>); until that register is operating, article 17(5) keeps the previous year’s income tax return as the test. The small-settlement switch in our calculator models the {Y} rule only: it applies the {F.village} cut, and you should read the 2027 figure as zero for a home that meets every condition. Nothing in the law ties the exemption to income, so a well-paid household in a qualifying village benefits just as much as a pensioner.</p>
+  <p>The article itself requires no application and lets the head of AADE set out supporting documents and procedure by decision. What you can do now is make sure your Greek tax return names the right main home. For the rest of the bill, the <a href={route('enfia', lang)}>ENFIA calculator</a> has a small-settlement switch, and the <a href={route('enfiadisc', lang)}>ENFIA reductions guide</a> shows how the village cut stacks with the others. Newcomers working in Greece can check their take-home pay with the <a href={route('home', lang)}>Greek salary calculator</a>.</p>
+</GuideLayout>

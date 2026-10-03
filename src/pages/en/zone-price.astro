@@ -1,0 +1,71 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { enfia, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const E = P.enfia;
+const Y = P.year;
+const B = E.zone_bands;
+// Reference flat for the table: 70 m², 2010 permit, 3rd floor, one frontage.
+const ref = (z: number) => enfia({ sqm: 70, zonePrice: z, buildYear: 2010, floor: 'f2_3', facades: 1 });
+const rows = B.map((b, i) => { const from = i === 0 ? 1 : (B[i - 1].upTo as number) + 1; const lo = ref(from), hi = ref(b.upTo ?? from + 1000); return [String(i + 1), b.upTo === null ? `${$(from)}+` : `${$(from)} to ${$(b.upTo)}`, $2(b.rate), `${$(lo.total)} – ${$(hi.total)}`]; });
+const up = B[3].upTo as number;
+const a = ref(up), b = ref(up + 1);
+// Buying decision: same 90 m² flat, two neighbouring blocks.
+const buy = (z: number) => enfia({ sqm: 90, zonePrice: z, buildYear: 2005, floor: 'f4_5', facades: 1 });
+const bA = buy(3400), bB = buy(3600);
+const faqs = [
+  { q: 'Is the zone price what I will pay for a flat in Greece?', a: `No. The zone price (timi zonis) is a reference price per square metre fixed by the state for each zone or block, the starting point of the objective value system. Actual market prices can sit well above or below it. For ENFIA it decides which of the ${B.length} tax zones a building falls in, with basic rates from ${$2(B[0].rate)} to ${$2(B[B.length - 1].rate)} per m².` },
+  { q: 'Can I see the zone price of a Greek property before buying it?', a: `Yes. AADE, the tax authority, publishes a map application titled “zones of objective property values” at maps.gsis.gr/valuemaps, where you can find the street or block. Your lawyer or notary will also know it, since the same values feed the taxable value on a transfer. Look up the exact block: two sides of one street can sit in different zones.` },
+  { q: 'Why does one euro of zone price matter so much for ENFIA?', a: `Because the basic rate changes in steps. At ${$(up)} a building is in zone 4, at ${$(up + 1)} in zone 5, where the rate jumps from ${$2(B[3].rate)} to ${$2(B[4].rate)} per m². On a 70 m² flat with a 2010 permit that is ${$(a.total)} against ${$(b.total)} a year. Inside a zone, by contrast, the exact price does not change the basic rate at all.` },
+  { q: 'Does the zone price on the day I bought the property matter for ENFIA?', a: `No. ENFIA uses the zone price in force on 1 January of each tax year, and charges whoever held the property on that date. If the state revises the zone prices of your area, the new figure affects the following year’s ENFIA, not the current one, and it applies whatever you paid and whenever you bought.` },
+];
+---
+<GuideLayout lang={lang} id="zone" breadcrumbLabel={label('zone', lang)}
+  title={`Zone Price ${Y}: Greece’s ${B.length} ENFIA Tax Zones Explained`}
+  h1={`Zone price in Greece: what it is and what it does to ENFIA`}
+  description={`Zone price (timi zonis) ${Y}: the state’s reference price per m² that places a Greek property in one of ${B.length} ENFIA tax zones, basic tax ${$2(B[0].rate)} to ${$2(B[B.length - 1].rate)}/m².`}
+  intro={`Every street in Greece carries an official price per square metre, and that number sets the basic rate of your ENFIA.`}
+  resume={`The zone price, timi zonis in Greek, is the reference price per square metre that the Greek state sets for each zone or city block by decision of the Minister of National Economy and Finance. It is the starting point of the objective value system used for property taxes, and it is not a market price. For ENFIA ${Y}, the zone price in force on 1 January places each building in one of ${B.length} tax zones: up to ${$(B[0].upTo as number)} per m² the basic rate is ${$2(B[0].rate)} per m², from ${$(B[1].upTo as number + 1)} to ${$(B[2].upTo as number)} it is ${$2(B[2].rate)}, and above ${$(B[7].upTo as number)} it is ${$2(B[8].rate)}. Within a zone the exact price leaves the basic rate unchanged, but it still moves the property’s value and with it the value-based reduction. The tax authority’s map application shows the zone price of any street. Enter yours in the calculator below to see the zone and a first estimate.`}
+  faqs={faqs}
+  related={[{ href: route('enfia', lang), name: label('enfia', lang), description: 'The full calculation with zone price, age and floor.' }, { href: route('enfiadisc', lang), name: label('enfiadisc', lang), description: 'How the value derived from zone prices sets the reduction.' }, { href: route('enfiains', lang), name: label('enfiains', lang), description: 'A further cut for insured homes.' }]}
+  sources={[src('enfia', lang), { name: 'Property Tax Code (Law 5219/2025), article 4: reference prices by zone and adjustment factors', url: 'https://www.taxheaven.gr/law/5219/2025/article/4/view' }, { name: 'AADE: map of zones of objective property values', url: 'https://maps.gsis.gr/valuemaps/' }, src('enfia_reductions', lang)]}>
+  <div data-chrome><MiniSim client:load kind="zone" lang={lang} href={route('enfia', lang)} /></div>
+
+  <h2>Zone price, objective value and market price</h2>
+  <p>Three figures get mixed up in Greek property conversations. The zone price is a flat reference per square metre, the same for every property in the zone. The objective value (<em>antikeimeniki axia</em>) of a specific flat starts from that zone price and is raised or lowered by factors for construction quality, age, position in the building and other features, as article 4 of the Property Tax Code describes, then multiplied by the floor area. The market price is what a buyer actually pays; it plays no part in ENFIA.</p>
+  <p>Article 4 introduces the system to set the taxable value of property that is transferred or acquired, without arguing over each sale price. It says the reference prices are set in advance by zone or block and by type of property, recorded in tables and linked to maps, all by ministerial decision. When you buy, the same system gives the taxable value used for transfer tax, which is why a notary will bring it up.</p>
+
+  <h2>The nine ENFIA tax zones</h2>
+  <ContentTable headers={['Tax zone', 'Zone price per m²', 'Basic rate per m²', 'ENFIA, 70 m² flat, bottom to top of zone']} align={['l', 'l', 'r', 'r']} rows={rows} highlightRow={4} />
+  <p>The last column shows the ENFIA range for a 70 m² flat on the 3rd floor with one frontage and a 2010 permit, as the zone price moves from the bottom to the top of each zone, with no other property. Within a zone the main tax stays the same; the bill still moves because value-based reductions change as the estimated value rises. Article 11 applies the zone price in force on 1 January of the tax year.</p>
+  <p>The highlighted row is the first of the expensive zones. Between zones 4 and 5 the basic rate almost doubles, from {$2(B[3].rate)} to {$2(B[4].rate)}. At {$(up)} the reference flat pays {$(a.total)}; at {$(up + 1)} it pays {$(b.total)}.</p>
+
+  <h2>A buyer’s example: two blocks, one street apart</h2>
+  <p>Suppose you are choosing between two similar 90 m² flats, both on the 4th floor with a 2005 permit. One sits in a block with a zone price of {$(3400)}, the other one street away at {$(3600)}. The values used for the reduction differ by only {F.pct(bB.estimatedValue / bA.estimatedValue - 1)}, yet the second flat lies in a dearer tax zone and costs {$(bB.total)} a year against {$(bA.total)}, about {$(bB.total - bA.total)} more every year you own it. Check the zone of the exact block before you sign, and run both flats through the <a href={route('enfia', lang)}>ENFIA calculator</a>.</p>
+
+  <h2>When zone prices are revised</h2>
+  <p>Zone prices are not fixed forever; ministerial decisions set them and can bring new tables into force for the whole country or for particular areas. For ENFIA the date that counts is always 1 January: a revision published during the year shows up in the next year’s bill. Who notices it depends on where they sit. An owner whose block moves from {$(2300)} to {$(2450)} stays in zone 3 and sees no change in main tax, only perhaps a smaller value-based reduction. An owner whose block moves from {$(2950)} to {$(3100)} crosses into zone 5, and the building tax on a 70 m² flat jumps by {$(ref(3100).mainBuilding - ref(2950).mainBuilding)} before any reduction.</p>
+  <p>The same scale applies to every building, whatever it is used for. A shop or an office on a ground floor pays its main tax from the same zone table as the flat above it, with the floor and frontage factors of article 11. If you own a share, the building tax follows your share, while the reductions follow your own total value.</p>
+
+  <h2>Where to look up a zone price</h2>
+  <p>AADE publishes a map application titled “Zones of objective property values” (<em>Zones timon antikeimenikon axion akiniton</em>) at maps.gsis.gr/valuemaps. You locate the street or block and see the zone and its price per square metre. The application is in Greek, and a lawyer or notary can confirm the figure for a purchase.</p>
+  <p>If you already own the property, have your E9 property declaration at hand: it lists the address, area, floor and permit year that the tax is computed on. For a corner building or one on a street that divides two zones, check which block yours belongs to, because the two sides can carry different prices.</p>
+
+  <div data-chrome><MiniSim client:load kind="enfiaage" lang={lang} href={route('enfia', lang)} /></div>
+
+  <h2>Areas without a zone price</h2>
+  <p>Some areas, inside or outside town plans, have no zone price. They are not untaxed. Article 11 places such buildings in the lowest zone price of their municipal unit; if the unit has none, the lowest of the municipality, then of the regional unit, then of the region. Special buildings defined in the law, including some farm buildings, follow the same rule and have their own coefficients. In the calculator, use the lowest zone price of your municipal unit in that case. Plots of land are handled differently again: article 11 places them in one of 19 bands according to their own unit value, not the zone price of buildings, and our calculator does not compute them.</p>
+
+  <h2>How ENFIA uses the zone price, twice</h2>
+  <p>First, to choose the tax zone and so the basic rate per square metre. ENFIA then applies its own coefficients for age, floor and frontage, which are not the coefficients of the objective value. Second, through the total value of your property, computed with the objective value system, which sets the value-based reduction, the extra tax on value above {$(E.right_tax_from_value)} and the surcharge above {$(E.surcharge_from_value)}. The <a href={route('enfiadisc', lang)}>ENFIA reductions guide</a> shows those value bands.</p>
+  <p>If you think the predetermined value of a property you are buying is higher than its market value, article 4 gives you the right to appeal to the administrative court within 30 days of your declaration. That right concerns transfers, not your annual ENFIA. For the running costs of living in Greece, the <a href={route('home', lang)}>Greek salary calculator</a> shows what a local salary leaves after tax.</p>
+</GuideLayout>

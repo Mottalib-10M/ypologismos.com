@@ -1,0 +1,78 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { enfia, salary, PARAMS as P } from '../../lib/engine/gr';
+import { ENFIA_LOW_WEALTH as W, ENFIA_FULL_CHILDREN, ENFIA_FULL_DISABILITY } from '../../lib/mini-extra-e';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const E = P.enfia;
+const Y = P.year;
+const red = E.value_reductions;
+const at = (v: number, o: { insured?: boolean; smallSettlement?: boolean } = {}) => enfia({ sqm: 100, zonePrice: v / 100, buildYear: 1990, floor: 'ground_1', facades: 0, totalValue: v, ...o });
+const bandRows = red.map((b, i) => { const lo = i === 0 ? 0 : red[i - 1].upTo + 1; const x = at(b.upTo); return [lo === 0 ? `Up to ${$(b.upTo)}` : `${$(lo)} to ${$(b.upTo)}`, F.pct(b.rate), $(x.principal - x.total)]; });
+const above = at(red[red.length - 1].upTo + 50000);
+// Expat couple: Athens flat 75 m² (zone €2,800, 2010 permit, 3rd floor) + Cretan cottage 70 m² (zone €700, 1980, detached).
+const tot = 75 * 2800 + 70 * 700;
+const flat = enfia({ sqm: 75, zonePrice: 2800, buildYear: 2010, floor: 'f2_3', facades: 1, totalValue: tot });
+const flatAlone = enfia({ sqm: 75, zonePrice: 2800, buildYear: 2010, floor: 'f2_3', facades: 1 });
+const cottage = enfia({ sqm: 70, zonePrice: 700, buildYear: 1980, detached: true, facades: 1, totalValue: tot });
+const flatIns = enfia({ sqm: 75, zonePrice: 2800, buildYear: 2010, floor: 'f2_3', facades: 1, totalValue: tot, insured: true });
+const ex = at(140000), exAll = at(140000, { insured: true, smallSettlement: true });
+const combined = 1 - (1 - ex.valueReductionRate) * (1 - E.insurance_reduction) * (1 - E.small_settlement_reduction_2026);
+const incRows = [0, 1, 2, 3, 4].map((m) => [m === 0 ? 'Single, no dependants' : m === 1 ? 'Taxpayer plus spouse (or one dependant)' : `Taxpayer plus ${m} members`, $(E.low_income_50_income + m * E.low_income_per_member), $(E.low_income_100_income + m * E.low_income_per_member)]);
+const pt = salary({ gross: 700 });
+const faqs = [
+  { q: 'Does the ENFIA value reduction count my property abroad?', a: `No. ENFIA only concerns real estate in Greece, and the total value that sets the reduction is the value of your Greek property rights as the tax authority computes it. A house in your home country does not move you from the ${F.pct(red[0].rate)} band to a lower one. Plots of land outside town plans in Greece are also left out of that total for the reduction.` },
+  { q: 'I am a foreign pensioner living in Greece on a small income. Can I get the 50% cut?', a: `Possibly, if you and your family are Greek tax residents. The family’s taxable income for the last filed year must not exceed ${$(E.low_income_50_income)} plus ${$(E.low_income_per_member)} for a spouse and each dependant, total built area must be at most ${E.low_income_max_sqm} m², and total value at most ${$(W.single)} single or ${$(W.couple)} as a couple.` },
+  { q: 'Is there a full ENFIA exemption for large families?', a: `Yes, under article 13(2), when the family has at least ${ENFIA_FULL_CHILDREN} dependent children or a member with a disability of ${F.pct(ENFIA_FULL_DISABILITY)} or more. The other conditions are a family taxable income up to ${$(E.low_income_100_income)} plus ${$(E.low_income_per_member)} per spouse and dependant, buildings of at most ${E.low_income_max_sqm} m² in total, and Greek tax residence for everyone. Unlike the 50% cut, no property value ceiling is written in.` },
+  { q: 'If I qualify for three reductions, do I pay nothing?', a: `No. Our calculator applies each reduction to what the previous one left, which is how percentage cuts on the same tax normally combine. With ${$(140000)} of property, an insured home and a main residence in a small village, ${F.pct(ex.valueReductionRate)}, ${F.insurance} and ${F.village} come to ${F.pct(combined)} in all, so ${$(ex.principal)} of tax falls to ${$(exAll.total)}, not to zero.` },
+  { q: 'Why did my ENFIA reduction shrink after I inherited a small share of a house?', a: `Because the reduction depends on the total value of everything you own in Greece, and the rate applies to the whole tax, not to a slice. Crossing ${$(red[0].upTo)} turns ${F.pct(red[0].rate)} into ${F.pct(red[1].rate)} on every property you hold. Even a modest inherited share can push you over a threshold, as the step table on this page shows.` },
+];
+---
+<GuideLayout lang={lang} id="enfiadisc" breadcrumbLabel={label('enfiadisc', lang)}
+  title={`ENFIA Reductions ${Y}: Value Bands, Low Income and Insurance`}
+  h1={`ENFIA reductions in ${Y}: which cut you get, and which you do not`}
+  description={`ENFIA reductions ${Y}: ${F.pct(red[0].rate)} to ${F.pct(red[red.length - 1].rate)} by total property value, 50% or 100% for low-income families, ${F.insurance} for insured homes and ${F.village} in small Greek villages.`}
+  intro={`Four separate rules can lower your ENFIA bill, and the one that matters to most owners needs no application at all.`}
+  resume={`Owners whose Greek property is worth up to ${$(red[red.length - 1].upTo)} get an ENFIA reduction without asking for it, and its size depends on the total value of everything they own in Greece: ${F.pct(red[0].rate)} up to ${$(red[0].upTo)}, ${F.pct(red[1].rate)} up to ${$(red[1].upTo)}, ${F.pct(red[2].rate)} up to ${$(red[2].upTo)}, ${F.pct(red[3].rate)} up to ${$(red[3].upTo)} and ${F.pct(red[4].rate)} up to ${$(red[4].upTo)}, under article 13(3) of the Property Tax Code. Above ${$(red[4].upTo)} there is no reduction. Low-income families who are Greek tax residents can get half the tax off when family taxable income stays under ${$(E.low_income_50_income)} plus ${$(E.low_income_per_member)} per spouse and dependant, buildings total no more than ${E.low_income_max_sqm} m² and value stays under a ceiling of ${$(W.single)} to ${$(W.family)}; with three children or a disability of 80% and income under ${$(E.low_income_100_income)} plus ${$(E.low_income_per_member)} per member, the tax disappears. Insuring the home takes off ${F.insurance}, and a main home in a small village ${F.village} in ${Y}. Check your rate below.`}
+  faqs={faqs}
+  related={[{ href: route('enfia', lang), name: label('enfia', lang), description: 'Full calculation with zone price, age, floor and frontage.' }, { href: route('enfiains', lang), name: label('enfiains', lang), description: `How the ${F.insurance} insurance reduction is prorated.` }, { href: route('enfiavillage', lang), name: label('enfiavillage', lang), description: `The ${F.village} village cut in ${Y} and the 2027 exemption.` }]}
+  sources={[src('enfia_reductions', lang), src('enfia', lang), src('enfia_exemptions', lang), src('enfia_2026', lang)]}>
+  <div data-chrome><MiniSim client:load kind="enfiadisc" lang={lang} href={route('enfia', lang)} /></div>
+
+  <h2>The value bands</h2>
+  <ContentTable headers={['Total value of Greek property', 'Reduction', 'Euros saved, 100 m² at the top of the band']} align={['l', 'r', 'r']} rows={bandRows} highlightRow={1} />
+  <p>The saving column takes a 100 m² ground-floor home, more than 25 years old, priced so that its value sits exactly at the top of each band. The saving grows in euros while the percentage falls, because a pricier home also sits in a dearer tax zone. One band higher, at {$(above.valueUsed)}, the same home would pay its full {$(above.principal)}.</p>
+  <p>Note what “total value” means. It is the taxable value of all your Greek property rights, computed by the tax authority with the objective value system (<em>antikeimenikes axies</em>), not the price you paid and not a market valuation. It also excludes plots of land outside town plans or settlements. If you rent a flat in Greece but own nothing, none of this concerns you; ENFIA falls on owners, usufructuaries and holders of similar rights only.</p>
+
+  <h2>A threshold costs more than the euro that crosses it</h2>
+  <p>Unlike income tax brackets, the reduction rate applies to the whole tax. Picture an expat couple with a 75 m² flat in Athens at a {$(2800)} zone price and a 70 m² cottage in Crete at {$(700)}. Alone, the flat would carry a {F.pct(flatAlone.valueReductionRate)} reduction and cost {$(flatAlone.total)}. With the cottage, total value rises to {$(tot)}, the rate on both homes drops to {F.pct(flat.valueReductionRate)}, and the flat now costs {$(flat.total)} while the cottage adds {$(cottage.total)}. Insuring the Athens flat for the full previous year would bring it back down to {$(flatIns.total)}.</p>
+  <p>Before buying a second home, accepting a share of an inheritance or receiving a gift of property from parents, run the new total through the <a href={route('enfia', lang)}>ENFIA calculator</a>. The answer is sometimes a few euros, sometimes a few hundred a year.</p>
+
+  <h2>Half the tax off for low-income families</h2>
+  <p>Article 13(1) grants a 50% reduction to the taxpayer, spouse or civil partner and dependent children when three conditions are all met. Family taxable income in the last year whose filing deadline has passed must not exceed {$(E.low_income_50_income)}, plus {$(E.low_income_per_member)} for the spouse and each dependant. The family’s buildings, counted by ownership share, must total no more than {E.low_income_max_sqm} m², and the total property value must stay within {$(W.single)} for a single person, {$(W.couple)} for a couple or a single parent with one child, and {$(W.family)} for a couple with children or a single parent with two. And every member must be a Greek tax resident, which rules out owners who live abroad and keep a holiday home here.</p>
+  <ContentTable headers={['Household', 'Income ceiling, 50% cut', 'Income ceiling, 100% cut']} align={['l', 'r', 'r']} rows={incRows} />
+  <p>“Taxable” is the figure in your Greek income tax return, not your take-home pay. A part-time employee earning {$(pt.gross)} gross a month over fourteen payments declares {$(pt.taxableAnnual)} after social security, under the single-person ceiling. To find yours from a salary, use the <a href={route('home', lang)}>Greek salary calculator</a>.</p>
+
+  <h2>The full exemption</h2>
+  <p>Article 13(2) raises the reduction to 100% for families whose taxable income is at most {$(E.low_income_100_income)} plus {$(E.low_income_per_member)} per spouse and dependant, with buildings of at most {E.low_income_max_sqm} m², Greek tax residence, and at least {ENFIA_FULL_CHILDREN} dependent children or a member with a disability of {F.pct(ENFIA_FULL_DISABILITY)} or more. The article sets no ceiling on total property value for this exemption. Both low-income cuts are granted by an act of the tax administration on the basis of the income tax return, and are re-examined by the end of February of the following year against the returns filed on time.</p>
+
+  <div data-chrome><MiniSim client:load kind="enfialow" lang={lang} href={route('enfia', lang)} /></div>
+
+  <h2>Insurance and the village cut</h2>
+  <p>Two further reductions depend on the home itself. A dwelling insured for earthquake, fire and flood during the previous year, for its full rebuilding value, pays {F.insurance} less if it is worth up to {$(E.insurance_value_limit)} and {F.insuranceHigh} above that; a policy taken out mid-year gives a prorated cut. The <a href={route('enfiains', lang)}>ENFIA and home insurance guide</a> explains what the policy must cover.</p>
+  <p>For {Y}, a Greek tax resident whose main home lies in a settlement of up to {F.villagePop} people outside mainland Attica, worth up to {F.villageValue}, pays {F.village} less on that home, and from 2027 nothing. Some border areas use a limit of {F.villagePopBorder}. See <a href={route('enfiavillage', lang)}>ENFIA in small settlements</a>.</p>
+
+  <h2>Exemptions that are not reductions</h2>
+  <p>Some owners pay no ENFIA at all for reasons unrelated to income or value. Article 17 of the code exempts, for 2025, 2026 and 2027, every property within the municipality of Soufli in Evros. It also exempts properties in the municipalities of Mantoudi-Limni-Agia Anna and Istiaia-Aidipsos in northern Evia, hit by the fires of summer 2021, provided the same owner has held them continuously since 2021. Similar exemptions cover buildings declared dangerous or unfit for use after the fires of July 2018 in Corinthia, the Thessaly earthquake of March 2021, the Crete earthquakes of 2021 and the Samos earthquake and flood of October 2020, each tied to an inspection certificate issued by a set date and, in several cases, to an application filed in an earlier year.</p>
+  <p>These exemptions are geographic and documentary, so the calculator does not test them. If you bought or inherited in one of these areas, check the conditions in article 17 itself, linked in the sources below, before relying on any estimate.</p>
+
+  <h2>How the cuts stack</h2>
+  <p>The code expresses each reduction as a percentage of the tax and does not spell out an order. Our calculator applies them one after the other, multiplying, so they never add up to more than the tax: {F.pct(ex.valueReductionRate)}, {F.insurance} and {F.village} together give {F.pct(combined)}, and {$(ex.principal)} of tax becomes {$(exAll.total)}. Your assessment shows how each one was applied. Some owners ask about a discount for paying the whole year at once; the articles discussed here contain none, and we have not confirmed one on an official source for {Y}, so the calculator does not include it.</p>
+</GuideLayout>

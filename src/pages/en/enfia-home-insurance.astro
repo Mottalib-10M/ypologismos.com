@@ -1,0 +1,70 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { enfia, PARAMS as P } from '../../lib/engine/gr';
+import { ENFIA_RECON_MIN_SQM as RM, ENFIA_INS_MIN_MONTHS as MIN_M } from '../../lib/mini-extra-e';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const E = P.enfia;
+const Y = P.year;
+// Flat in Thessaloniki: 80 m², zone €2,100, 2001 permit, 4th floor, one frontage.
+const flat = { sqm: 80, zonePrice: 2100, buildYear: 2001, floor: 'f4_5' as const, facades: 1 };
+const r0 = enfia(flat), r1 = enfia({ ...flat, insured: true });
+const startRows = [['January', 12], ['April', 9], ['July', 6], ['October', 3], ['November', 2]].map(([m, n]) => { const k = n as number; const rate = k < MIN_M ? 0 : E.insurance_reduction * k / 12; return [`From 1 ${m}`, String(k), F.pct(rate), $(r0.total * rate)]; });
+// Island villa above the limit: 200 m² detached, zone €3,600, 2017 permit, two frontages.
+const villa = { sqm: 200, zonePrice: 3600, buildYear: 2017, detached: true, facades: 2 };
+const v0 = enfia(villa), v1 = enfia({ ...villa, insured: true });
+const sizeRows = [60, 80, 110, 150, 200].map((s) => [`${s} m²`, $(s * RM), $(enfia({ ...flat, sqm: s }).total * E.insurance_reduction)]);
+const faqs = [
+  { q: 'Does my Greek landlord’s insurance lower my ENFIA as a tenant?', a: `No, because tenants do not pay ENFIA. The tax falls on the owner, usufructuary or holder of a similar right on 1 January, and the ${F.insurance} reduction lowers the owner’s bill when the owner’s home was insured for earthquake, fire and flood in the previous year. If you own a flat in Greece and rent it out, your own policy on it counts.` },
+  { q: 'My policy is with a foreign insurer. Does it qualify for the ENFIA reduction?', a: `Only if the insurer is entered in the register of insurance undertakings kept by the Bank of Greece’s Private Insurance Supervision Department, which is what article 10(5) requires. Being licensed elsewhere in the EU is not the test the article uses, so ask your insurer to confirm its registration in writing before you rely on the ${F.insurance} cut.` },
+  { q: 'I took out home insurance in Greece in October. What will next year’s ENFIA look like?', a: `October to December is three months, the minimum the law accepts, so the reduction is prorated to ${F.pct(E.insurance_reduction * 3 / 12)} instead of ${F.insurance}. On our ${flat.sqm} m² Thessaloniki flat that is about ${$(r0.total * E.insurance_reduction * 3 / 12)}. Had the policy started in November, the two months would not count and there would be no reduction at all.` },
+  { q: 'What sum insured do I need on a 110 m² house in Greece?', a: `At least ${$(110 * RM)}. The law values the home at its rebuilding cost, excluding the land, and sets that value at no less than ${$(RM)} per square metre. The policy must cover the whole of that value, so anything below floor area × ${$(RM)} leaves you without the reduction, however comprehensive the risk list is.` },
+  { q: 'Is the ENFIA insurance reduction worth it on a villa above €500,000?', a: `It is smaller in percentage, ${F.insuranceHigh} instead of ${F.insurance}, but larger in euros because the tax is larger. A 200 m² island villa at a ${$(villa.zonePrice)} zone price with a 2017 permit is estimated at ${$(v0.valueUsed)}; insurance takes its ENFIA from ${$(v0.total)} to ${$(v1.total)}, a saving of ${$(v0.total - v1.total)} a year.` },
+];
+---
+<GuideLayout lang={lang} id="enfiains" breadcrumbLabel={label('enfiains', lang)}
+  title={`ENFIA Home Insurance Discount ${Y}: ${F.insurance} Off, or ${F.insuranceHigh}`}
+  h1={`ENFIA and home insurance in Greece: how the ${F.insurance} reduction works`}
+  description={`ENFIA ${Y} home insurance reduction: ${F.insurance} off (${F.insuranceHigh} above ${$(E.insurance_value_limit)}) if insured for earthquake, fire and flood at ${$(RM)} per m², prorated from ${MIN_M} months.`}
+  intro={`Insuring a Greek home properly lowers the following year’s ENFIA, and the rules on what counts as proper are stricter than most policies.`}
+  resume={`A home in Greece that was insured during the previous year against earthquake, fire and flood pays ${F.insurance} less ENFIA if its taxable value is up to ${$(E.insurance_value_limit)}, and ${F.insuranceHigh} less above that, under article 10(5) of the Property Tax Code. The insurer must be registered with the Bank of Greece, and the policy must cover the full rebuilding value of the building, excluding the land, which the law sets at no less than ${$(RM)} per square metre. Cover must have lasted at least ${MIN_M} months in the previous year; a part-year policy gives a prorated cut. On an ${flat.sqm} m² flat in Thessaloniki at a ${$(flat.zonePrice)} zone price with a ${flat.buildYear} permit, ENFIA falls from ${$(r0.total)} to ${$(r1.total)}, and the policy needs a building sum insured of at least ${$(flat.sqm * RM)}. The reduction applies to dwellings of individuals, main homes and holiday homes alike, not to shops, offices or company-owned property. The two calculators on this page check the cut and the sum insured.`}
+  faqs={faqs}
+  related={[{ href: route('enfia', lang), name: label('enfia', lang), description: 'Compute ENFIA with the insured-home option switched on.' }, { href: route('enfiadisc', lang), name: label('enfiadisc', lang), description: 'How insurance stacks with the value reduction.' }, { href: route('zone', lang), name: label('zone', lang), description: 'Why the zone price sets the tax the reduction applies to.' }]}
+  sources={[src('enfia_exemptions', lang), src('enfia', lang), src('enfia_reductions', lang)]}>
+  <div data-chrome><MiniSim client:load kind="enfiains" lang={lang} href={route('enfia', lang)} /></div>
+
+  <h2>What the policy must cover</h2>
+  <p>Article 10(5) sets four conditions, and missing any one of them cancels the reduction entirely. The policy must cover all three perils, earthquake, fire and flood; a fire-only policy or one without flood does not count. The insurer must be an insurance undertaking entered in the register kept by the Private Insurance Supervision Department of the Bank of Greece. The cover must reach the full value of the property, defined as the rebuilding value of the building alone, not its market price and not the land. And the policy must relate to the previous year and last at least {MIN_M} months of it.</p>
+  <p>Newcomers often arrive with the habit of buying contents insurance only, as tenants do in many countries. Contents cover does not help here: the law looks at the building sum insured. If you own a flat in a Greek apartment block, check whether the building has a common policy and, if so, whether it covers your flat’s full rebuilding value for all three perils, or whether you need a policy of your own.</p>
+
+  <h2>The rebuilding value test</h2>
+  <ContentTable headers={['Floor area', `Minimum sum insured (${$(RM)}/m²)`, 'ENFIA saved, full year']} align={['l', 'r', 'r']} rows={sizeRows} highlightRow={1} />
+  <p>The minimum rebuilding value is {$(RM)} per square metre, whatever the age or condition of the building. A ruined stone house on an island and a new-build flat of the same size need the same minimum cover. The last column shows what the reduction is worth each year on homes with the same features as our Thessaloniki flat, which you can set against the premium you are quoted. The article lets the Minister of National Economy and Finance, on a proposal from the head of AADE, set the rebuilding cost and adjust that minimum, so the figure may change.</p>
+
+  <div data-chrome><MiniSim client:load kind="insrecon" lang={lang} href={route('enfia', lang)} /></div>
+
+  <h2>Part-year cover and the proration</h2>
+  <ContentTable headers={['Policy start in the previous year', 'Months covered', 'Reduction', 'ENFIA saved']} align={['l', 'r', 'r', 'r']} rows={startRows} />
+  <p>The table assumes the policy runs to the end of the year. Below {MIN_M} months there is nothing; from {MIN_M} months the {F.insurance} is scaled by the months covered over twelve. The law says only that the reduction is adjusted proportionally when cover is shorter than a year, without specifying months or days; our calculator prorates by month.</p>
+  <p>Timing therefore matters around the purchase of a home. Buy in June and you pay no ENFIA on that flat for the year of purchase, because the tax looks at who owned the property on 1 January. In the second year the bill arrives with a reduction for seven months of cover if you insured from the day of completion, and from the third year with the full {F.insurance}. Leaving the policy until the autumn costs you part of that second-year reduction.</p>
+
+  <h2>Above {$(E.insurance_value_limit)}: the smaller rate</h2>
+  <p>The rate depends on the taxable value of the home itself. Up to {$(E.insurance_value_limit)} it is {F.insurance}; above, {F.insuranceHigh}. A 200 m² detached villa on an island at a {$(villa.zonePrice)} zone price, with a 2017 permit and two frontages, is estimated at {$(v0.valueUsed)}. It gets only {F.pct(v1.insuranceRate)}, yet because its ENFIA carries the value tax and a surcharge, the saving is {$(v0.total - v1.total)} a year. One caution on our tool: the law tests the limit against the value of the home itself, while the calculator uses the value it applies to the whole computation, so if you entered the total value of several properties, check the limit against the house alone.</p>
+
+  <h2>Reading a Greek policy schedule</h2>
+  <p>A policy issued in Greek can be hard to read for a newcomer. On the schedule, look for the building sum insured (<em>kefalaio ktiriou</em>), listed separately from contents (<em>periechomeno</em>). In the list of covers, earthquake (<em>seismos</em>) may be an optional extra with its own premium, and flood (<em>plimmyra</em>) may appear under a broader heading, so ask the insurer to confirm both in writing. Check the start and end dates, which decide how many months of the previous year count. And note the insurer’s legal name, not just the broker’s: it is the insurer that must appear in the Bank of Greece register.</p>
+
+  <h2>Which properties qualify</h2>
+  <p>The provision covers dwellings (<em>katoikies</em>) owned by individuals. It does not require the home to be your main residence, so a holiday house insured on the same terms qualifies, and each dwelling is judged on its own: two homes need two compliant policies, and insuring one does nothing for the other. A shop, an office or a storage unit, however well insured, gets no reduction under this paragraph, and neither does property held through a company. Owners who bought through a Greek or foreign company to hold a holiday villa should keep that in mind when comparing structures.</p>
+  <p>Co-owned homes raise a practical point rather than a legal one: one policy can cover the whole building for all co-owners, and the reduction then applies to the tax on the dwelling. If siblings inherit a house together and only one of them pays the premium, agree in advance who keeps the receipts, because each of them will see the cut on their own share of the bill.</p>
+
+  <h2>How it combines with the other cuts</h2>
+  <p>The insurance cut does not replace the value-based reduction of article 13; our calculator applies it to what is left after that reduction. On the Thessaloniki flat, the main tax of {$(r0.principal)} first falls by {F.pct(r0.valueReductionRate)} for value and then by {F.insurance} for insurance, a combined {F.pct(1 - r1.total / r1.principal)} rather than {F.pct(r0.valueReductionRate + E.insurance_reduction)}. Add the {Y} small-settlement cut for a village main home and the same logic applies. Run your own home through the <a href={route('enfia', lang)}>ENFIA calculator</a> with the insured option, read the <a href={route('enfiadisc', lang)}>ENFIA reductions guide</a> for the value bands, and if you are budgeting a move, the <a href={route('home', lang)}>Greek salary calculator</a> gives your take-home pay.</p>
+</GuideLayout>

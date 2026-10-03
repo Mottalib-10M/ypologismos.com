@@ -1,0 +1,64 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const Y = P.year;
+const C = P.efka.ceiling_monthly;
+const G = 2500;
+const s = salary({ gross: G });
+const mw = salary({ gross: P.minimum_wage.monthly });
+const grosses = [P.minimum_wage.monthly, 1500, 2000, 2500, 3500, 5000, C, 12000];
+const rows = grosses.map((g) => { const x = salary({ gross: g }); return [g === C ? `${$2(g)} (ceiling)` : $(g), $2(x.employer), $(x.cost), $(x.costAnnual), $2(x.cost / x.net)]; });
+const maxEr = C * P.efka.employer_rate;
+const exec = salary({ gross: 12000 });
+// A foreign company budgeting €60,000 a year all-in for a Greek hire.
+const ANN = 60000; const perPay = ANN / 14; const hg = perPay <= C * (1 + P.efka.employer_rate) ? perPay / (1 + P.efka.employer_rate) : perPay - maxEr; const hs = salary({ gross: hg });
+const faqs = [
+  { q: `What does a ${$(G)} gross employee cost a company in Greece?`, a: `${$(s.cost)} per payment: ${$(G)} gross plus ${$2(s.employer)} of employer social security at ${F.efkaEr}. Greek salaries are paid 14 times a year, so the annual cost is ${$(s.costAnnual)}, not twelve times the monthly figure. The employee, if over 30 with no children, receives ${$(s.net)} net per payment, about ${F.pct(s.net / s.cost)} of what the company spends.` },
+  { q: `Is the ${F.efkaEr} employer rate the same for every Greek employee?`, a: `It is the employer share for contribution package code ${F.kpk}, the general case for private-sector employees, in force since 1 January 2025 after a half-point cut in the health branch and unchanged in ${Y}. The health part is ${F.efkaHealthEr}. Hazardous occupations and some special funds use other packages with different rates, which this calculator does not model.` },
+  { q: 'Is there a cap on employer contributions for high earners in Greece?', a: `Yes. Contributions apply only up to the monthly insurable ceiling of ${F.ceiling}, set from 1 January ${Y} by e-EFKA circular 4/${Y}. The employer therefore pays at most ${$2(maxEr)} per payment. On a ${$(12000)} gross executive salary that is an effective ${F.pct(exec.employer / 12000)} of gross, and the cost per payment is ${$(exec.cost)}.` },
+  { q: `We are a foreign company with a ${$(ANN)} annual budget for a Greek hire. What gross can we offer?`, a: `Divide by 14 first: ${$(perPay)} of total cost per payment. Below the ceiling, gross is cost divided by ${F.dec(1 + P.efka.employer_rate, 4)}, so about ${$(hg)} gross a month, or ${$(hg * 14)} a year as the package. The employee would take home about ${$(hs.net)} per payment if over 30 with no children.` },
+];
+---
+<GuideLayout lang={lang} id="employer" breadcrumbLabel={label('employer', lang)}
+  title={`Employer Cost Greece ${Y}: ${F.efkaEr} EFKA on 14 Salaries`}
+  h1={`Employer cost in Greece ${Y}: what a salary really costs the company`}
+  description={`Employer cost Greece ${Y}: ${$(G)} gross costs ${$(s.cost)} per payment and ${$(s.costAnnual)} a year over 14 payments. Employer EFKA ${F.efkaEr} (code ${F.kpk}), ceiling ${F.ceiling}.`}
+  intro={`For anyone hiring in Greece, the gross salary is only the start: employer social security sits on top of each of the fourteen yearly payments.`}
+  resume={`An employee on ${$(G)} gross a month costs a Greek employer ${$(s.cost)} per payment in ${Y}: the gross plus ${$2(s.employer)} of employer contributions to e-EFKA, the national social security fund, at ${F.efkaEr} under the general private-sector package, code ${F.kpk}. Because Greek salaries are paid fourteen times a year, with a Christmas bonus, an Easter bonus and a leave allowance on top of twelve monthly salaries, the annual cost is ${$(s.costAnnual)}. The employee keeps ${$(s.net)} net per payment if over 30 with no children, so each euro of take-home pay costs the company ${$2(s.cost / s.net)}. At the minimum wage of ${F.minWage}, the cost is ${$(mw.cost)} per payment and ${$(mw.costAnnual)} a year. Contributions stop at a monthly ceiling of ${F.ceiling}, so the employer share never exceeds ${$2(maxEr)} per payment. The calculator gives the cost of any salary, over 14 or 12 payments.`}
+  faqs={faqs}
+  related={[{ href: route('home', lang), name: label('home', lang), description: 'The employee’s net pay from the same gross.' }, { href: route('nettogross', lang), name: label('nettogross', lang), description: 'The gross that delivers a candidate’s net target.' }, { href: route('minimum', lang), name: label('minimum', lang), description: `The ${F.minWage} minimum wage and its cost.` }]}
+  sources={[src('efka_rates', lang), src('efka_ceiling', lang), src('min_wage', lang), src('tax_scale', lang)]}>
+  <div data-outil><ToolCalc client:load kind="employer" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>Cost of employment by salary level</h2>
+  <ContentTable headers={['Monthly gross', 'Employer EFKA', 'Cost per payment', 'Annual cost (×14)', 'Cost per €1 net']} align={['l', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={3} />
+  <p>Net pay in the last column assumes an employee over 30 with no dependent children. The ratio climbs with salary because income tax grows faster than pay, and it bends once the gross passes the ceiling, where contributions stop. For a company used to payroll in another country, the striking figure is usually the annual cost column: fourteen payments, each carrying the full employer rate.</p>
+
+  <h2>What the {F.efkaEr} pays for</h2>
+  <p>Package code {F.kpk} is the general case for private-sector employees. Since 1 January 2025, under e-EFKA circular 38/2024, the rates are {F.efkaEe} for the employee and {F.efkaEr} for the employer, after a half-point cut on each side in the health branch, where the employer now pays {F.efkaHealthEr}. The combined burden on every gross euro is {F.efkaTotal}. The rates are unchanged in {Y}. The employer share is paid on top of the salary and never appears in the employee’s net, which makes it easy to overlook when comparing offers across countries.</p>
+
+  <h2>The ceiling</h2>
+  <p>From 1 January {Y}, the maximum insurable earnings are {F.ceiling} a month, raised in line with the 2025 price index under circular 4/{Y}. Neither side pays contributions above that. The employer’s maximum is {$2(maxEr)} per payment, so on senior salaries the effective rate falls: {F.pct(exec.employer / 12000)} on {$(12000)} gross.</p>
+
+  <h2>The two extra payments</h2>
+  <p>The thirteenth and fourteenth payments are not a perk the employer can drop. The Christmas bonus (<em>doro Christougennon</em>) is a month’s pay, the Easter bonus (<em>doro Pascha</em>) half a month, and the leave allowance (<em>epidoma adeias</em>) up to half a month, each bearing the same {F.efkaEr} of employer contributions as an ordinary salary. On {$(G)} gross they add about {$(s.cost * 2)} of cost a year. The Christmas bonus is due by 21 December, so a December payroll in Greece is roughly double a normal month, which a cash-flow plan should reflect.</p>
+
+  <h2>Budgeting a hire from abroad</h2>
+  <p>A foreign company hiring its first employee in Greece often thinks in an annual all-in figure. Convert it in two steps. Divide by fourteen, not twelve, to get the cost per payment; then, below the ceiling, divide by {F.dec(1 + P.efka.employer_rate, 4)} to get the gross. A budget of {$(ANN)} gives {$(perPay)} per payment and about {$(hg)} gross, which you would advertise as an annual package of {$(hg * 14)}. Paying 12 salaries instead of 14 leaves the annual cost the same as long as the monthly gross stays under the ceiling, since contributions are proportional; set the payments field to 12 to check a specific case.</p>
+
+  <div data-chrome><MiniSim client:load kind="hirebudget" lang={lang} href={route('employer', lang)} /></div>
+
+  <h2>What the result does not include</h2>
+  <p>The figure is the payroll cost: gross salary plus employer contributions under package {F.kpk}. It leaves out overtime, benefits in kind, group insurance, equipment, recruitment costs and any provision for severance pay. Sectors with hazardous-work rules or special funds use other rates. To see what reaches the employee, use the <a href={route('home', lang)}>Greek salary calculator</a>; to start from what a candidate wants in hand, use <a href={route('nettogross', lang)}>net to gross</a>; and the <a href={route('minimum', lang)}>minimum wage page</a> shows the floor for full-time staff.</p>
+</GuideLayout>

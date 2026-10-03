@@ -1,0 +1,62 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, grossForNet, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const Y = P.year;
+const N = 2000;
+const g0 = grossForNet(N), s0 = salary({ gross: g0 });
+const g1 = grossForNet(N, { children: 1 });
+const g12 = grossForNet(N, { payments: 12 }), s12 = salary({ gross: g12, payments: 12 });
+// Monthly take-home people quote when relocating, converted to the 14-payment gross a Greek contract states.
+const targets = [1500, 2000, 2500, 3000, 4000, 5000];
+const rows = targets.map((n) => { const a = grossForNet(n), b = grossForNet(n, { children: 2 }); const yearNet = n * 14; return [$(n), $(yearNet), $(a), $(a * 14), $(b)]; });
+// Someone who wants €2,000 net "a month" all year round, counting holiday pay: 12 × 2,000 spread over 14.
+const per14 = N * 12 / 14; const gSpread = grossForNet(per14);
+const hi = grossForNet(6000), hiS = salary({ gross: hi });
+const faqs = [
+  { q: `I need ${$(N)} a month to live in Athens. What gross salary should I ask for?`, a: `It depends on whether you mean twelve months or fourteen payments. If you want ${$(N)} in each of the 14 Greek payments, ask for ${$(g0)} gross a month. If you only need ${$(N * 12)} a year in total, that is ${$(per14)} per payment, and ${$(gSpread)} gross is enough. Both assume you are over 30 with no children and no other Greek income.` },
+  { q: 'A Greek recruiter quoted me an annual gross package. How do I compare it with my net target?', a: `Divide the package by 14, because Greek employers pay the monthly gross twelve times plus about two more as Christmas bonus, Easter bonus and leave allowance. Enter your net target in the calculator: if the resulting gross times 14 is above the package, the offer falls short. For ${$(N)} net per payment, the package must be at least ${$(g0 * 14)}.` },
+  { q: 'My contract says 12 salaries, not 14. Does that change the gross I need?', a: `Yes. With 12 payments there are no holiday bonuses to fill the year, so each monthly gross must be higher: ${$(g12)} for ${$(N)} net, instead of ${$(g0)} over 14 payments. The yearly net differs too, ${$(s12.netAnnual)} against ${$(N * 14)}. Set the payments field to 12 to match your contract.` },
+  { q: 'Does a high salary hit a cap on social security in Greece?', a: `Yes. Employee contributions of ${F.efkaEe} stop at a monthly insurable ceiling of ${F.ceiling}. Above that, each extra euro of gross pays only income tax, at up to ${F.r[5]}. That is why the gross needed for ${$(6000)} net, ${$(hi)}, is lower than a straight extrapolation from smaller salaries would suggest: contributions on it are capped at ${$(hiS.efka)}.` },
+];
+---
+<GuideLayout lang={lang} id="nettogross" breadcrumbLabel={label('nettogross', lang)}
+  title={`Net to Gross Salary Greece ${Y}: The Gross to Ask For`}
+  h1={`Net to gross in Greece: turn the take-home pay you need into a salary`}
+  description={`Net to gross salary Greece ${Y}: ${$(N)} net per payment takes ${$(g0)} gross over 14 payments. With ${F.efkaEe} EFKA, the ${Y} tax scale and the employee tax credit.`}
+  intro={`Relocating to Greece usually starts from a budget, not a payslip. This calculator works backwards from the net you need to the gross a Greek contract must state.`}
+  resume={`To take home ${$(N)} in each of Greece’s 14 annual salary payments in ${Y}, an employee over 30 with no children needs a gross salary of ${$(g0)} a month. The gap of ${$(g0 - N)} covers ${$(s0.efka)} of employee social security to e-EFKA, the national insurance fund, at ${F.efkaEe}, and about ${$(s0.tax)} of income tax after the employee tax credit. One dependent child lowers the gross needed to ${$(g1)}. Greek contracts quote a monthly gross paid twelve times plus roughly two more as holiday bonuses, so an annual package of ${$(g0 * 14)} matches that target. If your employer pays 12 salaries instead, the same net needs ${$(g12)} gross a month. Be clear whether your budget means per payment or per calendar month: ${$(N)} a month all year round works out at ${$(per14)} per payment and only ${$(gSpread)} gross. The calculator below handles age, children and the number of payments.`}
+  faqs={faqs}
+  related={[{ href: route('home', lang), name: label('home', lang), description: 'Gross to net, the other direction.' }, { href: route('employer', lang), name: label('employer', lang), description: `What the same salary costs an employer, with ${F.efkaEr} on top.` }, { href: route('fourteen', lang), name: label('fourteen', lang), description: 'Why Greek salaries come in 14 payments.' }]}
+  sources={[src('tax_scale', lang), src('tax_credit', lang), src('efka_rates', lang), src('efka_ceiling', lang)]}>
+  <div data-outil><ToolCalc client:load kind="nettogross" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>Monthly budget to Greek gross salary</h2>
+  <ContentTable headers={['Net per payment', 'Net per year (×14)', 'Gross, no children', 'Annual package', 'Gross, 2 children']} align={['l', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={1} />
+  <p>Every figure assumes an employee over 30, fourteen payments and no other income taxed in Greece. The “annual package” column is the number a recruiter is likely to quote. It is gross before employee social security and tax, and it excludes the employer’s own contributions of {F.efkaEr}, which the <a href={route('employer', lang)}>employer cost calculator</a> adds.</p>
+
+  <h2>Per payment or per calendar month?</h2>
+  <p>This is the question that trips up most people moving to Greece. Your rent, utilities and school fees run twelve months a year, but a Greek salary arrives in fourteen instalments, two of them bunched around Christmas, Easter and the summer holidays. If your budget says {$(N)} a month for twelve months, you need {$(N * 12)} net a year, which is {$(per14)} per payment and {$(gSpread)} gross. If instead you want {$(N)} to land every time you are paid, you need {$(g0)} gross and end the year with {$(N * 14)} net. The difference in gross between the two readings is {$(g0 - gSpread)} a month, and it is worth settling before you name a figure to an employer.</p>
+
+  <h2>How the calculator finds the gross</h2>
+  <p>There is no formula that runs a Greek payslip backwards. Net pay depends on four steps: social security at {F.efkaEe} up to the monthly ceiling of {F.ceiling}, annual taxable income over fourteen payments, income tax on the scale of Law 5246/2025 ({F.r[0]} to {F.r[5]}), and the article 16 tax credit, which shrinks above {F.creditThreshold} of taxable income. That last step makes the relationship uneven, so the calculator tries gross amounts in narrowing steps until the normal payroll computation lands exactly on your net, to the cent. Put the result into the <a href={route('home', lang)}>Greek salary calculator</a> and you get your net back.</p>
+  <p>A common shortcut, dividing the net by one minus the contribution rate, ignores tax entirely and leaves you short. For {$(N)} it gives {$(N / (1 - P.efka.employee_rate))}, some {$(g0 - N / (1 - P.efka.employee_rate))} below what you need.</p>
+
+  <h2>Negotiating a Greek offer</h2>
+  <p>Talk in gross, write it in gross. Contributions, tax, holiday bonuses and severance are all calculated on the gross, and a net figure in an email does not tell anyone who absorbs a later change in tax rates. If you agreed a net amount, ask for the matching gross in the contract.</p>
+  <p>Raises work the same way. Asking for “€150 more” without saying net or gross invites a misunderstanding: at {$(1500)} gross, an extra {$(150)} net requires about {$(grossForNet(salary({ gross: 1500 }).net + 150) - 1500)} more gross. Under 30, you need less gross for the same net, because the first two tax brackets carry {F.youthU25} up to age 25 and {F.youth2630} from 26 to 30. Our <a href={route('youth', lang)}>guide to tax for young workers</a> explains the rule.</p>
+
+  <div data-chrome><MiniSim client:load kind="raiseask" lang={lang} href={route('nettogross', lang)} /></div>
+
+  <h2>What the result leaves out</h2>
+  <p>The calculation covers private-sector employees on the standard e-EFKA contribution package, code {F.kpk}. It does not include income from abroad or from rent that would change your Greek tax, special tax regimes for people moving to Greece, benefits in kind, or special funds for hazardous occupations. Tax is spread evenly over the year’s payments, as Greek payroll withholding does; your annual tax return may settle a small difference if your pay changed during the year.</p>
+</GuideLayout>
