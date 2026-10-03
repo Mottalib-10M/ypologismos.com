@@ -6,6 +6,13 @@ import {
 } from './engine/gr';
 import { formatMoney, formatNumber, pct } from './format';
 import type { MiniSpec } from './mini-types';
+import { EXTRA_A } from './mini-extra-a';
+import { EXTRA_B } from './mini-extra-b';
+import { EXTRA_C } from './mini-extra-c';
+import { EXTRA_D } from './mini-extra-d';
+import { EXTRA_E } from './mini-extra-e';
+import { EXTRA_F } from './mini-extra-f';
+import { EXTRA_G } from './mini-extra-g';
 
 type L = string;
 const T = <A,>(l: L, el: A, en: A) => (l === 'en' ? en : el);
@@ -172,8 +179,9 @@ const SPECS: Record<string, (l: L) => MiniSpec> = {
       return { head: [T(l, 'Καθαρή αύξηση ανά καταβολή', 'Net raise per payment'), $(b.net - a.net, l)], rows: [[T(l, 'Μένει από κάθε 100 € αύξηση', 'Kept from each €100 of raise'), $(r > 0 ? (b.net - a.net) / r * 100 : 0, l)], [T(l, 'Καθαρή αύξηση τον χρόνο', 'Net raise per year'), $(b.netAnnual - a.netAnnual, l)]] }; } }),
 };
 
+const ALL: Record<string, (l: L) => MiniSpec> = { ...SPECS, ...EXTRA_A, ...EXTRA_B, ...EXTRA_C, ...EXTRA_D, ...EXTRA_E, ...EXTRA_F, ...EXTRA_G };
 export function getSpec(kind: string, lang = 'el'): MiniSpec {
-  const f = SPECS[kind]; if (!f) throw new Error(`mini-spec inconnu : ${kind}`); return f(lang);
+  const f = ALL[kind]; if (!f) throw new Error(`mini-spec inconnu : ${kind}`); return f(lang);
 }
-export const MINI_KINDS = Object.keys(SPECS);
+export const MINI_KINDS = Object.keys(ALL);
 export { formatNumber };
