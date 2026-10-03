@@ -1,0 +1,71 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, taxCredit, bracketRates, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+import { ART11, ART11_SOURCE, SCALE_2025_SOURCE } from '../../lib/mini-extra-b';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const p = F.pct;
+const T = P.tax;
+const wages = [1300, 2200, 3200];
+const kids = [0, 1, 2, 3, 4, 5, 6];
+const tax = (g: number, k: number) => salary({ gross: g, children: k }).taxAnnual;
+const rows = kids.map((k) => { const r = bracketRates(k); return [String(k), p(r[1]), p(r[2]), $(taxCredit(0, k)), ...wages.map((g) => $(tax(g, k)))]; });
+// A two-child family on 2,200.
+const fam = 2200;
+const f0 = salary({ gross: fam }), f2 = salary({ gross: fam, children: 2 });
+const scaleSaving = f0.scaleAnnual - f2.scaleAnnual, creditGain = f2.creditAnnual - f0.creditAnnual;
+// Each child at 2,200.
+const step = [1, 2, 3, 4].map((k) => tax(fam, k - 1) - tax(fam, k));
+// Relocating family, one earner at 3,200.
+const hi = 3200;
+const h0 = salary({ gross: hi }), h3 = salary({ gross: hi, children: 3 });
+const t3 = salary({ gross: 2600, children: 3 }), t2 = salary({ gross: 2600, children: 2 });
+const low = 1300;
+const l1 = salary({ gross: low, children: 1 }), l0 = salary({ gross: low });
+const faqs = [
+  { q: 'My children live abroad with their other parent. Do they count for my Greek tax?', a: `The article 11 definition looks at the child, not at where the child lives: an unmarried child under 18, or up to 25 while studying in Greece or abroad, registered as unemployed or doing military service. The income test of ${$(ART11.incomeLimit)} applies to children who live with you. Whether you or the other parent claims the child depends on your situation; a Greek accountant can confirm it before you declare them to payroll.` },
+  { q: 'How much does one child cut my Greek income tax?', a: `It depends on where your income falls. On ${$(low)} gross a month, one child lowers annual tax from ${$(l0.taxAnnual)} to ${$(l1.taxAnnual)}. On ${$(fam)} the first child is worth ${$(step[0])} a year. The saving comes from a ${F.second[1]} rate instead of ${F.second[0]} in the second band, ${F.third[1]} instead of ${F.third[0]} in the third, and a tax reduction of ${F.credit[1]} instead of ${F.credit[0]}.` },
+  { q: 'We are moving to Greece with three children. What will the earner pay?', a: `On ${$(hi)} gross a month, paid fourteen times, a parent of three pays ${$(h3.taxAnnual)} of income tax a year, against ${$(h0.taxAnnual)} with no children. Three children bring the second band down to ${F.second[3]}, the third to ${F.third[3]}, and raise the article 16 reduction to ${F.credit[3]}. Tell the employer about the children when you sign, or the payroll will withhold as if you had none.` },
+  { q: 'Why does a parent of five keep the full tax reduction on a high salary?', a: `Article 16 switches off the income taper for taxpayers with five or more dependent children. Everyone else loses ${F.creditTaper} of the reduction for every €1,000 of taxable income above ${F.creditThreshold}. A parent of five keeps the full ${F.credit[5]} at any income, plus ${F.creditStep} for each further child, on top of a third band taxed at ${p(bracketRates(5)[2])}.` },
+];
+---
+<GuideLayout lang={lang} id="children" breadcrumbLabel={label('children', lang)}
+  title={`Tax Reduction for Children Greece ${F.year}: Rates by Child`}
+  h1={`Tax reduction for children in Greece: what each child saves in ${F.year}`}
+  description={`Tax reduction for children Greece ${F.year}: second band ${F.second[1]} to ${F.second[3]}, zero from four children, credit from ${F.credit[1]}. Annual tax for 0 to 6 children on three salaries.`}
+  intro={`In Greece, dependent children lower income tax twice over: through cheaper rates in the middle of the scale and through a bigger employee tax reduction.`}
+  resume={`Under the ${F.year} rules, every dependent child lowers the rates of the second and third bands of the Greek income tax scale. The second band (${F.limits[0]} to ${F.limits[1]}) drops from ${F.second[0]} to ${F.second[1]} with one child, ${F.second[2]} with two and ${F.second[3]} with three; with four or more, the first two bands are not taxed at all. The third band, up to ${F.limits[2]}, falls to ${F.third[1]}, ${F.third[2]}, ${F.third[3]} and ${F.third[4]}, and by another ${F.thirdStep} for each child after the fourth. On top of that, the article 16 tax reduction rises from ${F.credit[0]} to ${F.credit[1]}, ${F.credit[2]}, ${F.credit[3]}, ${F.credit[4]} and ${F.credit[5]}. For a family with one earner on ${$(fam)} gross a month, two children cut annual tax from ${$(f0.taxAnnual)} to ${$(f2.taxAnnual)}. The calculator below shows what your own children change.`}
+  faqs={faqs}
+  related={[{ href: route('home', lang), name: label('home', lang), description: 'Net pay with your number of children.' }, { href: route('credit', lang), name: label('credit', lang), description: 'The article 16 amounts and where they run out.' }, { href: route('withholding', lang), name: label('withholding', lang), description: 'Why undeclared children mean too much tax withheld.' }]}
+  sources={[src('tax_scale', lang), src('tax_credit', lang), ART11_SOURCE.en, SCALE_2025_SOURCE.en]}>
+  <div data-chrome><MiniSim client:load kind="children" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Rates, reduction and annual tax for 0 to 6 children</h2>
+  <ContentTable headers={['Children', '2nd band', '3rd band', 'Full reduction', `Tax on ${$(wages[0])}`, `Tax on ${$(wages[1])}`, `Tax on ${$(wages[2])}`]} align={['l', 'r', 'r', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={2} />
+  <p>Tax figures are annual, for one earner over 30 paid fourteen times a year at the monthly gross shown, after e-EFKA social security. The “full reduction” column is the article 16 amount before the income taper. Notice how the lowest salary reaches zero tax with two children, while the highest still pays tax with six: much of that income sits above {F.limits[2]}, where children no longer change the rate.</p>
+
+  <h2>Where the saving comes from</h2>
+  <p>For the one-earner family on {$(fam)} a month, the two children save {$(f0.taxAnnual - f2.taxAnnual)} a year. Of that, {$(scaleSaving)} comes from the lower rates in the second and third bands, and {$(creditGain)} from a larger tax reduction. Until 2025 Greece used a single scale for everyone and children only counted through the reduction. The split matters because the reduction shrinks as income rises, while the rate cut is worth the same in euros to anyone whose income fills the two bands.</p>
+  <p>The result is that there is no fixed “allowance per child”. At {$(fam)} a month, the first child is worth {$(step[0])} a year, the second {$(step[1])}, the third {$(step[2])} and the fourth {$(step[3])}. The third child stands out because it brings the second band down to {F.second[3]}, the same as the first band; the fourth is bigger still, because it removes tax on the first {F.limits[1]} altogether.</p>
+
+  <div data-chrome><MiniSim client:load kind="kidsstep" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Who counts as a dependent child</h2>
+  <p>Article 11 of the Income Tax Code sets the conditions. A child counts if unmarried and under 18, or aged up to 25 while studying at a school, university or vocational institute in Greece or abroad, registered as unemployed with DYPA (the public employment service, formerly OAED) or doing military service. Children with a disability of at least {p(ART11.disability)} count at any age if unmarried, divorced or widowed.</p>
+  <p>A child who earns money can stop counting. If the child lives with you and their own taxable income for the year goes above {$(ART11.incomeLimit)}, they are no longer your dependant. Child maintenance paid under a court order or notarial deed is ignored for this test. A student with a well-paid summer job can therefore change the parents’ tax bill for the whole year.</p>
+
+  <h2>When the eldest stops counting</h2>
+  <p>The same rules work in reverse, and families are often caught out. A parent of three on {$(2600)} gross a month pays {$(t3.taxAnnual)} a year. When the eldest turns 25, or finishes studying without registering as unemployed, the child no longer counts and the parent is taxed as a parent of two: {$(t2.taxAnnual)}. Most of the {$(t2.taxAnnual - t3.taxAnnual)} increase comes from the second band, which goes back up from {F.second[3]} to {F.second[2]}, with a smaller part from a lower tax reduction.</p>
+  <p>It is worth planning for, especially if a child’s studies end during the year. Updating payroll keeps the monthly withholding in line with what the annual return will show.</p>
+
+  <h2>Telling payroll about your children</h2>
+  <p>Your employer can only apply the child rates if it knows about the children. New arrivals often skip this step during onboarding, and the payroll then withholds as if the employee had none. The annual return corrects the total, but the overpayment sits with the tax office for months. The page on <a href={route('withholding', lang)}>payroll tax withholding</a> shows the size of that gap. The same applies in reverse: when a child turns 25 or finishes studying, tell payroll, or the return will show tax to pay.</p>
+  <p>For the exact effect on your payslip, enter your gross and your number of children in the main <a href={route('home', lang)}>salary calculator</a>. The full scale, with the bands for every number of children, is on the page about <a href={route('brackets', lang)}>income tax brackets</a>.</p>
+</GuideLayout>

@@ -1,0 +1,74 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, incomeTax, taxCredit, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+import { creditZeroAt, ART29_SOURCE } from '../../lib/mini-extra-b';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const p = F.pct;
+const T = P.tax;
+const taxFreeUpTo = (k: number) => { let lo = 0, hi = 200000; for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if (incomeTax(m, k).tax > 0.005) hi = m; else lo = m; } return Math.floor(lo / 10) * 10; };
+// Credit left at several incomes, by number of children.
+const levels = [12000, 20000, 30000, 40000, 50000];
+const kidsList = [0, 1, 2, 3, 4, 5];
+const rows = kidsList.map((k) => { const z = creditZeroAt(k); return [String(k), $(taxCredit(0, k)), ...levels.slice(1).map((i) => $(taxCredit(i, k))), z === null ? 'never' : $(z)]; });
+const z0 = creditZeroAt(0) as number;
+const free0 = taxFreeUpTo(0), free1 = taxFreeUpTo(1);
+// A €45,000 package.
+const pkg = 45000;
+const w = salary({ gross: pkg / 14 });
+const wFull = taxCredit(0, 0);
+// Hidden surcharge.
+const taper = T.credit_taper_per_1000 / 1000;
+// Minimum wage, one child: unused reduction.
+const m1 = salary({ gross: P.minimum_wage.monthly, children: 1 });
+const m1Full = taxCredit(m1.taxableAnnual, 1);
+const faqs = [
+  { q: 'Is there a tax-free allowance for employees in Greece?', a: `Not as a slice of income. Greece gives employees and pensioners a tax reduction under article 16, ${F.credit[0]} without children, subtracted from the tax the scale produces. Because it cancels the tax on the first euros, it works like an allowance: without children you pay no income tax up to about ${$(free0)} of taxable income, with one child up to about ${$(free1)}.` },
+  { q: `My package is ${$(pkg)} a year. Do I still get the employee tax reduction?`, a: `Only a little. On a ${$(pkg)} gross package paid fourteen times, your taxable income is ${$(w.taxableAnnual)}. The reduction starts at ${F.credit[0]} and loses ${F.creditTaper} for every €1,000 above ${F.creditThreshold}, so you keep ${$(w.creditAnnual)}. Without children it disappears completely at ${$(z0)} of taxable income.` },
+  { q: 'Can the unused part of the tax reduction be refunded?', a: `No. If the scale tax is smaller than the reduction, the reduction is capped at the tax and the rest is lost. A parent of one on the minimum wage of ${F.minWage} is entitled to ${$(m1Full)} but has only ${$(m1.creditAnnual)} of scale tax, so ${$(m1Full - m1.creditAnnual)} goes unused. It is not paid out and cannot be carried to another year.` },
+  { q: 'Do retirees living in Greece get the same reduction?', a: `Yes. Article 16 applies to tax on salaries and pensions alike, with the same amounts by number of children and the same taper above ${F.creditThreshold}. The taper counts salary and pension income together, so a retiree who also works receives one reduction for the total. Business profits, by contrast, never qualify under article 29.` },
+  { q: 'Why does a parent of five not lose the reduction as income rises?', a: `Paragraph 2 of article 16 exempts taxpayers with five or more dependent children from the taper. They keep ${F.credit[5]}, plus ${F.creditStep} for each child after the fifth, at any income. A parent of four, by comparison, sees the ${F.credit[4]} shrink from ${F.creditThreshold} and vanish at ${$(creditZeroAt(4) as number)} of taxable income.` },
+];
+---
+<GuideLayout lang={lang} id="credit" breadcrumbLabel={label('credit', lang)}
+  title={`Employee Tax Credit Greece ${F.year}: ${F.credit[0]} and the Phase-Out`}
+  h1={`The Greek employee tax credit in ${F.year}: ${F.credit[0]}, and where it runs out`}
+  description={`Employee tax credit Greece ${F.year}: ${F.credit[0]} with no children up to ${F.credit[5]} with five, minus ${F.creditTaper} per €1,000 above ${F.creditThreshold} of taxable pay, and where it reaches zero.`}
+  intro={`Every employee and pensioner taxed in Greece gets a reduction in income tax under article 16 of the Income Tax Code: ${F.credit[0]} a year without children.`}
+  resume={`The Greek employee tax credit, formally the tax reduction of article 16 of the Income Tax Code, is ${F.credit[0]} a year for a taxpayer with no dependent children, ${F.credit[1]} with one, ${F.credit[2]} with two, ${F.credit[3]} with three, ${F.credit[4]} with four and ${F.credit[5]} with five, plus ${F.creditStep} for every further child. It is subtracted from the tax calculated on the scale and can never exceed it. Once taxable income from salaries and pensions passes ${F.creditThreshold}, the credit loses ${F.creditTaper} for every €1,000, which makes it vanish at ${$(z0)} without children and at ${$(creditZeroAt(2) as number)} with two. Parents of five or more keep it in full at any income. In everyday terms it acts as a tax-free threshold: a single employee pays no income tax up to about ${$(free0)} of taxable income. On a ${$(pkg)} package, only ${$(w.creditAnnual)} of the ${$(wFull)} remains. Check your own figure below.`}
+  faqs={faqs}
+  related={[{ href: route('home', lang), name: label('home', lang), description: 'Net pay with the credit applied.' }, { href: route('brackets', lang), name: label('brackets', lang), description: 'The scale the credit is subtracted from.' }, { href: route('youth', lang), name: label('youth', lang), description: 'Why under-25s often do not need the credit.' }]}
+  sources={[src('tax_credit', lang), src('tax_scale', lang), ART29_SOURCE.en, src('min_wage', lang)]}>
+  <div data-chrome><MiniSim client:load kind="credit" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>How much credit is left at each income</h2>
+  <ContentTable headers={['Children', 'Full credit', `At ${$(levels[1])}`, `At ${$(levels[2])}`, `At ${$(levels[3])}`, `At ${$(levels[4])}`, 'Zero at']} align={['l', 'r', 'r', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={0} />
+  <p>Incomes are taxable income from salaries and pensions, after social security, for the calendar year. Up to {F.creditThreshold} everybody gets the full amount. Above it, the same {F.creditTaper} per €1,000 is taken off whatever the starting point, so the larger credits of parents last much longer. The last column is where the credit reaches zero; from five children onwards it never does.</p>
+
+  <h2>The taper, step by step</h2>
+  <p>Take a single employee with {$(30000)} of taxable income. That is {$(30000 - T.credit_taper_threshold)} above the threshold, or {F.num((30000 - T.credit_taper_threshold) / 1000)} blocks of €1,000, each costing {F.creditTaper}. The credit falls by {$((30000 - T.credit_taper_threshold) / 1000 * T.credit_taper_per_1000)} to {$(taxCredit(30000, 0))}. At {$(z0)} the cuts add up to the full {F.credit[0]} and nothing is left.</p>
+  <p>Over that whole stretch, each extra euro of income costs {p(taper)} more tax than the band rate suggests, because the credit is shrinking at the same time. In the third band, the real marginal rate for a single employee is {p(T.brackets[2].rate + taper)}, not {F.r[2]}. Once the credit is gone, the marginal rate drops back to the plain band rate.</p>
+
+  <div data-chrome><MiniSim client:load kind="creditfade" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Three common misreadings</h2>
+  <p>The first is treating the credit as an amount of income that escapes tax. It is subtracted from the tax itself, so {F.credit[0]} of credit is worth exactly {F.credit[0]}, whatever your band. The second is measuring the {F.creditThreshold} threshold against gross salary. It applies to taxable income, after the e-EFKA contribution, and that includes the holiday bonuses and the leave allowance. The third is assuming children only raise the starting amount. Because the taper runs at the same pace for everyone, children also push back the point where the credit runs out: from {$(z0)} with none to {$(creditZeroAt(4) as number)} with four.</p>
+
+  <h2>Capped at the tax you owe</h2>
+  <p>The credit cannot push your tax below zero. When the scale tax is smaller, the credit is limited to it and the remainder simply lapses. That is common at low pay: a parent of one earning the minimum wage of {F.minWage} has {$(m1.taxableAnnual)} of taxable income and {$(m1.creditAnnual)} of scale tax, against a credit of {$(m1Full)}. The same goes for workers up to 25, who pay no tax on the first {F.youthLimit} and so have nothing for the credit to reduce until they pass that limit; see the guide to <a href={route('youth', lang)}>tax for workers under 30</a>.</p>
+
+  <h2>How it shows up in your pay</h2>
+  <p>Greek payroll applies the credit every month. Under article 60, your employer annualises your pay, computes the scale tax, subtracts the credit and spreads the result over the year’s payments. On a {$(pkg)} package, the remaining credit of {$(w.creditAnnual)} is worth only {$(w.creditAnnual / 14)} per payment, against {$(wFull / 14)} for someone who keeps the full amount. If payroll does not know about your children, it uses the {F.credit[0]} figure and the difference comes back with the annual return.</p>
+  <p>Two jobs at once are a classic trap. Each employer subtracts the full credit from its own share, but on the return your incomes are added together and you get one credit, already tapered. The page on <a href={route('withholding', lang)}>payroll tax withholding</a> works through an example.</p>
+
+  <h2>Large families and pensioners</h2>
+  <p>Parents of five or more children get two advantages: a bigger credit, starting at {F.credit[5]}, and no taper at all. Pensioners receive the same amounts as employees, and if they also work, the taper is measured on salary and pension income combined. Self-employed profits are added to salary to find the band, but article 29 excludes them from the credit.</p>
+  <p>All amounts here are calculated by the same engine as the main <a href={route('home', lang)}>salary calculator</a>, which applies the credit exactly as payroll does. The effect of children on the band rates themselves is covered in the guide to the <a href={route('children', lang)}>tax reduction for children</a>.</p>
+</GuideLayout>

@@ -1,0 +1,74 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+import { EFKA_DETAIL as D } from '../../lib/mini-extra-b';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const p = F.pct;
+const E = P.efka;
+const r4 = (x: number) => Math.round(x * 10000) / 10000;
+const grosses = [P.minimum_wage.monthly, 1400, 1800, 2500, 3500, 6000, E.ceiling_monthly, 12000];
+const rows = grosses.map((g) => { const s = salary({ gross: g }); return [$(g), $2(s.efka), $2(s.employer), $(s.efkaAnnual), $(s.employerAnnual), p(Math.round((s.efka + s.employer) / s.cost * 1000) / 1000)]; });
+// Example: a €2,500 job offer.
+const g = 2500;
+const s = salary({ gross: g });
+const base = Math.min(g, E.ceiling_monthly);
+const maxEe = E.ceiling_monthly * E.employee_rate;
+const before = { ee: r4(E.employee_rate + D.cut2025), er: r4(E.employer_rate + D.cut2025) };
+const cutYear = g * D.cut2025 * 14;
+const taxSaved = s.efkaAnnual * s.marginal;
+const halfMin = salary({ gross: P.minimum_wage.monthly / 2 }), fullMin = salary({ gross: P.minimum_wage.monthly });
+const yearTotal = s.efkaAnnual + s.employerAnnual;
+const big = 12000, bs = salary({ gross: big });
+const faqs = [
+  { q: 'What percentage of my Greek salary goes to e-EFKA?', a: `${F.efkaEe} of your gross pay, under the standard insurance code ${F.kpk} for private-sector employees. Your employer pays a further ${F.efkaEr}, so the total contribution is ${F.efkaTotal} of gross. On ${$(g)} a month you see ${$2(s.efka)} deducted from each payment, while the employer pays ${$2(s.employer)} that never appears on your payslip.` },
+  { q: 'Does my employer’s contribution count as part of my salary?', a: `No. The gross in your contract is the figure contributions are calculated on, and the employer’s ${F.efkaEr} is paid on top of it. It is a cost for the business, not a deduction from you. On ${$(g)} gross, the position costs the employer ${$(s.cost)} per payment and ${$(s.costAnnual)} a year over fourteen payments.` },
+  { q: 'Is there a cap on social security contributions in Greece?', a: `Yes. Contributions are charged on monthly pay up to ${F.ceiling}, the ceiling in force since 1 January ${F.year} under e-EFKA circular 4/2026. Above it, nothing more is due from either side. The highest possible employee contribution is therefore ${$2(maxEe)} a month. On ${$(big)} gross you pay ${$2(bs.efka)} rather than ${$2(big * E.employee_rate)}.` },
+  { q: 'Did Greek contribution rates change in 2025 or 2026?', a: `They fell on 1 January 2025 and stayed the same in ${F.year}. Law 5162/2024 cut the health-care contribution by ${p(D.cut2025)} for employees and ${p(D.cut2025)} for employers, taking code ${F.kpk} from ${p(before.ee)} to ${F.efkaEe} and from ${p(before.er)} to ${F.efkaEr}. For ${F.year} only the ceiling moved, in line with 2025 consumer prices.` },
+  { q: 'What does my contribution actually pay for?', a: `The part e-EFKA breaks down in its circular is health care: ${F.efkaHealthEe} of your ${F.efkaEe}, of which ${p(D.eeKind)} funds benefits in kind such as doctors, medicines and hospital care, and ${p(D.eeCash)} cash sickness benefits. The remaining ${p(r4(E.employee_rate - E.employee_health))} goes to the other branches of your insurance package, including your main pension and the IKA-TEAM auxiliary pension.` },
+];
+---
+<GuideLayout lang={lang} id="efka" breadcrumbLabel={label('efka', lang)}
+  title={`EFKA Contributions Greece ${F.year}: ${F.efkaEe} and ${F.efkaEr} Rates`}
+  h1={`EFKA contributions in ${F.year}: what Greek social security takes from your pay`}
+  description={`EFKA contributions Greece ${F.year}: ${F.efkaEe} from employees and ${F.efkaEr} from employers under code ${F.kpk}, ceiling ${F.ceiling} a month, health share and annual amounts.`}
+  intro={`Private-sector employees in Greece pay ${F.efkaEe} of gross salary to e-EFKA, the national social insurance fund, and their employer adds ${F.efkaEr}.`}
+  resume={`Social security for employees in Greece is collected by e-EFKA, the unified national insurance fund. Under the standard insurance package code ${F.kpk}, which covers most private-sector jobs, the ${F.year} rates are ${F.efkaEe} of gross pay for the employee and ${F.efkaEr} for the employer, ${F.efkaTotal} in total. Health care accounts for ${F.efkaHealthEe} of the employee share and ${F.efkaHealthEr} of the employer share; both were cut by ${p(D.cut2025)} on 1 January 2025 and have not changed since. Contributions are charged on monthly pay up to a ceiling of ${F.ceiling}. On a ${$(g)} monthly gross, you pay ${$2(s.efka)} per payment and your employer ${$2(s.employer)}, so the job costs ${$(s.cost)} per payment. Your contribution is deducted before income tax is worked out, which lowers the tax bill. The calculator shows your own amounts.`}
+  faqs={faqs}
+  related={[{ href: route('ceiling', lang), name: label('ceiling', lang), description: `Who the ${F.ceiling} ceiling affects.` }, { href: route('employer', lang), name: label('employer', lang), description: 'The full cost of hiring at any salary.' }, { href: route('home', lang), name: label('home', lang), description: 'Gross to net including contributions and tax.' }]}
+  sources={[src('efka_rates', lang), src('efka_ceiling', lang), src('tax_scale', lang)]}>
+  <div data-chrome><MiniSim client:load kind="efka" lang={lang} href={route('employer', lang)} /></div>
+
+  <h2>Contributions at eight salary levels</h2>
+  <ContentTable headers={['Monthly gross', 'Employee', 'Employer', 'Employee/year', 'Employer/year', 'Share of total cost']} align={['l', 'r', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={3} />
+  <p>Monthly amounts are per payment and annual amounts assume the usual fourteen payments, since the Christmas and Easter bonuses and the leave allowance carry contributions like any salary. The last column shows what share of the employer’s total outlay goes to e-EFKA. It stays constant until the ceiling of {F.ceiling}, then falls, because pay above that level carries no contributions at all.</p>
+
+  <h2>Reading the deduction on a Greek payslip</h2>
+  <p>On a Greek payslip, the employee contribution is the deduction for <em>eisfores</em> (contributions) to e-EFKA. On {$(g)} gross it should be {$2(s.efka)}, which is {F.efkaEe} of the gross. If the figure is noticeably different, the most likely reason is a different insurance package code (<em>KPK</em>). Heavy and unhealthy occupations, for instance, are insured under code {D.kpk105.kpk} at {p(D.kpk105.ee)} for the employee and {p(D.kpk105.er)} for the employer, while code {D.kpk103.kpk}, without IKA-TEAM auxiliary cover, charges {p(D.kpk103.ee)} and {p(D.kpk103.er)}.</p>
+  <p>The code is set by the type of work and declared by the employer, so it is worth asking which one applies when you start. Our calculators use code {F.kpk}, the general case.</p>
+
+  <h2>Where the money goes</h2>
+  <p>e-EFKA circular 38/2024 publishes the health-care split alongside the rates. The total health contribution is {p(D.eeKind + D.erKind + D.eeCash + D.erCash)} of pay: {p(D.eeKind + D.erKind)} for benefits in kind, of which you pay {p(D.eeKind)} and your employer {p(D.erKind)}, and {p(D.eeCash + D.erCash)} for cash benefits such as sick pay, split {p(D.eeCash)} and {p(D.erCash)}. On {$(g)} gross, your health share is {$2(base * E.employee_health)} a month.</p>
+  <p>The rest of the employee contribution funds the other branches of the package, including the main pension and the IKA-TEAM auxiliary pension. The branch-by-branch rates for every code are published by e-EFKA in a spreadsheet attached to the circular.</p>
+
+  <div data-chrome><MiniSim client:load kind="efkasplit" lang={lang} href={route('employer', lang)} /></div>
+
+  <h2>Part-time work and the minimum wage</h2>
+  <p>Contributions follow pay in proportion. A full-time employee on the minimum wage of {F.minWage} pays {$2(fullMin.efka)} a month; someone on half the hours, earning {$(P.minimum_wage.monthly / 2)}, pays {$2(halfMin.efka)}. The employer’s share scales the same way, so a part-time contract costs the business exactly the same percentage on top of gross pay as a full-time one.</p>
+  <p>Over a whole year the sums are larger than most people expect. On {$(g)} gross with fourteen payments, employee and employer together send {$(yearTotal)} to e-EFKA, the equivalent of {F.dec(yearTotal / g, 1)} months of gross salary. For anyone comparing a Greek offer with one from another country, that employer share is the main reason the cost of a job is well above its headline gross.</p>
+
+  <h2>The 2025 cut in euros</h2>
+  <p>Since January 2025 the health contribution for benefits in kind has been {p(D.cut2025)} lower for both sides. It applies to everyone employed under a private-law contract, in private companies and in the public sector alike. On {$(g)} gross over fourteen payments, the employee keeps {$(cutYear)} more a year before tax and the employer saves the same. In {F.year} the rates were left unchanged; only the ceiling was raised, in line with the 2025 consumer price index.</p>
+
+  <h2>Contributions reduce your income tax</h2>
+  <p>Greek income tax is calculated on gross pay minus the employee contribution. Every euro paid to e-EFKA therefore comes off your taxable income, and its real cost is lower than it looks. On {$(g)} gross your contributions total {$(s.efkaAnnual)} a year; because they are deducted first, your tax is about {$(taxSaved)} lower than if the whole gross were taxed at your {p(s.marginal)} marginal rate. The order is always the same on a payslip: contributions, then tax on what remains.</p>
+  <p>For employers, the {F.efkaEr} is the main extra cost of a hire. The <a href={route('employer', lang)}>employer cost calculator</a> gives the total for any salary, the guide to the <a href={route('ceiling', lang)}>contribution ceiling</a> covers the highest earners, and the main <a href={route('home', lang)}>Greek salary calculator</a> combines contributions and income tax into your net pay.</p>
+</GuideLayout>

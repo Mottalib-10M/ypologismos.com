@@ -1,0 +1,80 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, incomeTax, bracketRates, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+import { tax2025, SCALE_2025, SCALE_2025_SOURCE, ART29_SOURCE, ART11_SOURCE, ART15_1A } from '../../lib/mini-extra-b';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const p = F.pct;
+const B = P.tax.brackets;
+const T = P.tax;
+const lows = B.map((_, i) => (i === 0 ? 0 : (B[i - 1].upTo as number)));
+const bandName = (i: number) => (B[i].upTo === null ? `Over ${$(lows[i])}` : `${$(lows[i])} – ${$(B[i].upTo as number)}`);
+const kidCols = [0, 1, 2, 3, 4, 5];
+const rateRows = B.map((_, i) => [bandName(i), ...kidCols.map((k) => p(bracketRates(k)[i]))]);
+// Worked example: a €40,000 package.
+const pkg = 40000;
+const monthly = pkg / 14;
+const w = salary({ gross: monthly });
+const wk = salary({ gross: monthly, children: 2 });
+const wy = salary({ gross: monthly, age: '26_30' });
+// Incomes table.
+const incomes = [12000, 18000, 24000, 30000, 36000, 45000, 60000, 90000];
+const exRows = incomes.map((i) => { const t = incomeTax(i); const old = tax2025(i); return [$(i), p(t.marginal), $(t.tax), p(Math.round(t.average * 1000) / 1000), $(old), $(old - t.tax)]; });
+const top = B[4].upTo as number;
+const maxGain = tax2025(top) - incomeTax(top).tax;
+const t30 = incomeTax(30000), t60 = incomeTax(60000);
+const w4 = salary({ gross: monthly, children: 4 });
+const avg = salary({ gross: P.minimum_wage.average_wage_2025 });
+const faqs = [
+  { q: 'I have just moved to Athens. Which Greek tax bracket am I in?', a: `It depends on your taxable income for the calendar year, not on your monthly salary. Multiply the monthly gross by fourteen (the two holiday bonuses and the leave allowance are part of the year), deduct the ${F.efkaEe} employee social security, and place the result on the scale. A monthly gross of ${$(monthly)} gives ${$(w.taxableAnnual)} taxable, which puts your last euro in the ${p(w.marginal)} band.` },
+  { q: 'Does Greece tax my whole salary at the top rate once I cross a threshold?', a: `No. Each rate applies only to the slice of income inside its band. Someone with ${$(60000)} of taxable income pays ${F.r[0]} on the first ${F.limits[0]}, ${F.r[1]} on the next slice and so on, for a total of ${$(t60.tax)} after the employee tax reduction. That is an average rate of ${p(Math.round(t60.average * 1000) / 1000)}, well below the ${F.r[4]} marginal rate.` },
+  { q: 'How much less tax will I pay in 2026 than in 2025?', a: `With no dependent children, nothing changes up to ${F.limits[0]} of taxable income. Above that the saving grows with income: ${$(tax2025(30000) - t30.tax)} a year at ${$(30000)}, and a maximum of ${$(maxGain)} from ${F.limits[4]} upwards, where both scales reach the same ${F.r[5]} top rate. The employee tax reduction itself did not change between the two years.` },
+  { q: 'Are freelancers on a Greek tax number taxed on the same scale?', a: `Yes, business profits use the same article 15 scale and are added to any salary to find the band. The difference is article 29 of the Income Tax Code: the article 16 tax reduction, worth up to ${F.credit[0]} without children, does not apply to business profits. A freelancer with the same taxable income as an employee therefore pays more income tax.` },
+  { q: 'What is the highest income tax rate in Greece in 2026?', a: `${F.r[5]}, on taxable income above ${F.limits[4]}. Law 5246/2025 left the top rate where it was and added a ${F.r[4]} band between ${F.limits[3]} and ${F.limits[4]}. Because the lower bands are taxed far more lightly, even a ${$(90000)} taxable income has an average rate of ${p(Math.round(incomeTax(90000).average * 1000) / 1000)}.` },
+];
+---
+<GuideLayout lang={lang} id="brackets" breadcrumbLabel={label('brackets', lang)}
+  title={`Income Tax Brackets Greece ${F.year}: ${F.r[0]} to ${F.r[5]} and Child Rates`}
+  h1={`Greek income tax brackets for ${F.year}: rates, children and worked examples`}
+  description={`Income tax brackets Greece ${F.year}: six bands from ${F.r[0]} to ${F.r[5]}, lower rates for each child, the change from 2025 and what a typical salary package really pays.`}
+  intro={`From the ${F.year} tax year Greece taxes salaries on a new six-band scale running from ${F.r[0]} to ${F.r[5]}, with lower middle rates for parents.`}
+  resume={`Greece’s ${F.year} income tax scale, set by Law 5246/2025, has six bands: ${F.r[0]} up to ${F.limits[0]}, ${F.r[1]} up to ${F.limits[1]}, ${F.r[2]} up to ${F.limits[2]}, ${F.r[3]} up to ${F.limits[3]}, ${F.r[4]} up to ${F.limits[4]}, and ${F.r[5]} above that. Parents pay less in the second and third bands: ${F.second[1]} and ${F.third[1]} with one child, ${F.second[3]} and ${F.third[3]} with three, and from four children the first two bands are tax-free. Employees and pensioners then subtract a tax reduction of ${F.credit[0]} (more with children), which shrinks above ${F.creditThreshold} of income. In practice, a ${$(pkg)} gross package paid in fourteen instalments leaves ${$(w.taxableAnnual)} taxable after social security and costs ${$(w.taxAnnual)} in income tax for a single person over 30, or ${$(wk.taxAnnual)} for a parent of two. Compared with 2025, nobody pays more and the saving reaches ${$(maxGain)} a year from ${F.limits[4]} of taxable income. The calculator below applies the scale to your own figure.`}
+  faqs={faqs}
+  related={[{ href: route('home', lang), name: label('home', lang), description: 'Gross to net with the scale, social security and the tax reduction.' }, { href: route('youth', lang), name: label('youth', lang), description: 'Zero and reduced rates for workers up to 30.' }, { href: route('withholding', lang), name: label('withholding', lang), description: 'How your employer turns the annual scale into monthly tax.' }]}
+  sources={[src('tax_scale', lang), src('tax_credit', lang), SCALE_2025_SOURCE.en, ART29_SOURCE.en, ART11_SOURCE.en, src('efka_rates', lang), src('min_wage', lang)]}>
+  <div data-chrome><MiniSim client:load kind="brackets" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>The {F.year} rates by number of dependent children</h2>
+  <ContentTable headers={['Taxable income', 'No children', '1 child', '2 children', '3 children', '4 children', '5 children']} align={['l', 'r', 'r', 'r', 'r', 'r', 'r']} rows={rateRows} />
+  <p>Each column is a complete scale: you use the one matching the number of dependent children you declare. A dependent child, in Greek tax law, is broadly an unmarried child under 18, or up to 25 if studying, registered as unemployed or doing military service. Parents with four or more children pay nothing on the first {F.limits[1]}, and the third band keeps falling by {F.thirdStep} for every child beyond the fourth. From {F.limits[2]} upwards the scale is the same for everyone.</p>
+  <p>Age adds a further layer. Taxpayers up to 25 pay {F.youthU25} on the first two bands, up to {F.youthLimit}, and those aged 26 to 30 pay {F.youth2630}. The table assumes you are over 30; younger readers should look at the guide to <a href={route('youth', lang)}>tax for workers under 30</a>.</p>
+
+  <h2>Reading a Greek salary offer: a {$(pkg)} example</h2>
+  <p>Greek offers are usually quoted as a monthly gross, paid fourteen times a year. A {$(pkg)} package is therefore {$(monthly)} a month. Your employer deducts {F.efkaEe} employee social security for e-EFKA, the national insurance fund, from every payment, which leaves {$(w.taxableAnnual)} of taxable income for the year. On that figure the scale produces {$(w.scaleAnnual)} of tax, the employee tax reduction knocks off {$(w.creditAnnual)}, and the final bill is {$(w.taxAnnual)}.</p>
+  <p>Net, that is {$(w.net)} per payment, or {$(w.netPer12)} a month if you spread the year over twelve. A parent with two dependent children on the same package pays {$(wk.taxAnnual)}, and a 28-year-old without children pays {$(wy.taxAnnual)} thanks to the youth rate. Your top slice of income is taxed at {p(w.marginal)}, which is the rate to keep in mind when negotiating a raise.</p>
+
+  <h2>Eight incomes on the new and old scale</h2>
+  <ContentTable headers={['Taxable income', 'Marginal rate', `Tax ${F.year}`, 'Average rate', 'Tax 2025', 'Saving']} align={['l', 'r', 'r', 'r', 'r', 'r']} rows={exRows} highlightRow={3} />
+  <p>All figures are for a taxpayer over 30 with no dependent children and include the article 16 tax reduction, which was the same in both years. The 2025 scale had five bands of {F.limits[0]}: {p(SCALE_2025[0].rate)}, {p(SCALE_2025[1].rate)}, {p(SCALE_2025[2].rate)}, {p(SCALE_2025[3].rate)} and {p(SCALE_2025[4].rate)} above {$(SCALE_2025[3].upTo)}. The reform cut the second, third and fourth rates and slipped a new {F.r[4]} band in front of the top rate. That is why the saving climbs steadily and then stops growing at {$(maxGain)}.</p>
+
+  <div data-chrome><MiniSim client:load kind="scalecompare" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Marginal versus average rate</h2>
+  <p>A frequent worry among people relocating to Greece is that a pay rise could push them into a higher band and leave them worse off. It cannot. Only the euros above a threshold are taxed at the higher rate. What does happen, between {F.creditThreshold} and the point where the tax reduction runs out, is a small hidden surcharge: the reduction shrinks by {F.creditTaper} for every {$(1000)} of extra income, so your effective marginal rate is {p(T.credit_taper_per_1000 / 1000)} higher than the band rate.</p>
+  <p>The average rate is what you actually pay on the whole year. On the average Greek salary of {F.avgWage} a month recorded by the ERGANI system in 2025, the taxable income is {$(avg.taxableAnnual)} and the average rate {p(Math.round(avg.averageTax * 1000) / 1000)}, with the top slice in the {p(avg.marginal)} band.</p>
+
+  <h2>Large families on the same package</h2>
+  <p>The reform is most generous to parents of four or more children. On the {$(pkg)} package used above, a parent of four pays {$(w4.taxAnnual)} a year, against {$(w.taxAnnual)} for a single colleague, because the first {F.limits[1]} is untaxed and the third band drops to {F.third[4]}. The article 16 reduction for four children, {F.credit[4]}, still shrinks with income; from five children it no longer does, which adds a further step for the largest families.</p>
+  <p>At the other end of the income range, a separate rule protects people with very little income. Under the new paragraph 1A of article 15, when actual income does not exceed {$(ART15_1A.real)} and deemed income does not exceed {$(ART15_1A.presumed)}, with no business or individual farming activity, that income is taxed on the scale with the article 16 reduction.</p>
+
+  <h2>Which income goes on this scale</h2>
+  <p>The same article 15 scale applies to salaries, pensions and self-employed profits, but article 29 denies business profits the article 16 tax reduction. Some groups are taxed separately at flat rates, such as officers and crews of Greek merchant ships.</p>
+  <p>If you are a tax resident with a Greek employer, the payroll applies all of this monthly, and your annual return settles any difference. Every amount on this page comes from the same engine as the main <a href={route('home', lang)}>Greek salary calculator</a>; the effect of dependants is broken down in the guide to the <a href={route('children', lang)}>tax reduction for children</a>.</p>
+</GuideLayout>
