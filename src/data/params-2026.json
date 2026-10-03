@@ -1,0 +1,761 @@
+{
+ "_lisezmoi": "Tous les paramètres légaux 2026 du site (RECETTE §4). Chaque valeur a été relue le 2026-10-03 sur la source citée dans `sources` (texte de loi codifié, circulaire e-ΕΦΚΑ, ministère du Travail, Inspection du travail) ; le moteur (lib/engine/gr.ts) et les pages lisent ce fichier, jamais une valeur en dur.",
+ "year": 2026,
+ "retrieved_at": "2026-10-03",
+ "valid_from": "2026-01-01",
+ "valid_to": "2026-12-31",
+ "minimum_wage": {
+  "monthly": 920,
+  "daily": 41.09,
+  "monthly_2025": 880,
+  "valid_from": "2026-04-01",
+  "triennium_rate": 0.1,
+  "triennium_max": 3,
+  "average_wage_2025": 1516,
+  "official_examples": [
+   {
+    "gross": 920,
+    "children": 0,
+    "net": 772
+   },
+   {
+    "gross": 920,
+    "children": 1,
+    "net": 782
+   },
+   {
+    "gross": 920,
+    "children": 2,
+    "net": 797
+   },
+   {
+    "gross": 1012,
+    "children": 0,
+    "net": 834
+   },
+   {
+    "gross": 1104,
+    "children": 0,
+    "net": 896
+   },
+   {
+    "gross": 1196,
+    "children": 0,
+    "net": 959
+   },
+   {
+    "gross": 1012,
+    "children": 1,
+    "net": 846
+   },
+   {
+    "gross": 1104,
+    "children": 1,
+    "net": 910
+   },
+   {
+    "gross": 1196,
+    "children": 1,
+    "net": 974
+   },
+   {
+    "gross": 1012,
+    "children": 2,
+    "net": 865
+   },
+   {
+    "gross": 1104,
+    "children": 2,
+    "net": 931
+   },
+   {
+    "gross": 1196,
+    "children": 2,
+    "net": 996
+   }
+  ],
+  "source": "min_wage"
+ },
+ "efka": {
+  "employee_rate": 0.1337,
+  "employer_rate": 0.2179,
+  "employee_health": 0.0205,
+  "employer_health": 0.0405,
+  "ceiling_monthly": 7761.94,
+  "kpk": 101,
+  "source": "efka_rates"
+ },
+ "tax": {
+  "brackets": [
+   {
+    "upTo": 10000,
+    "rate": 0.09
+   },
+   {
+    "upTo": 20000,
+    "rate": 0.2
+   },
+   {
+    "upTo": 30000,
+    "rate": 0.26
+   },
+   {
+    "upTo": 40000,
+    "rate": 0.34
+   },
+   {
+    "upTo": 60000,
+    "rate": 0.39
+   },
+   {
+    "upTo": null,
+    "rate": 0.44
+   }
+  ],
+  "second_bracket_by_children": [
+   0.2,
+   0.18,
+   0.16,
+   0.09
+  ],
+  "third_bracket_by_children": [
+   0.26,
+   0.24,
+   0.22,
+   0.2,
+   0.18
+  ],
+  "third_bracket_step_after_4": 0.02,
+  "four_children_first_two_brackets": 0,
+  "youth_income_limit": 20000,
+  "youth_rate_u25": 0,
+  "youth_rate_26_30": 0.09,
+  "credit_by_children": [
+   777,
+   900,
+   1120,
+   1340,
+   1580,
+   1780
+  ],
+  "credit_step_after_5": 220,
+  "credit_taper_threshold": 12000,
+  "credit_taper_per_1000": 20,
+  "credit_no_taper_from_children": 5,
+  "source": "tax_scale"
+ },
+ "bonuses": {
+  "christmas_months": 1,
+  "christmas_daily_wages": 25,
+  "christmas_period_days": 245,
+  "christmas_prorata_numerator": 2,
+  "christmas_prorata_denominator": 25,
+  "christmas_prorata_days": 19,
+  "easter_months": 0.5,
+  "easter_daily_wages": 15,
+  "easter_period_days": 120,
+  "easter_prorata_days": 8,
+  "leave_allowance_months": 0.5,
+  "leave_allowance_daily_wages": 13,
+  "leave_share_in_holiday_bonus": 0.041666,
+  "source": "hli_bonuses"
+ },
+ "severance": {
+  "table_months": [
+   {
+    "fromYears": 1,
+    "months": 2
+   },
+   {
+    "fromYears": 4,
+    "months": 3
+   },
+   {
+    "fromYears": 6,
+    "months": 4
+   },
+   {
+    "fromYears": 8,
+    "months": 5
+   },
+   {
+    "fromYears": 10,
+    "months": 6
+   },
+   {
+    "fromYears": 11,
+    "months": 7
+   },
+   {
+    "fromYears": 12,
+    "months": 8
+   },
+   {
+    "fromYears": 13,
+    "months": 9
+   },
+   {
+    "fromYears": 14,
+    "months": 10
+   },
+   {
+    "fromYears": 15,
+    "months": 11
+   },
+   {
+    "fromYears": 16,
+    "months": 12
+   }
+  ],
+  "extra_2012_from_years": 17,
+  "extra_2012_max_months": 12,
+  "extra_2012_salary_cap": 2000,
+  "with_notice_factor": 0.5,
+  "notice_months": [
+   {
+    "fromYears": 1,
+    "months": 1
+   },
+   {
+    "fromYears": 2,
+    "months": 2
+   },
+   {
+    "fromYears": 5,
+    "months": 3
+   },
+   {
+    "fromYears": 10,
+    "months": 4
+   }
+  ],
+  "holiday_uplift": 0.16666667,
+  "daily_wages_per_month": 22,
+  "cap_daily_multiple": 8,
+  "cap_days": 30,
+  "source": "severance"
+ },
+ "parental": {
+  "paid_months": 2,
+  "leave_months": 4,
+  "child_max_age": 8,
+  "source": "parental"
+ },
+ "road_tax": {
+  "cc_bands": [
+   300,
+   785,
+   1071,
+   1357,
+   1548,
+   1738,
+   1928,
+   2357,
+   3000,
+   4000
+  ],
+  "cc_until_2000": [
+   22,
+   55,
+   120,
+   135,
+   225,
+   250,
+   280,
+   615,
+   820,
+   1025,
+   1230
+  ],
+  "cc_2001_2005": [
+   22,
+   55,
+   120,
+   135,
+   240,
+   265,
+   300,
+   630,
+   840,
+   1050,
+   1260
+  ],
+  "cc_from_2006": [
+   22,
+   55,
+   120,
+   135,
+   255,
+   280,
+   320,
+   690,
+   920,
+   1150,
+   1380
+  ],
+  "co2_nedc": [
+   {
+    "upTo": 90,
+    "rate": 0
+   },
+   {
+    "upTo": 100,
+    "rate": 0.9
+   },
+   {
+    "upTo": 120,
+    "rate": 0.98
+   },
+   {
+    "upTo": 140,
+    "rate": 1.2
+   },
+   {
+    "upTo": 160,
+    "rate": 1.85
+   },
+   {
+    "upTo": 180,
+    "rate": 2.45
+   },
+   {
+    "upTo": 200,
+    "rate": 2.78
+   },
+   {
+    "upTo": 250,
+    "rate": 3.05
+   },
+   {
+    "upTo": null,
+    "rate": 3.72
+   }
+  ],
+  "co2_wltp": [
+   {
+    "upTo": 122,
+    "rate": 0
+   },
+   {
+    "upTo": 139,
+    "rate": 0.64
+   },
+   {
+    "upTo": 166,
+    "rate": 0.7
+   },
+   {
+    "upTo": 208,
+    "rate": 0.85
+   },
+   {
+    "upTo": 224,
+    "rate": 1.87
+   },
+   {
+    "upTo": 240,
+    "rate": 2.2
+   },
+   {
+    "upTo": 260,
+    "rate": 2.5
+   },
+   {
+    "upTo": 280,
+    "rate": 2.7
+   },
+   {
+    "upTo": null,
+    "rate": 2.85
+   }
+  ],
+  "moped": 12,
+  "caravan": 140,
+  "source": "road_tax"
+ },
+ "enfia": {
+  "zone_bands": [
+   {
+    "upTo": 750,
+    "rate": 2.0
+   },
+   {
+    "upTo": 1500,
+    "rate": 2.8
+   },
+   {
+    "upTo": 2500,
+    "rate": 3.7
+   },
+   {
+    "upTo": 3000,
+    "rate": 4.5
+   },
+   {
+    "upTo": 3500,
+    "rate": 7.6
+   },
+   {
+    "upTo": 4000,
+    "rate": 9.2
+   },
+   {
+    "upTo": 4500,
+    "rate": 11.1
+   },
+   {
+    "upTo": 5000,
+    "rate": 13.4
+   },
+   {
+    "upTo": null,
+    "rate": 16.2
+   }
+  ],
+  "age_factors": [
+   {
+    "maxYears": 4,
+    "factor": 1.25
+   },
+   {
+    "maxYears": 9,
+    "factor": 1.2
+   },
+   {
+    "maxYears": 14,
+    "factor": 1.15
+   },
+   {
+    "maxYears": 19,
+    "factor": 1.1
+   },
+   {
+    "maxYears": 25,
+    "factor": 1.05
+   },
+   {
+    "maxYears": null,
+    "factor": 1.0
+   }
+  ],
+  "age_factor_pre_1930": 0.8,
+  "age_factor_over_100": 0.6,
+  "floor_factors": {
+   "basement": 0.98,
+   "ground_1": 1.0,
+   "f2_3": 1.01,
+   "f4_5": 1.02,
+   "f6_up": 1.03
+  },
+  "detached_factor": 1.02,
+  "facade_factors": [
+   1.0,
+   1.01,
+   1.02
+  ],
+  "auxiliary_factor": 0.1,
+  "value_reductions": [
+   {
+    "upTo": 100000,
+    "rate": 0.3
+   },
+   {
+    "upTo": 150000,
+    "rate": 0.25
+   },
+   {
+    "upTo": 250000,
+    "rate": 0.2
+   },
+   {
+    "upTo": 300000,
+    "rate": 0.15
+   },
+   {
+    "upTo": 400000,
+    "rate": 0.1
+   }
+  ],
+  "value_surcharges": [
+   {
+    "upTo": 650000,
+    "rate": 0.05
+   },
+   {
+    "upTo": 800000,
+    "rate": 0.1
+   },
+   {
+    "upTo": 1000000,
+    "rate": 0.15
+   },
+   {
+    "upTo": null,
+    "rate": 0.2
+   }
+  ],
+  "surcharge_from_value": 500000,
+  "right_tax_from_value": 300000,
+  "right_tax_bands": [
+   {
+    "upTo": 400000,
+    "rate": 0
+   },
+   {
+    "upTo": 500000,
+    "rate": 0.002
+   },
+   {
+    "upTo": 600000,
+    "rate": 0.003
+   },
+   {
+    "upTo": 700000,
+    "rate": 0.004
+   },
+   {
+    "upTo": 800000,
+    "rate": 0.005
+   },
+   {
+    "upTo": 900000,
+    "rate": 0.006
+   },
+   {
+    "upTo": 1000000,
+    "rate": 0.007
+   },
+   {
+    "upTo": 2000000,
+    "rate": 0.009
+   },
+   {
+    "upTo": null,
+    "rate": 0.01
+   }
+  ],
+  "insurance_reduction": 0.2,
+  "insurance_reduction_high": 0.1,
+  "insurance_value_limit": 500000,
+  "small_settlement_reduction_2026": 0.5,
+  "small_settlement_population": 1500,
+  "small_settlement_population_border": 1700,
+  "small_settlement_value_limit": 400000,
+  "low_income_50_income": 9000,
+  "low_income_100_income": 12000,
+  "low_income_per_member": 1000,
+  "low_income_max_sqm": 150,
+  "source": "enfia"
+ },
+ "pension": {
+  "national_full": 436.4,
+  "national_full_from": "2025-01-01",
+  "national_years_full": 20,
+  "national_reduction_per_year": 0.02,
+  "national_min_years": 15,
+  "residence_years_full": 40,
+  "replacement_rates": [
+   {
+    "upTo": 15,
+    "rate": 0.0077
+   },
+   {
+    "upTo": 18,
+    "rate": 0.0084
+   },
+   {
+    "upTo": 21,
+    "rate": 0.009
+   },
+   {
+    "upTo": 24,
+    "rate": 0.0096
+   },
+   {
+    "upTo": 27,
+    "rate": 0.0103
+   },
+   {
+    "upTo": 30,
+    "rate": 0.0121
+   },
+   {
+    "upTo": 33,
+    "rate": 0.0198
+   },
+   {
+    "upTo": 36,
+    "rate": 0.025
+   },
+   {
+    "upTo": 40,
+    "rate": 0.0255
+   },
+   {
+    "upTo": null,
+    "rate": 0.005
+   }
+  ],
+  "full_age": 67,
+  "reduced_age": 62,
+  "full_age_40_years": 62,
+  "min_years": 15,
+  "source": "pension"
+ },
+ "sources": {
+  "tax_scale": {
+   "label": {
+    "el": "Ν. 5246/2025, άρθρο 3: νέα κλίμακα του άρθρου 15 ΚΦΕ (κωδικοποιημένο κείμενο)",
+    "en": "Law 5246/2025, article 3: new scale of article 15 of the Income Tax Code (consolidated text)"
+   },
+   "url": "https://www.taxheaven.gr/law/5246/2025/article/3/view"
+  },
+  "tax_credit": {
+   "label": {
+    "el": "Άρθρο 16 ΚΦΕ (ν. 4172/2013): μείωση φόρου μισθωτών",
+    "en": "Income Tax Code (Law 4172/2013), article 16: employee tax reduction"
+   },
+   "url": "https://www.taxheaven.gr/law/4172/2013/article/16/view"
+  },
+  "efka_rates": {
+   "label": {
+    "el": "e-ΕΦΚΑ, εγκύκλιος 38/2024: ποσοστά εισφορών ανά ΚΠΚ από 1.1.2025 (ΚΠΚ 101: 13,37 % και 21,79 %)",
+    "en": "e-EFKA circular 38/2024: contribution rates by package code from 1 January 2025 (code 101: 13.37% and 21.79%)"
+   },
+   "url": "https://www.e-efka.gov.gr/sites/default/files/2024-12/%CE%95%CE%93%CE%9A.%2038_2024_%CE%9C%CE%95%CE%99%CE%A9%CE%A3%CE%97%20%CE%91%CE%A3%CE%A6.%20%CE%95%CE%99%CE%A3%CE%A6%CE%9F%CE%A1%CE%A9%CE%9D%20%CE%99%CE%94%CE%99%CE%A9%CE%A4.%20%CE%94%CE%99%CE%9A%CE%91%CE%99%CE%9F%CE%A5%202025%20(971%CE%A546%CE%9C%CE%91%CE%A0%CE%A3-348).pdf"
+  },
+  "efka_ceiling": {
+   "label": {
+    "el": "e-ΕΦΚΑ, εγκύκλιος 4/2026: ανώτατο όριο ασφαλιστέων αποδοχών από 1.1.2026",
+    "en": "e-EFKA circular 4/2026: maximum insurable earnings from 1 January 2026"
+   },
+   "url": "https://www.e-efka.gov.gr/el/egkyklioi-kai-genika-eggrapha/egkyklios-42026"
+  },
+  "min_wage": {
+   "label": {
+    "el": "Υπουργείο Εργασίας: νέος κατώτατος μισθός 920 € από 1.4.2026, με παραδείγματα καθαρών",
+    "en": "Ministry of Labour: new minimum wage of €920 from 1 April 2026, with net pay examples"
+   },
+   "url": "https://ypergasias.gov.gr/se-ischy-apo-simera-o-neos-katotatos-misthos-ofelei-15-ekatommyrio-polites/"
+  },
+  "hli_christmas": {
+   "label": {
+    "el": "Επιθεώρηση Εργασίας: Δώρο Χριστουγέννων, δικαιούχοι και υπολογισμός",
+    "en": "Labour Inspectorate: Christmas bonus, who gets it and how it is calculated"
+   },
+   "url": "https://www.hli.gov.gr/ergasiakes-scheseis/nomothesia-ergasiakes-scheseis/amoivi/doro-christougennon/dikaiouchoi-chronos-katavolis-2/"
+  },
+  "hli_easter": {
+   "label": {
+    "el": "Επιθεώρηση Εργασίας: Δώρο Πάσχα, δικαιούχοι και υπολογισμός",
+    "en": "Labour Inspectorate: Easter bonus, who gets it and how it is calculated"
+   },
+   "url": "https://www.hli.gov.gr/ergasiakes-scheseis/nomothesia-ergasiakes-scheseis/amoivi/doro-pascha/dikaiouchoi-chronos-katavolis/"
+  },
+  "hli_bonuses": {
+   "label": {
+    "el": "Επιθεώρηση Εργασίας: αποδοχές αδείας και επίδομα αδείας",
+    "en": "Labour Inspectorate: leave pay and leave allowance"
+   },
+   "url": "https://www.hli.gov.gr/ergasiakes-scheseis/nomothesia-ergasiakes-scheseis/adeies-ergasiakes-scheseis/etisia-kanoniki-adeia/apodoches-adeias-kai-epidoma-adeias/"
+  },
+  "severance": {
+   "label": {
+    "el": "Επιθεώρηση Εργασίας: αποζημίωση απόλυσης (πίνακες, 22 ημερομίσθια, προσαύξηση 1/6)",
+    "en": "Labour Inspectorate: severance pay (tables, 22 daily wages, 1/6 uplift)"
+   },
+   "url": "https://www.hli.gov.gr/ergasiakes-scheseis/nomothesia-ergasiakes-scheseis/atomikes-symvaseis/symvasi-aoristou-chronou/apozimiosi-apolysis/"
+  },
+  "severance_faq": {
+   "label": {
+    "el": "Υπουργείο Εργασίας: συχνές ερωτήσεις για την ατομική σύμβαση (προειδοποίηση, αποζημίωση ν. 4093/2012)",
+    "en": "Ministry of Labour: FAQ on individual contracts (notice, severance under Law 4093/2012)"
+   },
+   "url": "https://ypergasias.gov.gr/ergasiakes-scheseis/atomikes-ergasiakes-sxeseis/sychnes-erotiseis-apantiseis-gia-tis-atomikes-scheseis-ergasias/"
+  },
+  "law_4808_64": {
+   "label": {
+    "el": "Ν. 4808/2021, άρθρο 64: κατάργηση διάκρισης υπαλλήλων και εργατοτεχνιτών",
+    "en": "Law 4808/2021, article 64: one dismissal regime for white- and blue-collar workers"
+   },
+   "url": "https://www.taxheaven.gr/law/4808/2021/article/64/view"
+  },
+  "law_3198_5": {
+   "label": {
+    "el": "Ν. 3198/1955, άρθρο 5: βάση υπολογισμού και ανώτατο όριο αποζημίωσης",
+    "en": "Law 3198/1955, article 5: severance base and earnings cap"
+   },
+   "url": "https://www.taxheaven.gr/law/3198/1955/article/5/view"
+  },
+  "parental": {
+   "label": {
+    "el": "Ν. 4808/2021, άρθρο 28: γονική άδεια και επίδομα της ΔΥΠΑ",
+    "en": "Law 4808/2021, article 28: parental leave and the DYPA benefit"
+   },
+   "url": "https://www.taxheaven.gr/law/4808/2021/article/28/view"
+  },
+  "road_tax": {
+   "label": {
+    "el": "Ν. 2948/2001, άρθρο 20: ετήσια τέλη κυκλοφορίας (κυβισμός, CO2 NEDC και WLTP)",
+    "en": "Law 2948/2001, article 20: annual road tax (engine size, NEDC and WLTP CO2)"
+   },
+   "url": "https://www.taxheaven.gr/law/2948/2001/article/20/view"
+  },
+  "road_tax_idle": {
+   "label": {
+    "el": "Ν. 2367/1953, άρθρο 22: ακινησία οχήματος και άρση της",
+    "en": "Law 2367/1953, article 22: taking a vehicle off the road and back"
+   },
+   "url": "https://www.taxheaven.gr/law/2367/1953/article/22/view"
+  },
+  "enfia": {
+   "label": {
+    "el": "Κώδικας Φορολογίας Περιουσίας (ν. 5219/2025), άρθρο 11: υπολογισμός κύριου φόρου ΕΝΦΙΑ",
+    "en": "Property Tax Code (Law 5219/2025), article 11: ENFIA main tax"
+   },
+   "url": "https://www.taxheaven.gr/law/5219/2025/article/11/view"
+  },
+  "enfia_reductions": {
+   "label": {
+    "el": "Κώδικας Φορολογίας Περιουσίας, άρθρο 13: εκπτώσεις ΕΝΦΙΑ",
+    "en": "Property Tax Code, article 13: ENFIA reductions"
+   },
+   "url": "https://www.taxheaven.gr/law/5219/2025/article/13/view"
+  },
+  "enfia_exemptions": {
+   "label": {
+    "el": "Κώδικας Φορολογίας Περιουσίας, άρθρο 10: απαλλαγές και μείωση για ασφαλισμένες κατοικίες",
+    "en": "Property Tax Code, article 10: exemptions and the insured-home reduction"
+   },
+   "url": "https://www.taxheaven.gr/law/5219/2025/article/10/view"
+  },
+  "enfia_2026": {
+   "label": {
+    "el": "Κώδικας Φορολογίας Περιουσίας, άρθρο 17 παρ. 3: μείωση 50 % το 2026 σε οικισμούς έως 1.500 κατοίκους",
+    "en": "Property Tax Code, article 17(3): 50% cut in 2026 for settlements up to 1,500 people"
+   },
+   "url": "https://www.taxheaven.gr/law/5219/2025/article/17/view"
+  },
+  "pension_national": {
+   "label": {
+    "el": "Ν. 4387/2016, άρθρο 7: εθνική σύνταξη",
+    "en": "Law 4387/2016, article 7: national pension"
+   },
+   "url": "https://www.taxheaven.gr/law/4387/2016/article/7/view"
+  },
+  "pension": {
+   "label": {
+    "el": "Ν. 4387/2016, άρθρο 8: ανταποδοτική σύνταξη και ποσοστά αναπλήρωσης",
+    "en": "Law 4387/2016, article 8: contributory pension and accrual rates"
+   },
+   "url": "https://www.taxheaven.gr/law/4387/2016/article/8/view"
+  },
+  "pension_ministry": {
+   "label": {
+    "el": "Υπουργείο Εργασίας: κύρια σύνταξη, όρια ηλικίας και ποσό εθνικής σύνταξης",
+    "en": "Ministry of Labour: main pension, retirement ages and national pension amount"
+   },
+   "url": "https://ypergasias.gov.gr/koinoniki-asfalisi/syntaxeis/kyria-syntaxi/"
+  }
+ }
+}

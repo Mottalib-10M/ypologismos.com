@@ -1,0 +1,67 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, minimumWage, christmasBonus, easterBonus, leaveAllowance, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const M = P.minimum_wage;
+const base = salary({ gross: M.monthly });
+const old = salary({ gross: M.monthly_2025 });
+const k1 = salary({ gross: M.monthly, children: 1 }), k2 = salary({ gross: M.monthly, children: 2 });
+const young = salary({ gross: M.monthly, age: 'u25' });
+const rows = [0, 1, 2, 3].map((t) => { const g = minimumWage(t); const s = salary({ gross: g }); return [t === 0 ? 'No increment' : `${t} increment${t === 1 ? '' : 's'}`, $(g), $(s.efka), $(s.tax), $(s.net), $(s.netPer12)]; });
+const xmas = christmasBonus({ pay: M.monthly }), easter = easterBonus({ pay: M.monthly }), leave = leaveAllowance({ pay: M.monthly });
+const yearGross = M.monthly * 14;
+const half = salary({ gross: M.monthly / 2 });
+const dailyMonth = M.daily * 25;
+const faqs = [
+  { q: 'I am moving to Greece on a minimum-wage contract. What will actually reach my bank account?', a: `${$(base.net)} per payment if you are over 30 with no dependent children, and you are paid 14 times a year, not 12. From the gross ${F.minWage} the employer withholds ${$(base.efka)} for e-EFKA social security (${F.efkaEe}) and about ${$(base.tax)} income tax. With one child the net is ${$(k1.net)}, with two ${$(k2.net)}, figures the Ministry of Labour published itself.` },
+  { q: 'Is the Greek minimum wage paid 12 or 14 times a year?', a: `Fourteen. On top of twelve monthly salaries, employees receive a Christmas bonus of about one month’s pay (${$(xmas.amount)} gross at the minimum), an Easter bonus of half a month (${$(easter.amount)}) and a leave allowance of up to half a month (${$(leave.amount)}). Spread over twelve months, the minimum wage gives ${$(base.netPer12)} net a month.` },
+  { q: 'When did the €920 minimum wage start, and does it apply in January?', a: `It applies from 1 April ${F.year}. January to March ${F.year} were still paid at the ${F.minWage2025} rate set for 2025, and there is no back pay for those months. The daily minimum for manual workers rose to ${F.minDaily} at the same time, an increase of ${F.minIncrease}.` },
+  { q: 'I work 20 hours a week. Can my employer pay less than €920?', a: `Yes, but only in proportion to your hours. Half the full-time week means a minimum of ${$(M.monthly / 2)} gross, which leaves about ${$(half.net)} net. At that level the employee tax reduction cancels the scale tax, so only the ${F.efkaEe} social security contribution is deducted.` },
+];
+---
+<GuideLayout lang={lang} id="minimum" breadcrumbLabel={label('minimum', lang)}
+  title={`Minimum Wage Greece ${F.year}: ${F.minWage} Gross, ${F.minNet} Net Per Month`}
+  h1={`Minimum wage in Greece ${F.year}: ${F.minWage} gross, what you take home`}
+  description={`Minimum wage Greece ${F.year}: ${F.minWage} gross from 1 April, ${F.minNet} net per payment, 14 payments a year, ${F.minDaily} a day. Seniority increments, bonuses and under-25s.`}
+  intro={`Since 1 April ${F.year} the Greek minimum wage is ${F.minWage} gross a month for full-time salaried staff and ${F.minDaily} a day for manual workers.`}
+  resume={`The Greek minimum wage for ${F.year} is ${F.minWage} gross a month, up ${F.minIncrease} on the ${F.minWage2025} of 2025, and it applies from 1 April. Greece pays salaries fourteen times a year, so a full-time employee over 30 with no children receives ${$(base.net)} net in each of those payments: ${$(base.efka)} goes to e-EFKA, the social security fund, and about ${$(base.tax)} to income tax. One dependent child lifts the net to ${$(k1.net)}, two to ${$(k2.net)}, and anyone aged 25 or under pays no income tax at all on this wage, keeping ${$(young.net)}. If you spread the Christmas and Easter bonuses and the leave allowance over twelve months, the minimum wage is worth ${$(base.netPer12)} a month, the figure to use when comparing with a job abroad. Manual workers paid by the day earn at least ${F.minDaily}, and each three-year period of service adds ${F.triennium} to the minimum. The calculator below shows your own net pay.`}
+  faqs={faqs}
+  related={[{ href: route('home', lang), name: label('home', lang), description: 'Net pay from any gross salary, with age and children.' }, { href: route('fourteen', lang), name: label('fourteen', lang), description: 'Why Greek salaries come in 14 payments.' }, { href: route('trienniums', lang), name: label('trienniums', lang), description: `How the ${F.triennium} increments are added.` }]}
+  sources={[src('min_wage', lang), src('efka_rates', lang), src('tax_scale', lang), src('tax_credit', lang)]}>
+  <div data-chrome><MiniSim client:load kind="minimum" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Net minimum wage by length of service</h2>
+  <ContentTable headers={['Service', 'Gross', 'EFKA', 'Tax', 'Net (×14)', 'Net, 12-month basis']} align={['l', 'r', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={0} />
+  <p>The table assumes an employee over 30 with no dependent children and fourteen payments. The steps are the ones a Greek payroll office follows: gross times fourteen, minus the employee’s social security, income tax on the {F.year} scale, minus the employee tax reduction of article 16 of the Income Tax Code, and the year’s tax spread evenly across the payments. Against the twelve worked examples the Ministry of Labour published with the new minimum wage, our figures differ by at most one euro, the effect of rounding.</p>
+  <p>The “seniority increments” in the first column are called <em>trieties</em> in Greek: each completed three-year period of work adds {F.triennium} to the minimum wage, up to {F.trienniumMax} periods. They follow the new minimum automatically, so an employee with two increments moved from {F.minWithT(2)} gross this April without any new contract.</p>
+
+  <h2>Fourteen payments: reading a Greek salary offer</h2>
+  <p>Newcomers often compare a Greek salary with one from home and conclude it is lower than it is. A Greek contract states a monthly gross that is paid twelve times as salary and roughly twice more as holiday money: the Christmas bonus (<em>doro Christougennon</em>) of one month plus the leave allowance share, the Easter bonus (<em>doro Pascha</em>) of half a month, and the leave allowance (<em>epidoma adeias</em>) of up to half a month. At the minimum wage that is {$(yearGross)} gross a year. Our <a href={route('fourteen', lang)}>guide to the fourteen salaries</a> explains how to convert an annual offer.</p>
+  <p>If you are offered an annual package, divide by fourteen to find the monthly gross the payroll will use. Dividing by twelve overstates every payslip and makes the first months look disappointing.</p>
+
+  <h2>What changed on 1 April {F.year}</h2>
+  <p>The rise from {F.minWage2025} to {F.minWage} is not effective from January. As in previous years, the new minimum applies from 1 April, so salaries for January to March were paid at the old rate. For an employee without children the gain is {$(base.net - old.net)} net per payment, or {$(base.netAnnual - old.netAnnual)} over a full year of fourteen payments.</p>
+  <p>The minimum wage also drives other payments. Several benefits of DYPA, the public employment service, are set by reference to it, including the <a href={route('parental', lang)}>parental leave benefit</a>. The Ministry put the 2025 average salary recorded in the ERGANI system at {F.avgWage}, so the minimum is a little over three fifths of the average.</p>
+
+  <h2>Salaried staff and day workers</h2>
+  <p>There are two minimums. Employees on a monthly salary, mostly office and shop staff, earn at least {F.minWage}. Manual workers paid by the day earn at least {F.minDaily}; twenty-five days a month gives {$(dailyMonth)} gross, slightly above the monthly minimum. The <a href={route('daily', lang)}>daily wage guide</a> converts a day rate into monthly net pay.</p>
+  <p>The distinction matters for bonuses: a day worker’s Christmas bonus is 25 daily wages and the Easter bonus 15 daily wages, rather than a fraction of a month. For severance pay, Greece has used a single regime since 2022, counting a manual worker’s month as 22 daily wages.</p>
+
+  <h2>Under 30, or with children: why net pay differs</h2>
+  <p>Law 5246/2025 changed the tax on low wages more than any recent reform. Taxpayers aged 25 or under pay {F.youthU25} on the first two brackets, up to {F.youthLimit} of taxable income a year, and the whole annual minimum wage of {$(yearGross)} sits inside that band: no income tax, and {$(young.net)} net instead of {$(base.net)}. From 26 to 30 the rate on those brackets is {F.youth2630}. Our page on <a href={route('youth', lang)}>tax for young workers</a> has the detail.</p>
+  <p>Children help twice: they cut the rate of the second bracket ({F.second[1]} with one child, {F.second[2]} with two) and they raise the article 16 tax reduction from {F.credit[0]} to {F.credit[1]} and {F.credit[2]}. With two children, the tax on the minimum wage falls to zero.</p>
+
+  <div data-chrome><MiniSim client:load kind="parttime" lang={lang} href={route('parttime', lang)} /></div>
+
+  <h2>What the minimum wage costs an employer</h2>
+  <p>On top of the gross salary, a private employer pays its own social security share of {F.efkaEr}, which is {$(base.employer)} a month at the minimum. The total cost of a minimum-wage employee is {$(base.cost)} per payment and {$(base.costAnnual)} a year. Of every euro the business spends, the employee keeps about {F.pct(base.net / base.cost)} net. The <a href={route('employer', lang)}>employer cost calculator</a> runs the same sum for any salary.</p>
+  <p>Every amount on this page comes from the same engine as the main <a href={route('home', lang)}>Greek salary calculator</a>, using the parameters in force for {F.year}: the contribution rates of the e-EFKA circular, the scale of Law 5246/2025 and the article 16 tax reduction. If a rate changes, every table changes with it.</p>
+</GuideLayout>

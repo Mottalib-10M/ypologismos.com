@@ -1,0 +1,21 @@
+{
+ "name": "ΥπολογισμόςΜισθού.gr",
+ "short_name": "Μισθός 2026",
+ "description": "Υπολογισμός μισθού 2026: καθαρός μισθός, δώρα, αποζημίωση απόλυσης, ΕΝΦΙΑ και τέλη κυκλοφορίας με τους επίσημους συντελεστές.",
+ "start_url": "/el/",
+ "display": "standalone",
+ "background_color": "#ffffff",
+ "theme_color": "#0D5EAF",
+ "icons": [
+  {
+   "src": "/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "accent": "#0D5EAF",
+ "symbol": "€",
+ "variants": [
+  {
+   "file": "og-el.png",
+   "title": "Υπολογισμός μισθού 2026\nκαθαρά, δώρα, φόροι",
+   "subtitle": "ΕΦΚΑ 13,37 % · κλίμακα ν. 5246/2025 · ΕΝΦΙΑ · τέλη κυκλοφορίας",
+   "badge": "Επίσημοι συντελεστές 2026",
+   "brand": "ΥπολογισμόςΜισθού.gr"
+  },
+  {
+   "file": "og-en.png",
+   "title": "Greek salary calculator 2026\nnet pay, bonuses, taxes",
+   "subtitle": "EFKA 13.37% · 2026 tax scale · ENFIA · road tax",
+   "badge": "Official 2026 rates",
+   "brand": "Greek Salary Calculator"
+  }
+ ]
+}

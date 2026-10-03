@@ -1,0 +1,8 @@
+---
+import AmountPage from '../../components/AmountPage.astro';
+import { AMOUNTS } from '../../i18n/routes';
+import { ANGLES_EN } from '../../lib/amount-angles-en';
+export function getStaticPaths() { return AMOUNTS.map((a) => ({ params: { amount: String(a) } })); }
+const amount = Number(Astro.params.amount);
+---
+<AmountPage lang="en" amount={amount} angle={ANGLES_EN[amount]} />

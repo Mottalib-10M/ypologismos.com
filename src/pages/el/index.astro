@@ -1,0 +1,10 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import ToolCalc from '../../components/calc/ToolCalc';
+import { route } from '../../i18n/routes';
+const lang = 'el';
+---
+<PageLayout title="Υπολογισμός μισθού 2026 stub" description="stub" lang={lang}>
+  <h1>Υπολογισμός μισθού</h1>
+  <ToolCalc client:load kind="salary" lang={lang} methodHref={route('method', lang)} />
+</PageLayout>

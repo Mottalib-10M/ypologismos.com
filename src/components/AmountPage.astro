@@ -1,0 +1,32 @@
+---
+/** Page « Χ € μικτά σε καθαρά » : angle rédigé propre au montant + tableaux du moteur. */
+import GuideLayout from './GuideLayout.astro';
+import ContentTable from './ContentTable.astro';
+import ToolCalc from './calc/ToolCalc';
+import { route, AMOUNTS, type Locale } from '../i18n/routes';
+import { amountLabel } from '../i18n/nav';
+import { amountCtx } from '../lib/amount-context';
+import { salary } from '../lib/engine/gr';
+import { src } from '../lib/facts';
+import type { AngleFn } from '../lib/amount-types';
+interface Props { lang: Locale; amount: number; angle: AngleFn }
+const { lang, amount, angle } = Astro.props;
+const c = amountCtx(amount, lang);
+const a = angle(c);
+const $ = c.$;
+const T = (el: string, en: string) => (lang === 'en' ? en : el);
+const kidsRows = [0, 1, 2, 3, 4].map((k) => { const s = salary({ gross: amount, children: k }); return [String(k), $(s.efka), $(s.tax), $(s.net), $(s.netAnnual)]; });
+const ageRows = (['u25', '26_30', 'over30'] as const).map((g) => { const s = salary({ gross: amount, age: g }); return [g === 'u25' ? T('έως 25 ετών', 'up to 25') : g === '26_30' ? T('26 έως 30 ετών', '26 to 30') : T('31 ετών και άνω', '31 or older'), $(s.tax), $(s.net), $(s.netAnnual)]; });
+const idx = AMOUNTS.indexOf(amount as (typeof AMOUNTS)[number]);
+const neighbours = [AMOUNTS[idx - 1], AMOUNTS[idx + 1]].filter(Boolean) as number[];
+---
+<GuideLayout lang={lang} id={`amount-${amount}`} breadcrumbLabel={amountLabel(amount, lang)} title={a.title} h1={a.h1} description={a.description} intro={a.intro} resume={a.resume} faqs={a.faqs}
+  related={[{ href: route('home', lang), name: T('Υπολογισμός μισθού', 'Salary calculator'), description: T('Οποιοδήποτε ποσό, με ηλικία και παιδιά.', 'Any amount, with age and children.') }, ...neighbours.map((n) => ({ href: route(`amount-${n}`, lang), name: amountLabel(n, lang), description: T('Καθαρά, δώρα και κόστος εργοδότη.', 'Net pay, bonuses and employer cost.') }))]}
+  sources={[src('tax_scale', lang), src('tax_credit', lang), src('efka_rates', lang), src('min_wage', lang)]}>
+  <div data-outil><ToolCalc client:load kind="salary" lang={lang} defaults={{ g: amount }} methodHref={route('method', lang)} /></div>
+  {a.sections.map((s) => (<><h2>{s.h2}</h2><Fragment set:html={s.html} /></>))}
+  <h2>{T(`${c.gross} μικτά ανάλογα με τα παιδιά`, `${c.gross} gross by number of children`)}</h2>
+  <ContentTable headers={[T('Τέκνα', 'Children'), 'ΕΦΚΑ', T('Φόρος', 'Tax'), T('Καθαρά', 'Net'), T('Καθαρά τον χρόνο', 'Net per year')]} align={['l', 'r', 'r', 'r', 'r']} rows={kidsRows} highlightRow={0} />
+  <h2>{T(`${c.gross} μικτά ανάλογα με την ηλικία`, `${c.gross} gross by age`)}</h2>
+  <ContentTable headers={[T('Ηλικία', 'Age'), T('Φόρος', 'Tax'), T('Καθαρά', 'Net'), T('Καθαρά τον χρόνο', 'Net per year')]} align={['l', 'r', 'r', 'r']} rows={ageRows} highlightRow={2} />
+</GuideLayout>
