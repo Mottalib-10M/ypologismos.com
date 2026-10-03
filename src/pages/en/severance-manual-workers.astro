@@ -1,0 +1,64 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { severance, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const S = P.severance;
+const dpm = S.daily_wages_per_month;
+const minD = P.minimum_wage.daily;
+const wages = [minD, 55, 70, 90];
+const grid = wages.map((w) => [`${$2(w)} a day`, $(w * dpm), $(severance({ pay: w, daily: true, years: 3 }).total), $(severance({ pay: w, daily: true, years: 9 }).total), $(severance({ pay: w, daily: true, years: 16 }).total)]);
+const capDaily = severance({ pay: 1, years: 1 }).cap / dpm;
+const ex = severance({ pay: 62, daily: true, years: 11 }), exN = severance({ pay: 62, daily: true, years: 11, notice: true });
+const m22 = minD * dpm, m26 = minD * 26;
+const min6 = severance({ pay: minD, daily: true, years: 6 });
+const faqs = [
+  { q: `I work on a farm in Greece for ${$(55)} a day and have been there nine years. What severance would I get?`, a: `Your severance month is ${dpm} daily wages, ${$(55 * dpm)}. Nine completed years give ${severance({ pay: 55, years: 9 }).months} months, and the total is raised by one sixth: ${$(severance({ pay: 55, daily: true, years: 9 }).total)} if you are dismissed without notice. In the calculator, choose “Daily wage” as the pay basis and enter ${$(55)}; the tool converts it for you.` },
+  { q: 'Why does severance use 22 days when I am paid for 26?', a: `Because article 64 of Law 4808/2021 fixes the month at ${dpm} daily wages for severance purposes, however many days you actually work. At the minimum daily wage, ${dpm} days give ${$(m22)} while 26 days give ${$(m26)}. Your wages are not affected; the ${dpm}-day month is only the base for the severance calculation.` },
+  { q: 'A Greek colleague showed me a severance table in daily wages for workers. Should I use it?', a: `No. That table still appears in the Ministry of Labour’s FAQ, citing a 1920 royal decree and Law 3198/1955, but it describes the regime that applied to manual workers before 2022. Since 1 January 2022 workers and salaried staff share one table, and the Labour Inspectorate converts a worker’s month into ${dpm} daily wages. A dismissal today follows that unified rule.` },
+  { q: 'Does the Greek severance cap ever affect day-rate workers?', a: `Almost never. The cap of article 5 of Law 3198/1955 is ${F.sevCap} a month. Divided by ${dpm}, it corresponds to a daily wage of ${$2(capDaily)}. Only above that day rate would the severance base be limited, so for practically all manual workers the full daily wage counts.` },
+];
+---
+<GuideLayout lang={lang} id="sevworkers" breadcrumbLabel={label('sevworkers', lang)}
+  title={`Severance Manual Workers Greece ${F.year}: ${dpm}-Day Month`}
+  h1={`Severance for manual workers in Greece ${F.year}: day rates and the ${dpm}-day month`}
+  description={`Severance for manual workers Greece ${F.year}: same table as salaried staff since 2022, one month counted as ${dpm} daily wages, plus one sixth. Amounts by day rate.`}
+  intro={`How Greek severance works for workers paid by the day since article 64 of Law 4808/2021 unified the rules.`}
+  resume={`Since 1 January 2022, manual workers in Greece (ergatotechnites) receive the same severance as salaried employees (ypalliloi): ${S.table_months[0].months} to ${S.table_months[S.table_months.length - 1].months} months of pay depending on completed years with the same employer, raised by one sixth for the holiday bonuses and leave allowance. The difference lies in how the month is measured. For anyone paid by the day, article 64 of Law 4808/2021 counts one month as ${dpm} daily wages, unless the worker is already on a monthly salary. At the minimum daily wage of ${F.minDaily}, a severance month is ${$(m22)}, and six years of service bring ${$(min6.total)}. A worker on ${$(62)} a day with eleven years receives ${$(ex.total)} without notice, or ${$(exN.total)} after proper written notice. An older table in daily wages, still visible in the Ministry of Labour’s FAQ, describes the regime before 2022 and should not be used for a dismissal today.`}
+  faqs={faqs}
+  related={[{ href: route('severance', lang), name: label('severance', lang), description: 'Choose “Daily wage” and enter your day rate.' }, { href: route('daily', lang), name: label('daily', lang), description: 'Monthly net pay from a Greek day rate.' }, { href: route('notice', lang), name: label('notice', lang), description: 'Notice periods and the half severance.' }]}
+  sources={[src('law_4808_64', lang), src('severance', lang), src('severance_faq', lang), src('min_wage', lang)]}>
+  <div data-chrome><MiniSim client:load kind="sevworkers" lang={lang} href={route('severance', lang)} /></div>
+
+  <h2>Severance by day rate</h2>
+  <ContentTable headers={['Day rate', `Severance month (× ${dpm})`, '3 years', '9 years', '16 years']} align={['l', 'r', 'r', 'r', 'r']} rows={grid} highlightRow={0} />
+  <p>Amounts are for dismissal without notice and include the one-sixth uplift. The first row is the statutory minimum daily wage in force since 1 April {F.year}. Three years sit in the first row of the statutory scale, nine years in the fifth, and sixteen years at the top, where the scale stops. Halve any figure if the employer gave written notice of the legal length.</p>
+  <p>This page covers open-ended contracts, the case the severance table is written for. Seasonal contracts that end on a set date are outside its scope, and so are the special rules some sectors may have.</p>
+
+  <h2>One table for everyone since 2022</h2>
+  <p>Before 2022 Greece kept separate dismissal rules for manual workers and for salaried staff. Article 64 of Law 4808/2021 merged them: from 1 January 2022 the Law 4093/2012 table, written in months of salary, applies to both groups. To apply a monthly table to people paid by the day, the law sets a conversion factor of {dpm} daily wages per month. A worker who has agreed a monthly salary is simply calculated on that salary.</p>
+  <p>The Labour Inspectorate, which enforces these rules, presents the {dpm}-day month together with the general pay cap of Law 3198/1955. In daily terms the cap corresponds to {$2(capDaily)}, far above what manual work pays, so in practice the whole day rate counts.</p>
+
+  <h2>The {dpm}-day month against what you actually earn</h2>
+  <p>If you work a six-day week, you probably earn 25 or 26 daily wages in a month, so your real monthly pay is higher than the severance month. At the minimum daily wage, 26 days make {$(m26)} against {$(m22)} for severance. The law does not distinguish between five-day and six-day weeks; there is one factor.</p>
+  <p>Do not confuse this with the other day counts in Greek pay. A day-rate worker’s Christmas bonus is {F.xmasDaily} daily wages, the Easter bonus {F.easterDaily}, and the leave allowance up to {F.leaveDaily}. The one-sixth uplift on severance stands for that share of bonuses and leave allowance, and it applies to manual workers exactly as it does to salaried staff.</p>
+
+  <div data-chrome><MiniSim client:load kind="daily" lang={lang} href={route('daily', lang)} /></div>
+
+  <h2>The old table you may still come across</h2>
+  <p>The Ministry of Labour’s FAQ on individual employment contracts still shows a “severance table for manual workers” with five-year bands and amounts in daily wages, referring to the royal decree of 16/18 July 1920 and Law 3198/1955. It belongs to the regime that applied before the 2022 unification. We do not reproduce it, so that nobody uses it by mistake; the Labour Inspectorate’s own severance page applies the unified table and the {dpm}-day month. If an employer or a colleague quotes severance in “table days”, ask which table they mean.</p>
+
+  <h2>Paper trail worth keeping</h2>
+  <p>For a day-rate worker the severance base is only as reliable as the day rate on record. Keep your payslips, or at least the last few, since they show the daily wage your employer actually paid; the calculation uses the regular rate of your last full-time month. Note your hiring date from your first contract, because completed years decide the row of the table. And if you were moved from a daily wage to a monthly salary along the way, the rule changes with you: once you are on a monthly salary, that salary is the base and the {dpm}-day conversion no longer applies.</p>
+
+  <h2>A full example</h2>
+  <p>A warehouse worker on {$(62)} a day has been with the same company for eleven years and four months. Completed years: eleven, so {ex.months} months. Severance month: {$(62)} times {dpm}, which is {$(ex.monthly)}. Base severance: {$(ex.base)}. One-sixth uplift: {$(ex.uplift)}. Total: {$(ex.total)}. Had the employer given written notice of {severance({ pay: 62, years: 11 }).noticeMonths} months, the payment at the end of the notice would be {$(exN.total)}. The <a href={route('severance', lang)}>severance calculator</a> repeats these steps when you select a daily wage; the <a href={route('daily', lang)}>daily wage guide</a> and the <a href={route('home', lang)}>Greek salary calculator</a> show what your day rate is worth net while you are working.</p>
+</GuideLayout>

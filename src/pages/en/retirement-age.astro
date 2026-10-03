@@ -1,0 +1,73 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { pension, nationalPension, PARAMS as P } from '../../lib/engine/gr';
+import { REDUCED_NATIONAL_PER_MONTH } from '../../lib/mini-extra-f';
+import { formatMoney, formatNumber, pct } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const p = (x: number) => pct(x, lang);
+const Q = P.pension;
+const full = Q.full_age, red = Q.reduced_age, a40 = Q.full_age_40_years, minY = Q.min_years;
+const days40 = 12000, perYear = days40 / 40; // Ministry of Labour: "40 years of insurance (12,000 days)" (pension_ministry, read 2026-10-03)
+const natFull = nationalPension(Q.national_years_full);
+const maxM = (full - red) * 12;
+const avg = 1700;
+const scen = [
+  [`Start at 22, retire at ${a40} with 40 years`, a40, 40, 0],
+  [`Start at 25, work to ${full}`, full, full - 25, 0],
+  [`Start at 30, retire at ${red} with 32 years (reduced)`, red, 32, maxM],
+  [`Start at 35, work to ${full}`, full, full - 35, 0],
+  [`Arrive at 50, work to ${full}`, full, full - 50, 0],
+] as const;
+const scenRows = scen.map(([d, , y, m], i) => { const r = pension({ years: y, avgEarnings: avg, residenceYears: i === scen.length - 1 ? y : undefined }); const cut = r.national * m * REDUCED_NATIONAL_PER_MONTH; return [d, `${y}`, $(r.total - cut), m ? `−${$2(cut)} national` : '–']; });
+const months = [12, 24, 36, 48, maxM].map((m) => [`${m}`, `${d(m / 12)}`, p(m * REDUCED_NATIONAL_PER_MONTH), $2(natFull * (1 - m * REDUCED_NATIONAL_PER_MONTH))]);
+function d(x: number) { return formatNumber(x, x % 1 ? 1 : 0, lang); }
+const p40 = pension({ years: 40, avgEarnings: avg }), p17 = pension({ years: full - 50, avgEarnings: avg, residenceYears: full - 50 });
+const faqs = [
+  { q: `I will be ${red} with 40 years of Greek insurance. Do I have to wait until ${full}?`, a: `No. The Ministry of Labour lists 40 years of insurance, which is ${formatNumber(days40, 0, lang)} days, together with age ${a40} as a general route to a full old-age pension. No early-retirement reduction applies in that case. On a ${$(avg)} career average, 40 years give an estimated ${$(p40.total)} gross a month under articles 7 and 8 of Law 4387/2016.` },
+  { q: `I arrived in Greece at 50. Can I still get a Greek pension at ${full}?`, a: `On insurance, yes: ${full - 50} years by ${full} exceed the ${minY}-year minimum. The catch is residence: the national pension needs at least 15 years of residence between 15 and pension age and is cut by 1/40 for each year short of ${Q.residence_years_full}. With ${full - 50} years of both, our estimate on a ${$(avg)} average is ${$(p17.total)} gross. EU insurance periods abroad are coordinated separately.` },
+  { q: 'What is a “recent insurance link” and why does it matter at 62?', a: `It is an extra condition the Ministry of Labour attaches to the reduced pension at ${red} for private-sector employees and staff of public utilities and banks. We have not verified its exact content, meaning how many days in which recent years. If you plan to stop working before ${red} and claim later, ask e-EFKA about it first, because missing it could mean waiting until ${full}.` },
+  { q: 'How are years converted into insurance days in Greece?', a: `At 300 days a year. The Ministry writes “40 years of insurance (${formatNumber(days40, 0, lang)} days)” and, for disability pensions, “15 years (or ${formatNumber(15 * perYear, 0, lang)} days)”. So the ${minY}-year minimum is ${formatNumber(minY * perYear, 0, lang)} days. Your insurance record (asfalistiko viografiko) shows days, which is the figure to compare with the thresholds.` },
+];
+---
+<GuideLayout lang={lang} id="retireage" breadcrumbLabel={label('retireage', lang)}
+  title={`Retirement Age Greece ${F.year}: ${full}, ${red} or ${a40} with 40 Years`}
+  h1={`Retirement age in Greece ${F.year}: ${full} for a full pension, ${red} reduced or with 40 years`}
+  description={`Retirement age Greece ${F.year}: ${full} with ${minY} years of insurance, ${a40} with 40 years (${formatNumber(days40, 0, lang)} days), reduced pension at ${red} with a 1/200 monthly cut. Scenarios in euros.`}
+  intro={`The general e-EFKA conditions for an old-age pension, and what leaving early costs, for people planning a retirement in Greece.`}
+  resume={`Greece has three general routes to an old-age pension, which the Ministry of Labour sets out for both private and public sector. A full pension at ${full} with at least ${minY} years of insurance. A full pension at ${a40} with 40 years of insurance, which is ${formatNumber(days40, 0, lang)} insurance days. A reduced pension at ${red} with ${minY} years, for which private-sector employees, public utility and bank staff also need a recent insurance link. On a reduced pension the national part is cut by 1/200 for each month short of ${full}: leaving ${maxM} months early means a cut of ${p(maxM * REDUCED_NATIONAL_PER_MONTH)}, taking the full ${F.nationalFull} national pension down to ${$2(natFull * (1 - maxM * REDUCED_NATIONAL_PER_MONTH))} for life. Heavy and unhealthy occupations and people insured before 1993 have special conditions, and uniformed services keep their own public-sector rules. For newcomers, insurance years are rarely the obstacle; residence years for the national pension often are.`}
+  faqs={faqs}
+  related={[{ href: route('pension', lang), name: label('pension', lang), description: 'Estimate the pension your years would give.' }, { href: route('national', lang), name: label('national', lang), description: 'The residence test, by age of arrival.' }, { href: route('sevold', lang), name: label('sevold', lang), description: 'Severance when you leave to retire.' }]}
+  sources={[src('pension_ministry', lang), src('pension_national', lang), src('pension', lang)]}>
+  <div data-chrome><MiniSim client:load kind="retireage" lang={lang} href={route('pension', lang)} /></div>
+
+  <h2>Five career shapes, five pensions</h2>
+  <ContentTable headers={['Scenario', 'Years insured', `Gross pension (${$(avg)} average)`, 'Early cut']} align={['l', 'r', 'r', 'r']} rows={scenRows} highlightRow={1} />
+  <p>All scenarios assume a career-average pay of {$(avg)} in today’s money and full residence, except the last, where residence equals the years worked. The reduced-pension row applies only the verified 1/200 monthly cut to the national part; the contributory part of a reduced pension follows other rules we do not model, so the true figure for that row is lower. Even so, the table shows the trade-off: a long early career reaching 40 years at {a40} beats a late start worked through to {full}.</p>
+
+  <h2>The three routes in detail</h2>
+  <p>The first route is the rule: age {full} and at least {minY} years of insurance, {formatNumber(minY * perYear, 0, lang)} days, give a full pension. The second rewards long careers: 40 years of insurance give a full pension from {a40}, {full - a40} years earlier, with no reduction. The third is the only one that leads to a reduced pension: age {red} with {minY} years, plus, for private-sector employees and staff of public utilities (<em>DEKO</em>) and banks, a recent insurance link.</p>
+  <p>Insurance is counted in days, at 300 days per year. Your e-EFKA insurance record shows the total, and that is the figure to compare with the thresholds, not the calendar years since your first job.</p>
+
+  <h2>What retiring early costs on the national pension</h2>
+  <ContentTable headers={[`Months before ${full}`, 'Years', 'Cut', 'National pension']} align={['l', 'r', 'r', 'r']} rows={months} />
+  <p>Article 7(3) of Law 4387/2016 reduces the national pension of anyone on a reduced old-age pension by 1/200 for each month short of the full-pension age. The table applies it to the full 2025 amount, {F.nationalFull}, for {Q.national_years_full} or more insurance years and full residence. The cut is permanent; it does not end when you reach {full}. The contributory part has its own reduction rules, which are not shown.</p>
+
+  <div data-chrome><MiniSim client:load kind="earlyret" lang={lang} href={route('national', lang)} /></div>
+
+  <h2>If you came to Greece mid-career</h2>
+  <p>For foreign residents the insurance minimum is usually reachable: arriving at 50 still leaves {full - 50} years before {full}, more than the {minY} required. The national pension is the harder part, because it requires at least 15 years of permanent, lawful residence between age 15 and pension age and loses 1/40 for each year below {Q.residence_years_full}. Someone in that position should expect a national pension well below {F.nationalFull}; the <a href={route('national', lang)}>national pension guide</a> tabulates it by age of arrival. Insurance years earned in other EU countries are coordinated under EU rules, which this page does not model.</p>
+
+  <h2>Groups with their own rules</h2>
+  <p>Workers covered by the scheme for heavy and unhealthy occupations (<em>varea kai anthygieina</em>) can get a full pension at {a40}, subject to specific day counts in those occupations and an insurance link that depends on their fund; some older insured workers in this scheme can take a reduced pension earlier still. People first insured before 1 January 1993 have further conditions that differ by former fund or for the public sector. Members of the Armed Forces, police and fire service keep the age limits of public-sector pension legislation, as the <a href={route('uniformed', lang)}>uniformed services page</a> explains. For any of these groups, ask e-EFKA for a written confirmation.</p>
+
+  <h2>Before you hand in your notice</h2>
+  <p>Check your insurance days, the date you reach the relevant age, and whether a special scheme applies. If you are an employee leaving because you qualify for a full pension, a reduced severance may be due, as the <a href={route('sevold', lang)}>long-service severance page</a> explains. Then estimate the amount in the <a href={route('pension', lang)}>pension calculator</a>; your current contributions are on every payslip in the <a href={route('home', lang)}>Greek salary calculator</a>.</p>
+</GuideLayout>

@@ -1,0 +1,68 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { severance, noticeMonths, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney, formatDecimal } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const d = (x: number) => formatDecimal(x, 1, lang);
+const S = P.severance;
+const NM = S.notice_months;
+const nFirst = NM[0].months, nLast = NM[NM.length - 1].months;
+const pay = 2000;
+const mo = (n: number) => `${d(n)} month${n === 1 ? '' : 's'}`;
+const rows = [1, 2, 4, 5, 8, 10, 14, 16].map((y) => { const a = severance({ pay, years: y }), b = severance({ pay, years: y, notice: true }); const n = noticeMonths(y); const withN = b.total + pay * n; return [`${y}`, mo(n), $(a.total), $(withN), `${withN - a.total >= 0 ? '+' : '−'}${$(Math.abs(withN - a.total))}`]; });
+const scale = NM.map((r, i) => { const b = NM[i + 1]?.fromYears; return [b === undefined ? `${r.fromYears} years or more` : `${r.fromYears === 1 ? '12 months' : `${r.fromYears} years`} to under ${b} years`, mo(r.months), mo(r.months / 2)]; });
+const e2 = severance({ pay, years: 2 }), e2n = severance({ pay, years: 2, notice: true });
+const e10 = severance({ pay, years: 10 }), e10n = severance({ pay, years: 10, notice: true });
+const vol = { name: 'Labour Inspectorate: termination by the employee, voluntary departure (in Greek)', url: 'https://www.hli.gov.gr/ergasiakes-scheseis/nomothesia-ergasiakes-scheseis/atomikes-symvaseis/symvasi-aoristou-chronou/katangelia-symvasis-apo-ton-misthoto-oikeiothelis-apochorisi/' };
+const faqs = [
+  { q: 'Can my Greek employer give me notice by email or just tell me in a meeting?', a: `The law requires prior written notice for the reduced severance. The Ministry of Labour describes it as “written notice” that takes effect from the day after it is communicated to the employee. A verbal announcement in a meeting is therefore not notice in the legal sense, and an employer who skips the written step owes the full table amount, ${$(e10.total)} at ${$(pay)} after ten years.` },
+  { q: `I received ${NM[2].months} months’ notice after ten years. Is that enough?`, a: `No. From ten completed years the scale requires ${nLast} months of written notice. The half severance is tied to notice given as the law prescribes, so a shorter period does not fit the rule. At ${$(pay)} a month, the gap matters: full severance would be ${$(e10.total)}, half ${$(e10n.total)}. Check your hiring date and ask for the calculation in writing.` },
+  { q: 'How much notice do I owe if I resign from a Greek job?', a: `If you are a salaried employee, half of what your employer would owe you, and never more than three months, under article 4 of Law 2112/1920 as the Labour Inspectorate explains it. After six years that is ${d(noticeMonths(6) / 2)} months. If you leave without giving it, the compensation the employer can claim is also capped at three months’ pay.` },
+  { q: 'My employer forgot to register my resignation on ERGANI. Does that matter?', a: `It can matter a great deal. A voluntary departure must be registered on the ERGANI system within four working days, with a form signed by both sides or an out-of-court statement from the employer. If the deadline is missed, article 38 of Law 4488/2017 treats the contract as ended by the employer without notice, which is a dismissal with the consequences that follow.` },
+];
+---
+<GuideLayout lang={lang} id="notice" breadcrumbLabel={label('notice', lang)}
+  title={`Dismissal Notice Greece ${F.year}: ${nFirst} to ${nLast} Months, Half Severance`}
+  h1={`Dismissal notice in Greece ${F.year}: how long it is and what it changes`}
+  description={`Dismissal notice Greece ${F.year}: ${nFirst} to ${nLast} months by service, starting the next day, then half the severance. Euro comparison, 8-day filing, resignation rules.`}
+  intro={`Written notice under Law 4093/2012, and how it changes the money for an employee dismissed in Greece.`}
+  resume={`A Greek employer dismissing an employee on an open-ended contract with more than twelve months of service can give written notice instead of paying full severance at once. The notice is ${nFirst} month for twelve months to two years of service, ${NM[1].months} months from two years, ${NM[2].months} from five and ${nLast} from ten years. It runs from the day after the employee receives it; the employee keeps working and being paid, and at the end receives half of the statutory severance. Without written notice the employer owes the full amount on the day of dismissal. On ${$(pay)} a month after two years, that is ${$(e2.total)} at once without notice, or ${$(pay * noticeMonths(2))} in salary over ${noticeMonths(2)} months plus ${$(e2n.total)} at the end with notice. The employer must file the termination within eight days, counted from the day after the written notice. Employees who resign owe their own notice, half the employer’s and never above three months.`}
+  faqs={faqs}
+  related={[{ href: route('severance', lang), name: label('severance', lang), description: 'Full or half severance on your own salary.' }, { href: route('sevtable', lang), name: label('sevtable', lang), description: 'Both statutory scales side by side.' }, { href: route('home', lang), name: label('home', lang), description: 'Net value of the salaries paid during notice.' }]}
+  sources={[src('severance_faq', lang), src('severance', lang), vol]}>
+  <div data-chrome><MiniSim client:load kind="notice" lang={lang} href={route('severance', lang)} /></div>
+
+  <h2>Notice or no notice: the cash on each side</h2>
+  <ContentTable headers={['Years', 'Notice', 'Severance, no notice', 'Salary during notice + half severance', 'Difference']} align={['l', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={3} />
+  <p>All figures are gross, at {$(pay)} a month. The fourth column adds the salary paid while the employee works out the notice to the half severance due at the end; it leaves out any holiday bonus that happens to fall in that period. The last column is the difference between the two routes. For the employee it is positive, since the notice months are paid, but it is earned by working those months rather than being free to start another job straight away.</p>
+  <p>For the employer the arithmetic runs the other way: notice saves half the severance but keeps the employee on the payroll, with employer social security on every month. Which route a company picks usually depends on whether it still needs the work done.</p>
+
+  <h2>The scale, and what you owe if you resign</h2>
+  <ContentTable headers={['Completed service', 'Employer’s notice', 'Employee’s notice on resignation']} align={['l', 'r', 'r']} rows={scale} />
+  <p>The left-hand columns come from the Ministry of Labour’s table under Law 4093/2012. The right-hand column applies article 4 of Law 2112/1920, which the Labour Inspectorate summarises this way: a salaried employee who ends an open-ended contract must give notice equal to half the period the law sets for the employer, never more than three months. If the employee walks out without it, the employer’s claim is capped at three months’ pay.</p>
+
+  <h2>When the clock starts</h2>
+  <p>Notice (<em>proeidopoiisi</em>) starts the day after it is communicated to the employee and ends when the period expires, which is also when the contract ends. The Ministry’s interpretive circular 26352/839 of November 2012 says so, citing article 241 of the Civil Code. The day you receive the letter does not count. Receive it on a Friday and the first day of notice is the Saturday.</p>
+  <p>The length of the notice depends on completed years on the day it is given. An employee notified a few days before the fifth anniversary of hiring is in the {noticeMonths(4)}-month row, not the {noticeMonths(5)}-month one. Check your hiring date against your contract before you sign an acknowledgement of receipt.</p>
+
+  <h2>The eight-day filing</h2>
+  <p>The employer must report the termination within eight days under article 9(1) of Law 3198/1955. With notice, those eight days run from the day after the written notice is delivered, not from the end of the notice period. The law refers to filing with OAED, the employment agency now called DYPA. The filing does not shorten the notice; the contract still ends when the months run out.</p>
+
+  <div data-chrome><MiniSim client:load kind="sevtable" lang={lang} href={route('sevtable', lang)} /></div>
+
+  <h2>When the half severance is paid</h2>
+  <p>The Labour Inspectorate distinguishes two cases. In a dismissal without notice, severance is due together with the termination. In a dismissal with notice, it is due when the notice period ends. After ten years at {$(pay)}, the employee works {noticeMonths(10)} more months and then receives {$(e10n.total)}, rather than {$(e10.total)} on day one. Payment must go into a payment account, and amounts above two months’ pay may be split into two-monthly instalments.</p>
+
+  <h2>Resignations and the ERGANI deadline</h2>
+  <p>Foreign employees moving to a new job often resign rather than wait to be dismissed. The resignation has a formal side that is the employer’s responsibility: it must be registered on ERGANI, the Ministry of Labour’s online system, within four working days, together with a form signed by both parties or an out-of-court statement from the employer informing the employee. If the employer misses the deadline, Law 4488/2017 treats the contract as terminated by the employer without notice. Keep a copy of your resignation letter and of the signed form.</p>
+
+  <h2>Before you accept the notice letter</h2>
+  <p>Check three things: that it is in writing and dated, that its length matches your completed years, and that the employer has told you when and how the half severance will be paid. Then compare the two routes with the <a href={route('severance', lang)}>severance calculator</a>, and work out what the notice-period salaries are worth net in the <a href={route('home', lang)}>Greek salary calculator</a>. The <a href={route('sevtable', lang)}>severance table guide</a> shows where your next anniversary would put you.</p>
+</GuideLayout>

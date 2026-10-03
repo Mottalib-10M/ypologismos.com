@@ -1,0 +1,64 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { severance, severanceMonths, noticeMonths, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney, formatDecimal } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const d = (x: number) => formatDecimal(x, 2, lang);
+const S = P.severance;
+const up = 1 + S.holiday_uplift;
+const TM = S.table_months, NM = S.notice_months;
+const range = (rows: typeof TM, i: number) => { const a = rows[i].fromYears, b = rows[i + 1]?.fromYears; return b === undefined ? `${a} or more` : b - a === 1 ? `${a}` : `${a} to under ${b}`; };
+const main = TM.map((r, i) => [range(TM, i), String(r.months), d(r.months * up), d(r.months * up / 2)]);
+const notice = NM.map((r, i) => [range(NM, i), `${r.months} month${r.months === 1 ? '' : 's'}`]);
+const pay = 2500;
+const yearly = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17].map((y) => { const a = severance({ pay, years: y }), b = severance({ pay, years: y - 1 }); return [`${y}`, String(a.months), String(noticeMonths(y)), $(a.total), a.total - b.total > 0 ? `+${$(a.total - b.total)}` : '0']; });
+const firstM = TM[0].months, lastM = TM[TM.length - 1].months, lastFrom = TM[TM.length - 1].fromYears;
+const y1 = severance({ pay, years: 1 }), y3 = severance({ pay, years: 3 }), y4 = severance({ pay, years: 4 }), y12 = severance({ pay, years: 12 }), y13 = severance({ pay, years: 13 }), y16 = severance({ pay, years: 16 });
+const faqs = [
+  { q: 'Does the Greek severance table count my years in the group or only with my current employer?', a: `Only with the employer that dismisses you. The Ministry of Labour table is headed “length of service with the same employer”. Years with a previous company do not move you down the table, even if they count elsewhere in Greek pay rules, such as seniority increments. With ${$(pay)} a month, three years with your current employer give ${$(y3.total)}, however long your full career is.` },
+  { q: 'I am four weeks short of my fourth work anniversary. How much is that gap worth?', a: `At ${$(pay)} a month, crossing the fourth anniversary moves you from ${firstM} to ${severanceMonths(4)} months, which is ${$(y4.total - y3.total)} more once the one-sixth uplift is included. The table counts completed years only, so the day of dismissal decides. The fifth anniversary, by contrast, adds nothing to severance, though it does lengthen the notice period.` },
+  { q: 'Why does the severance table stop at 12 months?', a: `Because Law 4093/2012 set it that way when it reset the Greek scale in 2012. The last row is “${lastFrom} years or more”, so an employee with 25 years receives the same ${lastM} months as one with ${lastFrom}, ${$(y16.total)} at ${$(pay)}. The exception is staff who already had 17 years with the employer on 12 November 2012: they keep extra months, frozen at that date.` },
+  { q: 'Is one month in the Greek table really one month of my salary?', a: `It is slightly more in practice. The months in the table are multiplied by your regular monthly pay and the total is raised by one sixth, to account for the two holiday bonuses and the leave allowance. So ${firstM} statutory months are worth ${d(firstM * up)} months of salary, and ${lastM} are worth ${d(lastM * up)}. Halve those figures when the employer gave proper written notice.` },
+];
+---
+<GuideLayout lang={lang} id="sevtable" breadcrumbLabel={label('sevtable', lang)}
+  title={`Severance Table Greece ${F.year}: Months of Pay by Year`}
+  h1={`The Greek severance table ${F.year}, read year by year`}
+  description={`Severance table Greece ${F.year}: ${firstM} months after 1 year up to ${lastM} after ${lastFrom}, plus one sixth, and the ${NM[0].months} to ${NM[NM.length - 1].months} month notice scale. What each anniversary adds in euros.`}
+  intro={`The two statutory scales of Law 4093/2012, severance and notice, with the value of every work anniversary.`}
+  resume={`The Greek severance table, set by Law 4093/2012, converts completed years with the same employer into months of salary. One to under four years gives ${firstM} months; four to under six gives ${severanceMonths(4)}; six to under eight, ${severanceMonths(6)}; eight to under ten, ${severanceMonths(8)}. From ten years each anniversary adds one month, from ${severanceMonths(10)} at ten to ${lastM} at ${lastFrom}, and the scale stops there. The total is then increased by one sixth for the holiday bonuses, so ${firstM} months are really ${d(firstM * up)} months of pay and ${lastM} are ${d(lastM * up)}. A second, shorter table sets the written notice: ${NM[0].months} month from twelve months of service, ${NM[1].months} from two years, ${NM[2].months} from five and ${NM[3].months} from ten. With notice, severance is halved. On a salary of ${$(pay)}, the first completed year is worth ${$(y1.total)}, and the thirteenth anniversary alone adds ${$(y13.total - y12.total)}.`}
+  faqs={faqs}
+  related={[{ href: route('severance', lang), name: label('severance', lang), description: 'Run the table on your own salary, with the pay cap.' }, { href: route('notice', lang), name: label('notice', lang), description: 'What the notice scale means in practice.' }, { href: route('sevworkers', lang), name: label('sevworkers', lang), description: 'The same table for day-rate workers.' }]}
+  sources={[src('severance_faq', lang), src('severance', lang), src('law_4808_64', lang)]}>
+  <div data-chrome><MiniSim client:load kind="sevtable" lang={lang} href={route('severance', lang)} /></div>
+
+  <h2>The statutory severance scale</h2>
+  <ContentTable headers={['Completed years', 'Months in the law', 'Months with 1/6', 'Half (with notice)']} align={['l', 'r', 'r', 'r']} rows={main} />
+  <p>Read the first column with the word “completed” in front of it. “1 to under 4” covers anyone past the first anniversary of hiring but not yet at the fourth. The single-year rows from ten onwards each cover twelve months: “10” runs from the tenth anniversary to the day before the eleventh. The second column is the scale as printed by the Ministry of Labour for dismissal without notice. The third shows what is actually paid once the one-sixth uplift is added, and the fourth the halved amount when the employer gave written notice in time.</p>
+  <p>If you come from a country where redundancy pay grows smoothly with each year, the Greek table can look odd. It has flat stretches and steps, and the steps sit in different places from the notice scale. Knowing where they fall tells you which dates matter.</p>
+
+  <h2>Every year from one to seventeen</h2>
+  <ContentTable headers={['Years', 'Months', 'Notice (months)', `Severance at ${$(pay)}`, 'Added by that year']} align={['l', 'r', 'r', 'r', 'r']} rows={yearly} highlightRow={3} />
+  <p>At {$(pay)} a month, each step of one month is worth {$(pay * up)}. The last column makes the pattern visible. Year one creates the entitlement. Years two and three add nothing. Years four, six and eight add a month each, while five, seven and nine do not. From ten to {lastFrom}, every single anniversary adds a month. Year seventeen adds nothing again, because the scale has reached its ceiling.</p>
+  <p>Two colleagues hired a few weeks apart can therefore receive different amounts in the same round of dismissals, if one of them has crossed a step and the other has not. That is not an error on the payslip; it is how the scale is built.</p>
+
+  <h2>The notice scale</h2>
+  <ContentTable headers={['Completed service', 'Written notice']} align={['l', 'r']} rows={notice} />
+  <p>Notice (<em>proeidopoiisi</em>) starts at twelve completed months and has only four rows. Its thresholds, at two, five and ten years, do not line up with the severance steps. Between five and ten years, for instance, notice stays at {noticeMonths(5)} months while severance climbs from {severanceMonths(5)} to {severanceMonths(9)} months. An employer that gives notice of the right length pays half the severance at the end of the notice period, and the employee works and is paid in the meantime.</p>
+
+  <div data-chrome><MiniSim client:load kind="notice" lang={lang} href={route('notice', lang)} /></div>
+
+  <h2>Three ways people misread the table</h2>
+  <p>The first is rounding up. “Almost six years” is five years, and it stays in the {severanceMonths(5)}-month row until the sixth anniversary. The second is counting the whole career. The table looks only at the employer that ends the contract, so a move between two companies in the same group needs checking against how the contracts were transferred, which this page does not cover. The third is forgetting the uplift: multiplying {$(pay)} by {firstM} gives {$(pay * firstM)}, while the statutory amount is {$(y1.total)}.</p>
+  <p>The opposite mistake also happens: assuming the scale keeps rising after {lastFrom} years. It does not, unless you already had 17 years with the employer on 12 November 2012, in which case the <a href={route('sevold', lang)}>long-service rules</a> add up to twelve extra months.</p>
+
+  <h2>What the table does not tell you</h2>
+  <p>The table gives months, not euros. To turn months into money you need the regular pay of your last full-time month, capped at {F.sevCap}, and for day-rate workers a month of {F.sevDailyMonth} daily wages. It also states a minimum: a contract, a collective agreement or custom that grants more takes precedence. And it is written for open-ended contracts, the case the Ministry and the Labour Inspectorate describe. For your own figure, use the <a href={route('severance', lang)}>severance calculator</a>; for what your salary is worth net while you are still employed, the <a href={route('home', lang)}>Greek salary calculator</a>.</p>
+</GuideLayout>

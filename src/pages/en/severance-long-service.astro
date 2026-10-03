@@ -1,0 +1,65 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { severance, extra2012Months, PARAMS as P } from '../../lib/engine/gr';
+import { RETIRE_SHARE_AUX, RETIRE_SHARE_NO_AUX } from '../../lib/mini-extra-f';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const S = P.severance;
+const up = 1 + S.holiday_uplift;
+const from = S.extra_2012_from_years, maxX = S.extra_2012_max_months, capX = S.extra_2012_salary_cap;
+const topYears = from + maxX - 1;
+const baseM = S.table_months[S.table_months.length - 1].months;
+const pay = 2400;
+const hires = [1995, 1994, 1993, 1992, 1990, 1988, 1986, 1984, 1980].map((yr) => { const at = 2012 - yr; const x = extra2012Months(at); const s = severance({ pay, years: P.year - yr, yearsAt2012: at }); return [`January ${yr}`, String(at), x ? `+${x}` : '0', $(s.total)]; });
+const late = severance({ pay, years: P.year - 1996, yearsAt2012: 2012 - 1996 });
+const ex = severance({ pay: 3600, years: 34, yearsAt2012: 20 });
+const exNoCap = 3600 * (baseM + extra2012Months(20)) * up;
+const r = severance({ pay: 2100, years: 33, yearsAt2012: 19 });
+const rFull = 2100 * (baseM + extra2012Months(19)) * up;
+const faqs = [
+  { q: 'I joined my Greek employer in late 1995. Am I inside the long-service rule?', a: `Only if you had 17 completed years on 12 November 2012, which means a hiring date on or before 12 November 1995. Someone who joined on 1 December 1995 had 16 years and 11 months that day and is outside the rule for good, whatever their service since. Inside it, 17 years give ${extra2012Months(17)} extra month on top of the standard ${baseM}.` },
+  { q: 'My employer changed my salary several times since 2012. Which salary counts for the extra months?', a: `The regular pay of your last full-time month before dismissal, not the 2012 salary. What is frozen at 2012 is the number of extra months, not the pay. That pay is, however, limited to ${$(capX)} for the extra months, while the standard ${baseM} months use your actual salary up to the general cap of ${F.sevCap}.` },
+  { q: 'Is the extra severance lost if I resign to take my pension?', a: `No. When an employee leaves because they qualify for a full old-age pension, they receive ${F.pct(RETIRE_SHARE_AUX)} of the full severance with auxiliary cover or ${F.pct(RETIRE_SHARE_NO_AUX)} without, and the Labour Inspectorate states that the ${$(capX)} limit does not apply in that case. On ${$(2100)} with 19 years in 2012, the base is ${$(rFull)}, so ${$(rFull * RETIRE_SHARE_AUX)} or ${$(rFull * RETIRE_SHARE_NO_AUX)}.` },
+  { q: 'What is the most a long-serving employee can receive under this rule?', a: `${baseM + maxX} months of pay before the uplift: ${baseM} from the standard table and ${maxX} from the long-service table, for those with ${topYears} or more years on 12 November 2012. The extra twelve use at most ${$(capX)} each, so they are worth up to ${$(maxX * capX * up)} including the one-sixth uplift, on top of the standard severance.` },
+];
+---
+<GuideLayout lang={lang} id="sevold" breadcrumbLabel={label('sevold', lang)}
+  title={`Severance Long Service Greece ${F.year}: 17+ Years in 2012`}
+  h1={`Severance for long service in Greece ${F.year}: the frozen extra months`}
+  description={`Severance long service Greece ${F.year}: up to ${maxX} extra months for ${from} to ${topYears} years with one employer on 12 November 2012, pay capped at ${$(capX)}. Check by hiring date.`}
+  intro={`Who still benefits from the transitional rule of Law 4093/2012, and how much it adds to Greek severance.`}
+  resume={`Employees who on 12 November 2012 had completed at least ${from} years with the same Greek employer receive extra severance on top of the standard ${baseM} months, whenever they are dismissed: one extra month at ${from} years, two at ${from + 1}, and one more per year up to ${maxX} months at ${topYears} years or more. The count was frozen on that date, so service after 2012 does not increase it. The salary used for the extra months is limited to ${$(capX)}, while the standard months use your real salary up to ${F.sevCap}, and the whole sum is raised by one sixth. In practice the rule covers people hired on or before 12 November 1995 who never changed employer. On ${$(pay)} a month, someone hired in January 1990 now receives ${$(severance({ pay, years: P.year - 1990, yearsAt2012: 22 }).total)} on dismissal without notice, against ${$(late.total)} for a colleague hired in January 1996 who falls outside the rule.`}
+  faqs={faqs}
+  related={[{ href: route('severance', lang), name: label('severance', lang), description: 'Enter your years on 12.11.2012 in the full calculator.' }, { href: route('sevtable', lang), name: label('sevtable', lang), description: 'The standard table up to twelve months.' }, { href: route('pension', lang), name: label('pension', lang), description: 'Estimate the pension you would retire on.' }]}
+  sources={[src('severance_faq', lang), src('severance', lang), src('law_3198_5', lang)]}>
+  <div data-chrome><MiniSim client:load kind="sevold" lang={lang} href={route('severance', lang)} /></div>
+
+  <h2>Check it by your hiring date</h2>
+  <ContentTable headers={['Hired', 'Years on 12.11.2012', 'Extra months', `Severance today at ${$(pay)}`]} align={['l', 'r', 'r', 'r']} rows={hires} highlightRow={4} />
+  <p>The table assumes continuous service with one employer, dismissal in {F.year} without notice, and a salary of {$(pay)}. The second column is what matters for the rule: completed years on the day Law 4093/2012 was published. Everyone in the table has well over {S.table_months[S.table_months.length - 1].fromYears} years of total service today, so they all sit at the top of the standard scale; the difference between rows comes entirely from the extra months. A colleague hired in January 1996 would receive {$(late.total)}.</p>
+  <p>The hiring date on your first contract, or on your e-EFKA insurance record for that employer, settles the question. If you were transferred between companies, the rule speaks of the same employer, and whether a transfer kept that continuity is a legal question this page cannot answer.</p>
+
+  <h2>Two counters, one of them frozen</h2>
+  <p>Long-serving staff have two different service figures. Total years with the employer keep running, but they stopped mattering once they passed {S.table_months[S.table_months.length - 1].fromYears}, where the standard scale tops out. Years on 12 November 2012 never change. The Ministry’s interpretive circular 26352/839 of 28 November 2012 is explicit: service after that date is not counted for the extra severance, which stays at the number of months reached on that day.</p>
+  <p>What does change is the salary. The extra months are paid on your pay in the last full-time month before dismissal, not on what you earned in 2012, but only up to {$(capX)}. For most employees in this group, whose salaries have grown with seniority, that limit is the binding one.</p>
+
+  <h2>A worked example</h2>
+  <p>A sales manager hired in 1992 had 20 completed years on 12 November 2012, which gives {extra2012Months(20)} extra months. Today she has 34 years of service and earns {$(3600)}. The standard {baseM} months use her full salary: {$(3600 * baseM)}. The {ex.extraMonths} extra months use {$(capX)}: {$(ex.extra)}. With the one-sixth uplift the statutory severance is {$(ex.total)}. Without the {$(capX)} limit the same months would have produced {$(exNoCap)}, so the limit costs her {$(exNoCap - ex.total)}.</p>
+  <p>If the employer had given written notice, the calculator halves the whole amount, extra months included, as it does for the standard scale.</p>
+
+  <div data-chrome><MiniSim client:load kind="sevretire" lang={lang} href={route('severance', lang)} /></div>
+
+  <h2>Leaving for retirement</h2>
+  <p>Many people in this group are close to pension age, so the more frequent question is what happens on retirement rather than dismissal. An employee who leaves, or is asked to leave, because they meet the conditions for a full old-age pension receives {F.pct(RETIRE_SHARE_AUX)} of the no-notice severance if they have auxiliary pension cover, or {F.pct(RETIRE_SHARE_NO_AUX)} if they do not. The Labour Inspectorate adds that the {$(capX)} limit is not applied in this case: only the years on 12 November 2012 count. With {$(2100)} and 19 years in 2012, the full base is {$(rFull)}, compared with {$(r.total)} on a dismissal where the limit applies.</p>
+  <p>There is a third route under article 8 of Law 3198/1955. An employee with 15 years at the same employer, or who has reached the age limit of their pension fund ({F.fullAge} where there is none), may leave with the employer’s consent and receive half of the statutory severance. The consent is a condition: without it, this reduced severance is not due. The <a href={route('retireage', lang)}>retirement age guide</a> sets out when a full pension becomes available.</p>
+
+  <h2>Before you sign anything</h2>
+  <p>Ask for the calculation in writing and check three lines: the number of standard months ({baseM}), the number of extra months from your 2012 service, and the salary used for each. Then check that the one-sixth uplift has been applied to both. The <a href={route('severance', lang)}>severance calculator</a> has a field for years on 12.11.2012 and will reproduce the statutory figure. A contract or collective agreement that gives more still prevails over these minimums.</p>
+</GuideLayout>

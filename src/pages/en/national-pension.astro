@@ -1,0 +1,62 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { nationalPension, PARAMS as P } from '../../lib/engine/gr';
+import { REDUCED_NATIONAL_PER_MONTH } from '../../lib/mini-extra-f';
+import { formatMoney, pct } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const p = (x: number) => pct(x, lang);
+const Q = P.pension;
+const full = Q.national_full, yFull = Q.national_years_full, yMin = Q.national_min_years, rFull = Q.residence_years_full, age = Q.full_age;
+const minRes = 15; // ν. 4387/2016 art. 7 par. 2 : au moins 15 ans de résidence (taxheaven, lu le 2026-10-03)
+const arrivals = [25, 30, 35, 40, 45, 50, 52, 55].map((a) => { const res = age - a; const insY = Math.min(yFull, age - a); const ok = res >= minRes; return [`${a}`, `${res}`, ok ? p(Math.min(1, res / rFull)) : '–', ok ? $2(nationalPension(insY, res)) : 'not payable']; });
+const ex40 = nationalPension(yFull, age - 40);
+const ex45 = nationalPension(yFull, age - 45);
+const y16 = nationalPension(16);
+const early36 = nationalPension(yFull) * (1 - 36 * REDUCED_NATIONAL_PER_MONTH);
+const faqs = [
+  { q: 'I moved to Greece at 40. Will I ever get the full national pension?', a: `Not the full amount, because residence counts from age 15 to pension age and you will have at most ${age - 40} years by ${age}. The national pension is cut by 1/40 for each year short of ${rFull}, so with ${yFull} or more years of insurance you would receive ${$2(ex40)} a month at the 2025 rate, about ${p(ex40 / full)} of the full ${F.nationalFull}.` },
+  { q: 'Does time living in another EU country count as residence in Greece?', a: `Article 7 of Law 4387/2016 counts permanent and lawful residence in Greece, and it treats Greek civil servants posted abroad as resident. For periods spent in other EU countries, the Ministry of Labour has issued separate guidance on combining the national pension with EU Regulations 883/2004 and 987/2009. This page applies the Greek rule alone, so treat its figures as the floor for a mixed EU career.` },
+  { q: 'I have 16 years of Greek insurance. How much national pension is that?', a: `With full residence, ${p(y16 / full)} of the full amount: the pension falls by ${p(Q.national_reduction_per_year)} for each year below ${yFull}, down to ${yMin} years. That is ${$2(y16)} a month at the 2025 rate. Four more years of insurance would bring you to the full ${F.nationalFull}, and residence below ${rFull} years would reduce the figure further.` },
+  { q: 'Is the Greek national pension means-tested or linked to my salary?', a: `Neither. The Ministry of Labour explains that it is financed directly from the state budget rather than from contributions, and its amount depends only on years of insurance and years of residence. Your salary history affects the separate contributory part, which is calculated on your career-average pay with the article 8 accrual rates.` },
+  { q: 'How much national pension do I lose by retiring three years early?', a: `On a reduced pension the national part is cut by 1/200 for every month short of the full-pension age. Three years are 36 months, a cut of ${p(36 * REDUCED_NATIONAL_PER_MONTH)}, which takes the full amount from ${$2(nationalPension(yFull))} down to ${$2(early36)}. The reduction stays for as long as the pension is paid.` },
+];
+---
+<GuideLayout lang={lang} id="national" breadcrumbLabel={label('national', lang)}
+  title={`National Pension Greece ${F.year}: ${F.nationalFull} and the Residence Test`}
+  h1={`The Greek national pension ${F.year}: amount, insurance years and residence`}
+  description={`National pension Greece ${F.year}: ${F.nationalFull} in full with ${yFull} insurance years and ${rFull} years’ residence, cut 1/40 per missing year. What newcomers get, by age of arrival.`}
+  intro={`The flat-rate layer of every Greek pension, set by article 7 of Law 4387/2016, explained for people who arrived in Greece as adults.`}
+  resume={`The Greek national pension (ethniki syntaxi) is the flat-rate part of every main e-EFKA pension, the same whatever you earned. The full amount is ${F.nationalFull} a month from 1 January 2025, the latest figure published by the Ministry of Labour; it is indexed each year, so the current amount may be slightly higher. It is paid in full after ${yFull} years of insurance and ${rFull} years of permanent residence in Greece, counted between age 15 and pension age. Each missing insurance year below ${yFull} costs ${p(Q.national_reduction_per_year)}, down to ${yMin} years, where the amount is ${F.national15}. Each missing year of residence below ${rFull} costs 1/40, and with fewer than ${minRes} years of residence no old-age national pension is paid at all. For someone who settled in Greece at 45 and works ${yFull} years until ${age}, the national pension is ${$2(ex45)}. A reduced pension taken early loses another 1/200 per month before the full-pension age.`}
+  faqs={faqs}
+  related={[{ href: route('pension', lang), name: label('pension', lang), description: 'National plus contributory, on your own figures.' }, { href: route('retireage', lang), name: label('retireage', lang), description: 'When you can retire, and what early retirement costs.' }, { href: route('home', lang), name: label('home', lang), description: 'Contributions on your Greek salary.' }]}
+  sources={[src('pension_national', lang), src('pension_ministry', lang), src('pension', lang)]}>
+  <div data-chrome><MiniSim client:load kind="national" lang={lang} href={route('pension', lang)} /></div>
+
+  <h2>By age of arrival in Greece</h2>
+  <ContentTable headers={['Age on arrival', `Residence years by ${age}`, 'Residence share', 'National pension']} align={['l', 'r', 'r', 'r']} rows={arrivals} highlightRow={3} />
+  <p>The table assumes you live in Greece from the age shown until {age}, the full-pension age, and are insured for the whole period, capped at the {yFull} years that give the full insurance share. Anyone who arrived at {age - rFull} or younger reaches the {rFull} years of residence. Arriving at 40 gives {age - 40} years and {p((age - 40) / rFull)} of the amount. Arriving at {age - minRes} gives exactly the {minRes}-year minimum. Arriving later means the residence condition is not met and no old-age national pension is paid, whatever the contributory record.</p>
+  <p>An estimate that shows the full {F.nationalFull} without asking about residence overstates the pension for everyone in the lower rows of this table.</p>
+
+  <h2>Insurance years: the second dial</h2>
+  <p>The insurance side works separately. With {yFull} or more years of insurance the share is full; each year below costs {p(Q.national_reduction_per_year)}, so {yMin} years give {p(nationalPension(yMin) / full)} of the amount, {F.national15}. Below {yMin} years the national pension is normally not available, except for people who qualify for a pension with a shorter record under special rules, who receive at least the {yMin}-year amount. The two reductions multiply: {yMin + 2} years of insurance with 25 years of residence give {$2(nationalPension(yMin + 2, 25))}.</p>
+
+  <h2>What counts as residence</h2>
+  <p>The law asks for permanent and lawful residence. For non-EU citizens it is proved through the procedure used to grant residence permits. Greek civil servants posted abroad and paid by the Greek state are treated as resident during the posting. Years in another EU country are handled under EU coordination rules, for which the Ministry of Labour issued its own guidance; we do not model that combination, so an EU career spread over several countries may produce a different result.</p>
+  <p>A transitional rule covers ethnic Greeks with Albanian citizenship and those from the former Soviet Union: their residence reduction is measured against thirty years with 1992 as the starting point, converging on the general rule by 2032.</p>
+
+  <div data-chrome><MiniSim client:load kind="earlyret" lang={lang} href={route('retireage', lang)} /></div>
+
+  <h2>Early retirement and multiple pensions</h2>
+  <p>A reduced old-age pension loses 1/200 of the national pension for every month before the full-pension age. Leaving at {Q.reduced_age} instead of {age} means {(age - Q.reduced_age) * 12} months and a cut of {p((age - Q.reduced_age) * 12 * REDUCED_NATIONAL_PER_MONTH)}. The mini calculator above shows the national part only; the contributory part of a reduced pension follows other provisions.</p>
+  <p>If you are entitled to more than one main pension, you receive one national pension. With one full and one reduced pension it is paid in full; with two reduced pensions, each contributes its share, up to the full amount. Disability pensions receive a share that depends on the degree of incapacity, with the full amount at the highest degrees.</p>
+
+  <h2>Where the amount comes from</h2>
+  <p>The Ministry of Labour states that the national pension is funded from the state budget, not from contributions, and publishes the amount in force: {F.nationalFull} from 1 January 2025, the latest figure we have verified. It is adjusted under article 14 of Law 4387/2016. To see it combined with your contributory pension, use the <a href={route('pension', lang)}>pension calculator</a>; for the ages at which it starts, read the <a href={route('retireage', lang)}>retirement age guide</a>. The contributions that build your insurance years are shown on every payslip in the <a href={route('home', lang)}>Greek salary calculator</a>.</p>
+</GuideLayout>

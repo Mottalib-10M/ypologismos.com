@@ -1,0 +1,74 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { severance, PARAMS as P } from '../../lib/engine/gr';
+import { RETIRE_SHARE_AUX, RETIRE_SHARE_NO_AUX } from '../../lib/mini-extra-f';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const S = P.severance;
+const minM = S.table_months[0].months, maxM = S.table_months[S.table_months.length - 1].months, maxFrom = S.table_months[S.table_months.length - 1].fromYears;
+const nMin = S.notice_months[0].months, nMax = S.notice_months[S.notice_months.length - 1].months;
+const ex = 2200;
+const rows = [1, 3, 4, 6, 8, 10, 12, 14, 16, 18].map((y) => { const a = severance({ pay: ex, years: y }), b = severance({ pay: ex, years: y, notice: true }); return [`${y} year${y === 1 ? '' : 's'}`, String(a.months), `${a.noticeMonths} month${a.noticeMonths === 1 ? '' : 's'}`, $(a.total), $(b.total)]; });
+const e5 = severance({ pay: ex, years: 5 }), e5n = severance({ pay: ex, years: 5, notice: true });
+const e3 = severance({ pay: ex, years: 3 });
+const exec = 10500, hi = severance({ pay: exec, years: 12 }), hiFree = exec * hi.months * (1 + S.holiday_uplift);
+const day = 48, dw = severance({ pay: day, daily: true, years: 6 });
+const two = 2 * ex, rest = e5.total - Math.min(e5.total, two), inst = Math.ceil(rest / two - 1e-9);
+const retire = severance({ pay: 1900, years: 25 });
+const faqs = [
+  { q: 'My Greek employer handed me a figure for my severance. How do I check it in five minutes?', a: `Take your regular monthly gross for the last full-time month, find your completed years in the statutory table, multiply, then add one sixth for the holiday bonuses. On ${$(ex)} after five years that is ${e5.months} months, ${$(e5.base)}, plus ${$(e5.uplift)}, so ${$(e5.total)}. If the employer gave you written notice the figure halves to ${$(e5n.total)}. Anything lower usually means the one-sixth uplift was skipped.` },
+  { q: 'I signed a contract eight months ago and was let go. Is there any severance at all?', a: `No. The Greek table starts at one completed year, and the first twelve months count as a probation period. Your employer still has to terminate in writing, but owes no severance. You are owed your salary up to the last day and the pro-rata share of the Christmas or Easter bonus and leave allowance that you had already earned.` },
+  { q: 'Can I be paid my severance in cash, or in several payments?', a: `Not in cash: since Law 4611/2019 severance must go through a payment account. Instalments are allowed when the sum exceeds two months’ pay. The employer then pays two months at dismissal and the rest every two months, each instalment at least two months’ pay. On ${$(ex)} with ${$(e5.total)} due, that is ${$(two)} straight away and at most ${inst} further instalments.` },
+  { q: `I earn ${$(exec)} a month as a director. Why is my severance smaller than salary times months?`, a: `Greek law caps the monthly pay used for severance at eight times the unskilled worker’s daily wage times 30, which gives ${F.sevCap} now. On ${$(exec)} with 12 years the calculation uses the cap, giving ${$(hi.total)} instead of ${$(hiFree)}. A more generous contractual clause can still apply, because the statutory amount is a floor.` },
+  { q: 'I am retiring early with a full pension. Does my employer still owe severance?', a: `A reduced amount. An employee who leaves or is removed because they meet the conditions for a full old-age pension receives ${F.pct(RETIRE_SHARE_AUX)} of the no-notice severance with auxiliary pension cover, or ${F.pct(RETIRE_SHARE_NO_AUX)} without it. On ${$(1900)} after 25 years the full amount would be ${$(retire.total)}, so the payment is ${$(retire.total * RETIRE_SHARE_AUX)} or ${$(retire.total * RETIRE_SHARE_NO_AUX)}.` },
+];
+---
+<GuideLayout lang={lang} id="severance" breadcrumbLabel={label('severance', lang)}
+  title={`Severance Pay Greece ${F.year}: Calculator with the 1/6 Uplift`}
+  h1={`Severance pay in Greece ${F.year}: what your employer owes on dismissal`}
+  description={`Severance pay Greece ${F.year}: ${minM} to ${maxM} months by years of service, plus one sixth, halved with written notice. Free calculator, day rates and the ${F.sevCap} cap.`}
+  intro={`This calculator applies the Greek statutory severance table of Law 4093/2012, the one-sixth uplift and the pay cap of Law 3198/1955.`}
+  resume={`Greek severance pay in ${F.year} is between ${minM} and ${maxM} months of salary, depending on the number of completed years with the same employer, and the total is increased by one sixth to reflect the Christmas bonus, Easter bonus and leave allowance you would otherwise have earned. Nothing is due in the first twelve months. One to four years gives ${minM} months; ${maxFrom} years or more gives the maximum of ${maxM}. On a salary of ${$(ex)}, five years of service mean ${$(e5.total)} if you are dismissed without notice, and ${$(e5n.total)} if your employer gave you written notice of ${e5.noticeMonths} months first, because notice halves the payment. The salary used is the regular pay of your last full-time month, capped at ${F.sevCap}. Day-rate workers count ${F.sevDailyMonth} daily wages as one month. Staff who already had 17 years with the same employer on 12 November 2012 receive extra months on top. Enter your own figures in the calculator.`}
+  faqs={faqs}
+  related={[{ href: route('notice', lang), name: label('notice', lang), description: 'How long the written notice is, and what it does to your payment.' }, { href: route('sevtable', lang), name: label('sevtable', lang), description: 'The statutory table row by row.' }, { href: route('home', lang), name: label('home', lang), description: 'Net pay from your Greek gross salary.' }]}
+  sources={[src('severance', lang), src('severance_faq', lang), src('law_3198_5', lang), src('law_4808_64', lang), src('min_wage', lang)]}>
+  <div data-outil><ToolCalc client:load kind="severance" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>The statutory scale at a salary of {$(ex)}</h2>
+  <ContentTable headers={['Completed service', 'Months', 'Notice', 'No notice', 'With notice']} align={['l', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={3} />
+  <p>Every amount already includes the one-sixth uplift. The months column is the scale set by Law 4093/2012 for a dismissal without notice, which Greeks call <em>apozimiosi apolysis</em>; the notice column is how much written warning (<em>proeidopoiisi</em>) the employer must give to pay only half. The scale climbs in two-year steps up to ten years, then by one month for each further year until it stops at {maxM} months after {maxFrom} years. Someone with 18 years receives the same as someone with {maxFrom}, unless they belong to the group of long-serving staff protected in 2012.</p>
+  <p>Only completed years count. Three years and eleven months is three years, which is {e3.months} months of pay; one more month of service would not move you up a row, but crossing the fourth anniversary does.</p>
+
+  <h2>How a Greek payroll office works the number out</h2>
+  <p>The base is the regular gross pay of the last month you worked full time. If you moved to part-time recently, the base is still the last full-time month.</p>
+  <p>That base, capped where necessary, is multiplied by the number of months in the table. The result is then raised by one sixth. The reason is practical: a Greek salary is paid fourteen times a year, and the monthly figure leaves out the two holiday bonuses and the leave allowance. At {$(ex)} after five years the steps are {$(e5.base)}, plus {$(e5.uplift)}, which makes {$(e5.total)}.</p>
+  <p>Foreign employees most often lose money on this last step. An HR department used to another country’s rules may quote salary times months and stop. Ask to see the one-sixth line; the Labour Inspectorate (<em>Epitheorisi Ergasias</em>) lists it as part of the statutory amount.</p>
+
+  <h2>The cap for senior salaries</h2>
+  <p>Article 5 of Law 3198/1955 still limits the monthly pay that enters the calculation: eight times the daily wage of an unskilled worker, times 30. With the minimum daily wage at {F.minDaily}, the cap is {F.sevCap}. Few employees reach it, but executives on expatriate packages sometimes do. At {$(exec)} with 12 years, the statutory amount is {$(hi.total)}, against {$(hiFree)} without the limit. Because the cap moves with the minimum daily wage, it rose automatically with the April {F.year} increase.</p>
+
+  <h2>Day-rate workers and the {F.sevDailyMonth}-day month</h2>
+  <p>Since January 2022 manual workers paid by the day follow the same table as salaried staff. Their month is set at {F.sevDailyMonth} daily wages by article 64 of Law 4808/2021, unless they are already on a monthly salary. A worker on {$(day)} a day with six years’ service therefore has a severance month of {$(dw.monthly)} and receives {$(dw.total)}. The <a href={route('sevworkers', lang)}>guide for manual workers</a> explains the change.</p>
+
+  <h2>Long service before 12 November 2012</h2>
+  <p>Law 4093/2012 stopped the scale at twelve months but added a transitional rule for long service. Anyone who on 12 November 2012 had completed 17 years with the same employer receives extra months on top of the {maxM}: one month at 17 years, rising to twelve at 28 years or more. The count was frozen on that date, and the salary for those extra months is limited to {F.sevExtraCap}. The <a href={route('sevold', lang)}>long-service page</a> has a dedicated calculator.</p>
+
+  <h2>Written notice halves the payment</h2>
+  <p>If your employer gives written notice of {nMin} to {nMax} months, depending on your service, you keep working and being paid during that period and then receive half the table amount. Notice runs from the day after you receive it. The <a href={route('notice', lang)}>dismissal notice guide</a> compares the two routes in euros.</p>
+
+  <div data-chrome><MiniSim client:load kind="sevinstal" lang={lang} href={route('severance', lang)} /></div>
+
+  <h2>When the money must arrive</h2>
+  <p>Severance is due at the moment of dismissal, or at the end of the notice period when notice was given. It must be paid into a payment account, never in cash. If the amount is larger than two months’ pay, the employer may pay two months at once and the remainder in instalments every two months, none smaller than two months’ pay; the first instalment falls due the day after two months have passed since the dismissal. In the five-year example that means {$(two)} on the day and {$(rest)} spread over at most {inst} instalments.</p>
+
+  <h2>Limits of this calculator</h2>
+  <p>The figure is the statutory minimum for an open-ended contract. A contract, a collective agreement or established custom can give more, and the law says the larger amount prevails. The calculator does not apply the reduced rates for leaving to take a full pension ({F.pct(RETIRE_SHARE_AUX)} with auxiliary cover, {F.pct(RETIRE_SHARE_NO_AUX)} without), nor the half severance that article 8 of Law 3198/1955 grants to someone who leaves with the employer’s consent after 15 years or at the age limit. Untaken leave and the pro-rata holiday bonuses are paid on top and are not part of the one-sixth uplift. For your final net salary, use the <a href={route('home', lang)}>Greek salary calculator</a>.</p>
+</GuideLayout>
