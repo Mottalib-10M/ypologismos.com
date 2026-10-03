@@ -83,7 +83,9 @@
   "employer_health": 0.0405,
   "ceiling_monthly": 7761.94,
   "kpk": 101,
-  "source": "efka_rates"
+  "source": "efka_rates",
+  "ceiling_base_2016": 6500,
+  "ceiling_index_2026": 0.025
  },
  "tax": {
   "brackets": [
@@ -756,6 +758,17 @@
     "en": "Ministry of Labour: main pension, retirement ages and national pension amount"
    },
    "url": "https://ypergasias.gov.gr/koinoniki-asfalisi/syntaxeis/kyria-syntaxi/"
+  },
+  "ceiling_law": {
+   "label": {
+    "el": "Ν. 4387/2016, άρθρο 38 παρ. 2: ανώτατο όριο ασφαλιστέων αποδοχών",
+    "en": "Law 4387/2016, article 38(2): maximum insurable earnings"
+   },
+   "url": "https://www.taxheaven.gr/law/4387/2016/article/38/view"
   }
+ },
+ "part_time": {
+  "extra_hours_rate": 0.12,
+  "source": "severance_faq"
  }
 }

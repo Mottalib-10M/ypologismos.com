@@ -8,12 +8,12 @@ const T = <A,>(l: L, el: A, en: A) => (l === 'en' ? en : el);
 const $ = (x: number, l: L) => formatMoney(x, 0, l);
 const $2 = (x: number, l: L) => formatMoney(x, 2, l);
 /** Majoration des heures au-delà de l'horaire convenu à temps partiel (FAQ du ministère du Travail,
- *  src('severance_faq')) : absente de params-2026.json, posée ici et réutilisée par les pages du lot. */
-export const PART_TIME_EXTRA = 0.12;
+ *  src('severance_faq')) : lue dans params-2026.json et réutilisée par les pages du lot. */
+export const PART_TIME_EXTRA = P.part_time.extra_hours_rate;
 /** Plafond e-ΕΦΚΑ : montant d'origine (ν. 4387/2016 art. 38 par. 2) et indexation 2026 sur l'indice
  *  des prix 2025 (circulaire 4/2026, src('efka_ceiling')). Le plafond 2026 lui-même vient de PARAMS. */
-export const CEILING_BASE_2016 = 6500;
-export const CEILING_INDEX_2026 = 0.025;
+export const CEILING_BASE_2016 = P.efka.ceiling_base_2016;
+export const CEILING_INDEX_2026 = P.efka.ceiling_index_2026;
 const full = (l: L) => T(l, 'Πλήρης υπολογισμός μισθού', 'Full salary calculator');
 
 export const EXTRA_C: Record<string, (l: L) => MiniSpec> = {
