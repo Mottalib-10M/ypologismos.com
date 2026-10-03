@@ -14,7 +14,7 @@ const $2 = (x: number) => formatMoney(x, 2, lang);
 const p = (x: number) => pct(x, lang);
 const Q = P.pension;
 const full = Q.national_full, yFull = Q.national_years_full, yMin = Q.national_min_years, rFull = Q.residence_years_full, age = Q.full_age;
-const minRes = 15; // ν. 4387/2016 art. 7 par. 2 : au moins 15 ans de résidence (taxheaven, lu le 2026-10-03)
+const minRes = P.pension.residence_min_years; // ν. 4387/2016 art. 7 par. 2 : au moins 15 ans de résidence (taxheaven, lu le 2026-10-03)
 const arrivals = [25, 30, 35, 40, 45, 50, 52, 55].map((a) => { const res = age - a; const insY = Math.min(yFull, age - a); const ok = res >= minRes; return [`${a}`, `${res}`, ok ? p(Math.min(1, res / rFull)) : '–', ok ? $2(nationalPension(insY, res)) : 'not payable']; });
 const ex40 = nationalPension(yFull, age - 40);
 const ex45 = nationalPension(yFull, age - 45);

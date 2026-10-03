@@ -399,6 +399,8 @@ export function nationalPension(years: number, residenceYears = P.pension.reside
   if (y <= 0) return 0;
   const yy = Math.max(Q.national_min_years, Math.min(Q.national_years_full, y));
   const insuranceFactor = 1 - Q.national_reduction_per_year * (Q.national_years_full - yy);
+  // Art. 7 par. 2 : au moins 15 ans de résidence entre 15 ans et l'âge de la pension, sinon aucune pension nationale.
+  if (pos(num(residenceYears)) < Q.residence_min_years) return 0;
   const residenceFactor = Math.min(1, pos(num(residenceYears)) / Q.residence_years_full);
   return Q.national_full * insuranceFactor * residenceFactor;
 }

@@ -10,9 +10,9 @@ const $2 = (x: number, l: L) => formatMoney(x, 2, l);
 /** Valeurs vérifiées hors fichier de paramètres (à y reporter) :
  *  Επιθεώρηση Εργασίας, αποζημίωση απόλυσης : 40 % / 50 % de l'indemnité en cas de départ à la retraite ;
  *  ν. 4387/2016 art. 7 par. 3 : −1/200 de la pension nationale par mois manquant (pension réduite). */
-export const RETIRE_SHARE_AUX = 0.4;
-export const RETIRE_SHARE_NO_AUX = 0.5;
-export const REDUCED_NATIONAL_PER_MONTH = 1 / 200;
+export const RETIRE_SHARE_AUX = P.severance.retirement_share_with_aux;
+export const RETIRE_SHARE_NO_AUX = P.severance.retirement_share_without_aux;
+export const REDUCED_NATIONAL_PER_MONTH = P.pension.reduced_national_per_month;
 const sevCta = (l: L) => T(l, 'Πλήρης υπολογιστής αποζημίωσης', 'Full severance calculator');
 const penCta = (l: L) => T(l, 'Πλήρης υπολογιστής σύνταξης', 'Full pension calculator');
 const yrs = (l: L, def: number) => ({ id: 'y', label: T(l, 'Συμπληρωμένα έτη στον εργοδότη', 'Full years with the employer'), def, max: 60 });

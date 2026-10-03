@@ -209,6 +209,7 @@ describe('σύνταξη (ν. 4387/2016)', () => {
     expect(nationalPension(20)).toBeCloseTo(P.pension.national_full, 6);
     expect(nationalPension(15)).toBeCloseTo(P.pension.national_full * 0.9, 6);
     expect(nationalPension(25, 20)).toBeCloseTo(P.pension.national_full * 0.5, 6);
+    expect(nationalPension(25, 14)).toBe(0); // art. 7 par. 2 : moins de 15 ans de résidence
   });
   it('σύνολο = ανταποδοτική + εθνική', () => {
     const p = pension({ years: 35, avgEarnings: 1500 });

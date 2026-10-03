@@ -15,7 +15,7 @@ const $2 = (x: number) => formatMoney(x, 2, lang);
 const p = (x: number) => pct(x, lang);
 const Q = P.pension;
 const full = Q.full_age, red = Q.reduced_age, a40 = Q.full_age_40_years, minY = Q.min_years;
-const days40 = 12000, perYear = days40 / 40; // Υπουργείο Εργασίας : « 40 ετών ασφάλισης (12.000) ημερών » (pension_ministry, lu le 2026-10-03)
+const days40 = P.pension.days_40_years, perYear = days40 / 40; // Υπουργείο Εργασίας : « 40 ετών ασφάλισης (12.000) ημερών » (pension_ministry, lu le 2026-10-03)
 const routes = [[`${full}`, `${minY} έτη (${formatNumber(minY * perYear, 0, lang)} ημέρες)`, 'Πλήρης'], [`${a40}`, `40 έτη (${formatNumber(days40, 0, lang)} ημέρες)`, 'Πλήρης'], [`${red}`, `${minY} έτη και πρόσφατος ασφαλιστικός δεσμός`, 'Μειωμένη']];
 const natFull = nationalPension(Q.national_years_full);
 const maxM = (full - red) * 12;

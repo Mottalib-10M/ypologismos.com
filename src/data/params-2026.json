@@ -235,7 +235,9 @@
   "daily_wages_per_month": 22,
   "cap_daily_multiple": 8,
   "cap_days": 30,
-  "source": "severance"
+  "source": "severance",
+  "retirement_share_with_aux": 0.4,
+  "retirement_share_without_aux": 0.5
  },
  "parental": {
   "paid_months": 2,
@@ -602,7 +604,10 @@
   "reduced_age": 62,
   "full_age_40_years": 62,
   "min_years": 15,
-  "source": "pension"
+  "source": "pension",
+  "residence_min_years": 15,
+  "days_40_years": 12000,
+  "reduced_national_per_month": 0.005
  },
  "sources": {
   "tax_scale": {
