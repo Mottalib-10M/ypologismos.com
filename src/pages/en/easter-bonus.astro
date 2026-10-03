@@ -1,0 +1,67 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { easterBonus, bonusNet, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const M = P.minimum_wage;
+const ex = 2000;
+const full = easterBonus({ pay: ex });
+const fullNet = bonusNet(full.amount, { gross: ex });
+const minB = easterBonus({ pay: M.monthly });
+const minNet = bonusNet(minB.amount, { gross: M.monthly });
+const dailyB = easterBonus({ pay: M.daily, daily: true });
+const perStep = ex * P.bonuses.easter_months / 15;
+const salRows = [M.monthly, 1300, 1600, 2000, 2500, 3200].map((g) => { const b = easterBonus({ pay: g }); const n = bonusNet(b.amount, { gross: g }); return [$(g), $(b.base), $(b.leaveShare), $(b.amount), $(n.net)]; });
+const dayMs = 86400000;
+const yr = P.year;
+const end = Date.UTC(yr, 3, 30);
+const daysFrom = (m: number, d: number) => Math.round((end - Date.UTC(yr, m - 1, d)) / dayMs) + 1;
+const feb = easterBonus({ pay: ex, days: daysFrom(2, 1) });
+const april = easterBonus({ pay: ex, days: daysFrom(4, 1) });
+const faqs = [
+  { q: 'I moved to Greece and started work on 1 February. Is there an Easter bonus for me?', a: `Yes. The Easter bonus covers 1 January to 30 April, and from 1 February you have ${daysFrom(2, 1)} days in that window. Every 8 days earns one fifteenth of half a month’s pay, ${$2(perStep)} on ${$(ex)} gross. With the leave allowance share your doro Pascha comes to ${$(feb.amount)} gross, about ${F.pct(feb.share)} of the full amount.` },
+  { q: 'Why does the Easter bonus deadline change every year?', a: `Because it is tied to Orthodox Easter, a movable feast. The bonus is due by Holy Wednesday, the Wednesday before Greek Easter Sunday. In years when Easter falls early in April, the part of the bonus covering the days from then to 30 April may be settled afterwards. The reference period itself, 1 January to 30 April, never moves.` },
+  { q: 'How much is the Easter bonus on the Greek minimum wage?', a: `Half a month plus the leave share: ${$(minB.amount)} gross for a full-time employee on ${F.minWage} who has worked the whole period, or about ${$(minNet.net)} net. Day workers on the minimum daily wage of ${F.minDaily} receive ${F.easterDaily} daily wages plus the same share, ${$(dailyB.amount)} gross.` },
+  { q: 'I only joined in April. Is it even worth asking about?', a: `It is small but owed. Starting on 1 April gives ${daysFrom(4, 1)} days, almost four blocks of eight, which on ${$(ex)} gross is worth ${$(april.amount)} gross. Payroll software handles it automatically, but new arrivals on informal contracts sometimes find it missing; check your payslip around Easter.` },
+];
+---
+<GuideLayout lang={lang} id="easter" breadcrumbLabel={label('easter', lang)}
+  title={`Easter Bonus Greece ${F.year}: Half a Month, Pro Rata, Net`}
+  h1={`Easter bonus in Greece ${F.year}: half a month’s pay before Holy Week`}
+  description={`Easter bonus Greece ${F.year}: half a month’s pay or ${F.easterDaily} daily wages, 1/15 per 8 days worked from 1 January to 30 April, due by Holy Wednesday. Gross and net.`}
+  intro={`The Greek Easter bonus, doro Pascha, is half a month’s pay for the January to April period, paid before Easter.`}
+  resume={`Greek employers owe every private-sector employee an Easter bonus for the period 1 January to 30 April. Worked the whole four months for the same employer? You receive half your monthly gross salary, or ${F.easterDaily} daily wages if you are paid by the day, plus the matching share of the leave allowance, applied here as ${F.leaveShare}. On ${$(ex)} gross a month that is ${$(full.amount)} gross and about ${$(fullNet.net)} net after the ${F.efkaEe} social security contribution and income tax at your average rate. On the minimum wage of ${F.minWage} it is ${$(minB.amount)} gross. If you started during the period or left before 30 April, the bonus is pro-rated at one fifteenth of the half-month, or one daily wage, for every 8 days employed. The base is your pay on the fifteenth day before Easter, and the deadline is Holy Wednesday, which moves every year with Orthodox Easter. The calculator below gives the gross and net amount for your own salary and dates.`}
+  faqs={faqs}
+  related={[{ href: route('christmas', lang), name: label('christmas', lang), description: 'The bigger of the two holiday bonuses, due in December.' }, { href: route('minimum', lang), name: label('minimum', lang), description: 'Net pay and bonuses on the statutory minimum.' }, { href: route('home', lang), name: label('home', lang), description: 'Your regular monthly net salary.' }]}
+  sources={[src('hli_easter', lang), src('hli_bonuses', lang), src('efka_rates', lang), src('tax_credit', lang)]}>
+  <div data-outil><ToolCalc client:load kind="easter" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>Half a month, earned in fifteen slices</h2>
+  <p>The Easter bonus works on a short, fixed window of {F.easterDays} days. The full amount is split into fifteen equal parts and each part is earned with eight days of employment. On {$(ex)} gross, each slice is worth {$2(perStep)}. Days left over at the end, fewer than eight, still count as a proportional fraction, so nobody loses a few days of entitlement through rounding.</p>
+  <p>Enter your gross monthly salary or daily wage and the days you were employed between 1 January and 30 April. If you were already employed last year, leave the default of {F.easterDays} days. The result shows the gross bonus, the leave share, the deductions and the net figure.</p>
+
+  <h2>Easter bonus by monthly salary</h2>
+  <ContentTable headers={['Monthly gross', 'Half month', 'Leave share', 'Gross bonus', 'Net bonus']} align={['l', 'r', 'r', 'r', 'r']} rows={salRows} highlightRow={3} />
+  <p>For a full-time employee over 30 with no children, employed for the whole period. The first row is the statutory minimum wage. Because the bonus is taxed at your average rate for the year, the net share shrinks a little as pay rises, but the bonus is never taxed at a special or higher rate.</p>
+
+  <h2>Holy Wednesday and the movable deadline</h2>
+  <p>Greek Easter follows the Orthodox calendar, so it can fall anywhere from early April to early May. The bonus has to be paid by <em>Megali Tetarti</em>, Holy Wednesday. When Easter comes early and Holy Wednesday arrives before 30 April, the employer pays the bonus on time and may settle the slice for the remaining April days afterwards. When Easter is in May, the window has already closed and the amount is final.</p>
+  <p>The movable date also decides which salary is used: the regular pay in force on the fifteenth day before Easter. The minimum wage has been raised on 1 April in recent years, including {F.year}, so whether that increase reaches the Easter bonus depends on how late Easter falls.</p>
+
+  <h2>Leaving before 30 April, and days that do not count</h2>
+  <p>If you resign or are dismissed during the period, you are owed the share for the days from 1 January to your last day, based on your pay that day, in your final settlement. Unjustified absences, strike days, unpaid leave and sick days paid by the social security fund are excluded from the count; paid holiday and maternity leave are not. In a window this short, a fortnight on sickness benefit costs almost two of the fifteen slices.</p>
+
+  <div data-chrome><MiniSim client:load kind="leave" lang={lang} href={route('leave', lang)} /></div>
+
+  <h2>What the calculator leaves out</h2>
+  <p>It applies the legal minimum and cannot see a collective agreement that pays more. It estimates tax with your average rate for the year, as the <a href={route('method', lang)}>methodology</a> explains, so payroll may differ by a few euros. Together with the <a href={route('christmas', lang)}>Christmas bonus</a> and the leave allowance, the Easter bonus is why a Greek year has fourteen paydays; the main <a href={route('home', lang)}>salary calculator</a> shows the annual picture.</p>
+</GuideLayout>

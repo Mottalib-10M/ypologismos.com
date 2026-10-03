@@ -1,0 +1,64 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { roadTax, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const n = F.num;
+const R = P.road_tax;
+const w = (g: number) => roadTax({ category: 'co2_wltp', co2: g }).amount;
+const ev = roadTax({ category: 'electric' }).amount;
+const wltpFree = R.co2_wltp[0].upTo as number;
+const rivals = [130, 150, 170, 190, 215, 240];
+const rows = rivals.map((g) => [`${n(g)} g/km`, $2(w(g)), $(w(g) * 3), $(w(g) * 6), $(w(g) * 10)]);
+const cross = w(165), seven = w(240);
+const hybCC = roadTax({ category: 'cc_from_2006', cc: 1798 }).amount;
+const nedcHybrid = roadTax({ category: 'co2_nedc', co2: 99 }).amount;
+const faqs = [
+  { q: 'Does a Tesla registered in Greece pay any road tax at all?', a: `No. Article 20 of Law 2948/2001 exempts battery-electric and hydrogen cars from road tax, and an electric car also shows zero grams of CO₂ in field V.7 of its registration certificate, which gives ${$(ev)} on any table. By contrast, a petrol crossover from ${F.year} rated at ${n(165)} g/km on the WLTP cycle owes ${$2(cross)} every year.` },
+  { q: 'Are mild and full hybrids exempt from Greek road tax?', a: `Not by any general rule. They pay on the CO₂ figure in their registration certificate like any car registered after October 2010. Many land in the zero band, which runs up to ${n(wltpFree)} g/km on the WLTP table, and so pay nothing. A hybrid from 2019 rated at ${n(99)} g/km on the older NEDC table owes ${$2(nedcHybrid)}, because the NEDC zero band stops at ${n(R.co2_nedc[0].upTo as number)} g/km.` },
+  { q: 'Is an electric scooter or motorbike exempt from road tax in Greece?', a: `Yes. The same paragraph of article 20 that exempts electric and hydrogen cars names electric and hydrogen two- and three-wheeled motorcycles too. A petrol ${n(125)} cc scooter, for comparison, owes ${$(roadTax({ category: 'cc_from_2006', cc: 125 }).amount)} a year and a ${n(650)} cc motorbike ${$(roadTax({ category: 'cc_from_2006', cc: 650 }).amount)}, so for city commuters the saving is real but small.` },
+  { q: 'Over six years, what does going electric save in road tax compared with a 240 g/km seven-seater?', a: `A petrol seven-seater registered in ${F.year} at ${n(240)} g/km WLTP pays ${$2(R.co2_wltp[5].rate)} on every gram, so ${$2(seven)} a year and ${$(seven * 6)} over six years. The electric alternative pays ${$(ev)} for the whole period. Road tax is only one line of the ownership cost, but at that emission level it is a large one.` },
+];
+---
+<GuideLayout lang={lang} id="roadev" breadcrumbLabel={label('roadev', lang)}
+  title={`Road Tax Electric Cars Greece ${F.year}: Exemption and Hybrids`}
+  h1={`Electric cars and Greek road tax in ${F.year}`}
+  description={`Road tax for electric cars in Greece ${F.year}: battery-electric and hydrogen cars are exempt, hybrids pay on CO₂, savings over 3, 6 and 10 years against petrol.`}
+  intro={`In Greece, battery-electric and hydrogen cars pay no road tax; hybrids have no general exemption and pay on their CO₂ figure like any other car.`}
+  resume={`Electric cars pay no road tax in Greece in ${F.year}. Article 20 of Law 2948/2001 expressly exempts battery-electric and hydrogen passenger cars, as well as electric and hydrogen motorcycles, and in any case an electric car carries zero grams of CO₂ on its registration certificate, which gives zero on every table. The saving shows when you compare it with the combustion car you might otherwise buy: a ${F.year} petrol crossover rated at ${n(165)} g/km on the WLTP cycle owes ${$2(cross)} a year, or ${$(cross * 6)} over six years. Hybrids, plug-in or not, have no general exemption. They pay on the CO₂ figure in field V.7, and the many that stay at or below ${n(wltpFree)} g/km on the WLTP table pay nothing because they fall in the zero band. The law’s only specific mention of hybrids concerns cars bought from the State or its surplus agency. Use the tool below with the CO₂ figure of the petrol car you are weighing up to see what the electric option saves over your ownership period.`}
+  faqs={faqs}
+  related={[{ href: route('road', lang), name: label('road', lang), description: 'Road tax on the car you drive today.' }, { href: route('roadco2', lang), name: label('roadco2', lang), description: 'The CO₂ limits that decide what a hybrid pays.' }, { href: route('home', lang), name: label('home', lang), description: 'Your net Greek salary, for the purchase budget.' }]}
+  sources={[src('road_tax', lang), src('road_tax_idle', lang), { name: 'Directive 1999/37/EC, Annex I: registration certificate codes (P.3, V.7)', url: 'https://www.legislation.gov.uk/eudr/1999/37/annex/I' }]}>
+  <div data-chrome><MiniSim client:load kind="roadev" lang={lang} href={route('road', lang)} /></div>
+
+  <h2>The legal basis of the exemption</h2>
+  <p>Two features of article 20 combine. First, the method: cars first registered from 1 November 2010 are taxed purely on grams of CO₂ multiplied by a rate, and a battery-electric car shows zero grams in field V.7, so the product is zero. Second, an express provision: the article states that electric and hydrogen cars, and electric and hydrogen two- and three-wheeled motorcycles, are exempt from road tax.</p>
+  <p>In practice there is no annual road tax bill to budget for and no reason to consider akinisia, the off-road declaration, just to avoid one. The exemption covers road tax only; insurance and the other running costs of a car are outside the scope of this page.</p>
+
+  <h2>Hybrids: what article 20 says and what it does not</h2>
+  <p>This is where confusion starts. Article 20 mentions hybrids in a single place: the provision on passenger cars sold by the State or the Public Materials Management Organisation (ODDY) and put on the road for private use. Those cars are taxed on the third engine-size table anyway, and within that group hybrids up to {n(R.cc_bands[4])} cc are exempt, while larger ones pay sixty per cent of the tax on the equivalent conventional car. A conventional {n(1798)} cc car in that category would owe {$(hybCC)}.</p>
+  <p>Every other hybrid, bought new from a dealer or used from a private seller, is taxed like any car of its age: by engine size if first registered up to 31 October 2010, by the CO₂ figure on its certificate if registered later. Plenty of hybrids pay nothing because their WLTP figure sits at or below {n(wltpFree)} g/km, inside the zero band, not because of any hybrid relief. One registered in 2019 is on the NEDC table, whose zero band ends at {n(R.co2_nedc[0].upTo as number)} g/km, so a rating of {n(99)} g/km already costs {$2(nedcHybrid)}. The <a href={route('roadco2', lang)}>CO₂ band guide</a> shows where every limit lies.</p>
+
+  <h2>What you save, depending on the petrol car you would have bought</h2>
+  <ContentTable headers={['Petrol car, WLTP CO₂', 'Tax per year', 'Over 3 years', 'Over 6 years', 'Over 10 years']} align={['l', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={2} />
+  <p>Each row is the road tax a new combustion car would pay on the {F.year} WLTP table, over typical ownership periods. It is exactly what an electric car does not pay over the same years. The curve is not smooth: between {n(190)} and {n(215)} g/km the yearly bill more than doubles, because the car crosses the {n(R.co2_wltp[3].upTo as number)} g/km limit and every gram is then charged at {$2(R.co2_wltp[4].rate)} instead of {$2(R.co2_wltp[3].rate)}.</p>
+  <p>The figures assume the article 20 rates stay as they are. If the law changes, the table updates with the site’s parameters.</p>
+
+  <h2>Two purchase decisions, worked through</h2>
+  <p><strong>A family crossover.</strong> You are choosing between a petrol version at {n(165)} g/km and the electric version of the same model. The petrol car owes {$2(cross)} a year, which over six years is {$(cross * 6)}. That sum belongs in the comparison next to the purchase price and the cost of fuel or electricity.</p>
+  <p><strong>A seven-seater.</strong> At {n(240)} g/km the petrol car owes {$2(seven)} a year and {$(seven * 10)} over ten years. At this emission level road tax alone becomes a meaningful part of the ownership cost, and the exemption weighs much more.</p>
+
+  <div data-chrome><MiniSim client:load kind="roadco2" lang={lang} href={route('roadco2', lang)} /></div>
+
+  <h2>Bringing an electric car to Greece</h2>
+  <p>The exemption does not depend on age or country of origin: a used electric car imported from another EU country pays no road tax, just like a new one. What is worth checking is the registration certificate itself, in particular the fuel or power source in field P.3 and the CO₂ value in field V.7. When those are right, the <a href={route('road', lang)}>road tax calculator</a> returns zero.</p>
+  <p>If you are keeping a combustion car while you decide, the guide to <a href={route('roadmonth', lang)}>road tax per month</a> explains why the current year’s tax is owed in full even if you sell early in the year. And to see what the yearly bill means against your income, the <a href={route('home', lang)}>Greek salary calculator</a> gives your net pay in a couple of clicks.</p>
+</GuideLayout>

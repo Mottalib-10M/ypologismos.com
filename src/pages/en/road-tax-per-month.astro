@@ -1,0 +1,77 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { roadTax, salary, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const n = F.num;
+const R = P.road_tax;
+const w = (g: number) => roadTax({ category: 'co2_wltp', co2: g }).amount;
+const nd = (g: number) => roadTax({ category: 'co2_nedc', co2: g }).amount;
+const cc = (c: number) => roadTax({ category: 'cc_from_2006', cc: c }).amount;
+const cases: Array<[string, number]> = [
+  [`City car 2023, ${n(118)} g/km WLTP`, w(118)],
+  [`Compact 2022, ${n(145)} g/km WLTP`, w(145)],
+  [`SUV 2024, ${n(175)} g/km WLTP`, w(175)],
+  [`Large SUV 2021, ${n(215)} g/km WLTP`, w(215)],
+  [`Used 2015, ${n(132)} g/km NEDC`, nd(132)],
+  [`Used 2018, ${n(165)} g/km NEDC`, nd(165)],
+  [`Petrol 2008, ${n(1390)} cc`, cc(1390)],
+  [`Petrol 2007, ${n(1998)} cc`, cc(1998)],
+];
+const rows = cases.map(([k, a]) => [k, $2(a), $2(a / 12), $2(a / 6), $2(a / 2)]);
+const compact = w(145), suv = w(175), used = nd(165);
+const avgNet = salary({ gross: P.minimum_wage.average_wage_2025 }).net;
+const faqs = [
+  { q: 'I only spend the summer in Greece. Can I pay road tax just for June to September?', a: `No. For a private car the tax is indivisible and due for the whole calendar year, whether you drive one month or twelve. The only way to owe nothing is to declare the car off the road (akinisia) for the entire year, before 1 January, and leave it unused with the plates removed. A compact at ${n(145)} g/km WLTP therefore costs ${$2(compact)} a year, or ${$2(compact / 4)} per month if you drive it four months.` },
+  { q: 'I sold my car in April. Does the buyer refund me part of the road tax?', a: `The law gives you no refund: the road tax of a private car is owed for the full year regardless of how long it was on the road, so the state keeps it. Whether the buyer compensates you for the remaining months is purely a private matter you can agree in the sale price. On a ${n(165)} g/km car from 2018, the eight months left would be worth ${$2(used / 12 * 8)} of the ${$2(used)}.` },
+  { q: 'What happens if I take my car out of akinisia halfway through the year?', a: `You pay the full year’s road tax before the lift is accepted. Article 22 of Law 2367/1953 allows the request online, on gov.gr, only once the tax for the year of the lift has been paid, and article 20 gives no reduction for the months the car stood still. An SUV at ${n(175)} g/km WLTP owes ${$2(suv)} whether it returns to the road in February or November.` },
+  { q: 'Is there any vehicle in Greece whose road tax is charged by the month?', a: `Only in narrow cases. Cars under the customs regime of temporary admission owe one twelfth of the annual tax for each month, or part of a month, beyond their exemption period. Commercial and other non-private vehicles get half the annual tax off when they did not run for a whole calendar half-year. Private Greek-plated cars, motorcycles and caravans have neither option.` },
+  { q: 'How much should I set aside each month for the annual road tax bill?', a: `One twelfth of the annual amount. For a ${n(175)} g/km SUV registered in 2024 that is ${$2(suv / 12)} a month towards ${$2(suv)}; for a 2008 car with ${n(1390)} cc it is ${$2(cc(1390) / 12)}. The tax office still asks for the whole sum in one go, so the monthly figure is a savings target, not an instalment plan.` },
+];
+---
+<GuideLayout lang={lang} id="roadmonth" breadcrumbLabel={label('roadmonth', lang)}
+  title={`Road Tax Per Month Greece ${F.year}: Why It Is a Full-Year Bill`}
+  h1={`Road tax per month in Greece: why ${F.year} is billed as a whole year`}
+  description={`Road tax per month in Greece ${F.year}: private cars cannot pay by month, the tax is indivisible. Akinisia before 1 January, lifting it, a monthly savings figure.`}
+  intro={`Greek road tax on a private car cannot be paid for selected months: the law makes it indivisible and owed for the full calendar year.`}
+  resume={`Paying Greek road tax by the month, in the sense of covering only the months you drive, is not possible for a private car in ${F.year}. Paragraph 2a of article 20 of Law 2948/2001 says the tax on private cars, motorcycles and caravans is indivisible and owed for the entire year, however long the vehicle was actually used. The one exception is akinisia, the official off-road status, declared on gov.gr before 1 January and kept for the whole year. Bring the car back mid-year and you must first pay that year’s full tax. What you can do monthly is save: a compact registered in 2022 with ${n(145)} g/km on the WLTP cycle owes ${$2(compact)} a year, which is ${$2(compact / 12)} a month put aside. Monthly or half-yearly rules do exist, but only for commercial vehicles and for cars under temporary customs admission. This matters most to people who live in Greece part of the year, sell a car mid-year, or leave for work abroad. The calculator below shows the annual bill, the monthly saving and the real cost per month you drive.`}
+  faqs={faqs}
+  related={[{ href: route('road', lang), name: label('road', lang), description: 'The exact amount from your registration certificate.' }, { href: route('roadco2', lang), name: label('roadco2', lang), description: 'How a few grams of CO₂ move the annual bill.' }, { href: route('home', lang), name: label('home', lang), description: 'Your monthly net pay in Greece, to fit the annual bill in.' }]}
+  sources={[src('road_tax', lang), src('road_tax_idle', lang), src('min_wage', lang)]}>
+  <div data-chrome><MiniSim client:load kind="roadmonth" lang={lang} href={route('road', lang)} /></div>
+
+  <h2>The rule in the law, word for word</h2>
+  <p>Paragraph 2a of article 20 states that road tax on private cars, private motorcycles and three-wheelers, and private trailers and caravans “is indivisible and owed for the whole year, regardless of the period during which they circulated within the year”. The vehicles are deemed to have been on the road all year unless placed in akinisia for the whole year. There is no middle ground of six months on, six months off, half the tax.</p>
+  <p>If you have heard otherwise, the source is usually one of two cases the law treats differently: commercial vehicles, or cars that are in Greece under foreign plates. Neither applies to a car registered in your name in Greece.</p>
+
+  <h2>Where half-year and monthly charges really exist</h2>
+  <p>Paragraph 2b of the same article covers the other vehicle categories, such as lorries. Their annual tax is cut by half when the vehicle did not run for an entire calendar half-year: because it was deregistered in the first half, first put on the road in the second, or kept off the road for a whole half-year. Owners of commercial fleets know this rule well, which is why it travels by word of mouth.</p>
+  <p>Monthly twelfths appear in an even narrower case: private cars held under the suspensive customs regime of temporary admission. For each month or part of a month beyond the period of exemption, the holder pays one twelfth of the road tax. A car with Greek plates is outside both rules.</p>
+
+  <h2>Akinisia in practice: dates, plates and the lift</h2>
+  <p>Article 22 of Law 2367/1953 sets out the procedure. The owner or keeper declares the car off the road online on gov.gr, giving the exact address where it will stay. Straight after, you remove the number plates and keep them yourself; they are no longer handed in. To count against the road tax, the declaration must be filed before the start of the year concerned, and it lasts until you ask for it to be lifted. A declaration filed on 3 January saves next year’s tax, not this year’s.</p>
+  <p>Lifting akinisia works the other way round: an online request, accepted once the road tax for the year of the lift has been paid. That single condition is what rules out any monthly system. Park the car from 1 January, bring it back on 1 June, and you pay the whole year on the day you lift the status.</p>
+  <p>While in akinisia the car may not move for any reason, apart from a few short temporary permits for a roadworthiness test, repairs, a change of storage place or delivery for scrapping. Enforcement uses motorway operator data and plate-scanning apps. A car found driving, or parked away from the declared address, loses its status automatically, and on top of the tax the owner is fined ten thousand euros. A repeat within five years triples the fine and suspends the owner’s driving licence for three years.</p>
+
+  <h2>The annual bill as a monthly, half-year or summer cost</h2>
+  <ContentTable headers={['Car', 'Annual tax', 'Save per month', 'Cost per month, 6 months driven', 'Cost per month, 2 months driven']} align={['l', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={1} />
+  <p>The second column is what the tax administration asks for, in full. The third is the amount to move into a savings account each month so that the bill never comes as a surprise. The last two columns answer a different question, the one part-year residents ask: what does each month of actual driving cost when the car is only used for part of the year? A 2018 car at {n(165)} g/km on the NEDC cycle owes {$2(used)}; driven only in July and August, that is {$2(used / 2)} per month of use.</p>
+  <p>All amounts come from the WLTP, NEDC and third engine-size tables of article 20, the same ones used by the <a href={route('road', lang)}>road tax calculator</a>. Cars below {n(R.co2_wltp[0].upTo as number)} g/km on the WLTP cycle owe nothing, so for them the question never arises.</p>
+
+  <h2>Three situations where people ask</h2>
+  <p><strong>The holiday-home car.</strong> A second car kept on an island and driven from June to September pays the full tax every year. The alternative is to keep it in akinisia for every whole year you will not need it, declared before January. Off the road in winter and on it in summer is not an option the law offers.</p>
+  <p><strong>The posting abroad.</strong> If you learn in October that you will spend next year working outside Greece, you can still declare akinisia for that year. If you learn in February, this year’s tax is owed in full, and the off-road status only helps from the following year.</p>
+  <p><strong>The car waiting for a buyer.</strong> A 2007 petrol car with a {n(1998)} cc engine owes {$2(cc(1998))} a year, which on an old car can approach its resale value. If the sale drags on past December, akinisia declared before the new year is the only way to avoid another year of tax. The <a href={route('roadcc', lang)}>engine-size guide</a> shows what each engine band pays.</p>
+
+  <div data-chrome><MiniSim client:load kind="road" lang={lang} href={route('road', lang)} /></div>
+
+  <h2>Fitting the bill into a Greek salary</h2>
+  <p>A yearly bill always feels bigger than a monthly one, which is why a standing order for one twelfth makes sense. Greek salaries are paid fourteen times a year; on the {F.avgWage} average gross wage recorded by ERGANI for 2025, each payment is about {$2(avgNet)} net, so the {$2(compact)} of a typical compact is roughly {F.pct(Math.round(compact / avgNet * 1000) / 1000)} of a single pay packet. The <a href={route('home', lang)}>salary calculator</a> gives your own net pay to make the same comparison. And if you are choosing your next car, the guide to <a href={route('roadev', lang)}>electric cars and road tax</a> covers the one category where this savings pot stays empty.</p>
+</GuideLayout>

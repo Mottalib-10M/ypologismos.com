@@ -1,0 +1,59 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { leaveAllowance, bonusNet, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const M = P.minimum_wage;
+const ex = 2200;
+const full = leaveAllowance({ pay: ex });
+const fullNet = bonusNet(full.amount, { gross: ex });
+const minA = leaveAllowance({ pay: M.monthly });
+const dailyA = leaveAllowance({ pay: M.daily, daily: true });
+const four = leaveAllowance({ pay: ex, months: 4 });
+const rows = [M.monthly, 1400, 1800, 2200, 2800, 3600].map((g) => { const a = leaveAllowance({ pay: g }); const n = bonusNet(a.amount, { gross: g }); return [$(g), $(leaveAllowance({ pay: g, months: 4 }).amount), $(leaveAllowance({ pay: g, months: 8 }).amount), $(a.amount), $(n.efka), $(n.net)]; });
+const faqs = [
+  { q: 'My Greek employer says the leave allowance is paid in July. Is that right?', a: `Not necessarily. Under Emergency Law 539/1945, article 3(8), the epidoma adeias is paid at the start of your leave, together with your holiday pay. July is common only because most people take their holiday in summer. If you take your main leave in September, that is when the allowance is due: ${$(full.amount)} gross on ${$(ex)} a month.` },
+  { q: 'I am leaving my job after four months. Do I get a leave allowance?', a: `Yes. Under Law 1346/1983, leave you have not taken is paid when the contract ends, together with the matching allowance, in your final settlement. Our calculator estimates the allowance in proportion to months worked: four months on ${$(ex)} gross gives about ${$(four.amount)}. The exact figure depends on the days of leave you had accrued.` },
+  { q: 'Is the leave allowance the same as holiday pay?', a: `No, they are two separate amounts. Holiday pay is your normal salary for the days you are away. The leave allowance is an extra payment on top, equal to that holiday pay but capped at half a month’s salary, or ${F.leaveDaily} daily wages for day workers. With a full year’s entitlement on the minimum wage it is ${$(minA.amount)} gross.` },
+  { q: 'How much is the leave allowance for a day worker on the minimum daily wage?', a: `The cap for day workers is ${F.leaveDaily} daily wages rather than half a month. At the minimum daily wage of ${F.minDaily} that is ${$(dailyA.amount)} gross, slightly more than half the monthly minimum wage. It is subject to the ${F.efkaEe} employee social security contribution and income tax like any other pay.` },
+];
+---
+<GuideLayout lang={lang} id="leave" breadcrumbLabel={label('leave', lang)}
+  title={`Leave Allowance Greece ${F.year}: Up to Half a Month’s Pay`}
+  h1={`Leave allowance in Greece ${F.year}: the third extra payment`}
+  description={`Leave allowance Greece ${F.year}: up to half a month’s pay or ${F.leaveDaily} daily wages, due when your holiday starts and owed on leaving if unused. Gross and net calculator.`}
+  intro={`The leave allowance, epidoma adeias, is an extra payment of up to half a month’s salary, made when you go on annual leave.`}
+  resume={`Greek employees receive a leave allowance on top of their normal holiday pay. It equals the pay for the annual leave you are entitled to, capped at half a month’s gross salary for monthly-paid staff and ${F.leaveDaily} daily wages for day workers. With a full year’s entitlement on ${$(ex)} gross a month, that is ${$(full.amount)} gross, or about ${$(fullNet.net)} net after e-EFKA social security and income tax. On the minimum wage of ${F.minWage} the allowance is ${$(minA.amount)} gross, and on the minimum daily wage ${$(dailyA.amount)}. Unlike the Christmas and Easter bonuses it has no fixed date: Emergency Law 539/1945 says it is paid at the start of your leave. If your job ends before you have taken your holiday, Law 1346/1983 entitles you to be paid the unused leave and the allowance in your final settlement. Our calculator spreads the allowance over the months worked in the year, a simplification explained below, and gives the gross and net amounts.`}
+  faqs={faqs}
+  related={[{ href: route('fourteen', lang), name: label('fourteen', lang), description: 'How the extra payments add up over a year.' }, { href: route('easter', lang), name: label('easter', lang), description: 'Half a month for January to April.' }, { href: route('home', lang), name: label('home', lang), description: 'Monthly net pay from any gross salary.' }]}
+  sources={[src('hli_bonuses', lang), src('efka_rates', lang), src('tax_credit', lang)]}>
+  <div data-outil><ToolCalc client:load kind="leave" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>Holiday pay plus a holiday bonus</h2>
+  <p>When you take annual leave in Greece, two things happen on your payslip. You keep receiving your salary for the days away, which is holiday pay. And you receive the <em>epidoma adeias</em>, a separate allowance meant to fund the holiday itself. Its amount is tied to the holiday pay, but it is capped: half a month for salaried staff, {F.leaveDaily} daily wages for day workers. Anyone with a full year of entitlement hits the cap, which is why people simply call it “half a salary”.</p>
+  <p>The calculator asks for your gross salary or daily wage, the months worked in the current year, and optionally your age and children for the tax. It returns the gross allowance, the cap, the deductions and the net figure.</p>
+
+  <h2>Leave allowance by salary and months worked</h2>
+  <ContentTable headers={['Monthly gross', '4 months', '8 months', 'Full year', 'EFKA (full)', 'Net (full)']} align={['l', 'r', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={3} />
+  <p>Net figures assume an employee over 30 with no children. The 4- and 8-month columns are the full allowance scaled by months worked out of twelve.</p>
+
+  <h2>Why months are only an approximation</h2>
+  <p>Strictly, the allowance follows the number of leave days you have earned, and in a first year of employment those days build up gradually under rules that depend on length of service. The calculator does not count leave days; it scales the half-month cap by months. For a full year the answer is exact because you reach the cap. For a short spell it is a sound estimate, not the payroll calculation. If your employer gives you a count of accrued leave days, that count prevails.</p>
+
+  <h2>When the money is due, and what happens when you leave</h2>
+  <p>Emergency Law 539/1945, article 3(8), places the payment at the start of your leave, together with the holiday pay. There is no “leave allowance month” in the law. Go on leave in October and the allowance is due in October, with that month’s holiday pay.</p>
+  <p>Leaving a job with untaken leave is the situation where newcomers lose money most often. Law 1346/1983 says unused leave is paid out when the contract ends, with its allowance. Check your final settlement for both lines, especially after a dismissal, when attention tends to focus on <a href={route('severance', lang)}>severance pay</a>.</p>
+
+  <div data-chrome><MiniSim client:load kind="fourteen" lang={lang} href={route('fourteen', lang)} /></div>
+
+  <h2>Where the leave allowance hides in your bonuses</h2>
+  <p>The <a href={route('christmas', lang)}>Christmas bonus</a> and the Easter bonus each include a share of the leave allowance, applied here as {F.leaveShare}. That is not a double payment: the holiday bonuses and the leave allowance are separate obligations, and the share inside the bonuses is part of how Greek law builds them. The calculator applies the statutory minimum only; a collective agreement may be more generous. Tax is estimated at your average rate for the year, the same method as the main <a href={route('home', lang)}>salary calculator</a>.</p>
+</GuideLayout>

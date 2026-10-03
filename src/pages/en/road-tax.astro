@@ -1,0 +1,81 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { roadTax, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const R = P.road_tax;
+const n = F.num;
+const ccLabel = (i: number) => i === 0 ? `up to ${n(R.cc_bands[0])}` : i < R.cc_bands.length ? `${n(R.cc_bands[i - 1] + 1)}-${n(R.cc_bands[i])}` : `${n(R.cc_bands[R.cc_bands.length - 1] + 1)} and over`;
+const ccRows = R.cc_until_2000.map((_, i) => [ccLabel(i), $(R.cc_until_2000[i]), $(R.cc_2001_2005[i]), $(R.cc_from_2006[i])]);
+const co2Rows = (rows: Array<{ upTo: number | null; rate: number }>) => rows.map((r, i) => {
+  const from = i === 0 ? 0 : (rows[i - 1].upTo as number) + 1;
+  return [r.upTo === null ? `${n(from)} and over` : `${n(from)}-${n(r.upTo)}`, $2(r.rate), $2(from * r.rate), r.upTo === null ? '-' : $2(r.upTo * r.rate)];
+});
+const nedcFree = R.co2_nedc[0].upTo as number, wltpFree = R.co2_wltp[0].upTo as number;
+const ccMax = R.cc_from_2006[R.cc_from_2006.length - 1];
+const golf = roadTax({ category: 'co2_wltp', co2: 128 });
+const estate = roadTax({ category: 'co2_nedc', co2: 141 }), estateLow = roadTax({ category: 'co2_nedc', co2: 140 });
+const old = roadTax({ category: 'cc_from_2006', cc: 1997 });
+const hybrid = roadTax({ category: 'co2_wltp', co2: 105 });
+const big = roadTax({ category: 'co2_wltp', co2: 225 });
+const faqs = [
+  { q: 'Does a diesel car pay more road tax in Greece than a petrol one?', a: `No. Greek road tax ignores the fuel. A car first registered up to October 2010 pays by engine size alone, and a newer one by grams of CO₂ alone. Since a diesel often emits less CO₂ than a petrol car of similar power, it can even pay less: at ${n(150)} g/km on the WLTP cycle the bill is ${$2(roadTax({ category: 'co2_wltp', co2: 150 }).amount)} for either fuel.` },
+  { q: 'My partner and I own the car jointly. Who does the tax office chase for the road tax?', a: `Either of you, for the full amount. Paragraph 2c of article 20 makes all co-owners jointly and severally liable for the road tax and for any fine. The tax administration can claim the whole ${$2(golf.amount)} of a ${n(128)} g/km car from one of you, and how you split it afterwards is a private matter between the owners.` },
+  { q: 'Is a self-charging hybrid exempt from Greek road tax?', a: `Not as such. Article 20 exempts battery-electric and hydrogen cars, and mentions hybrids only for cars bought at public auctions from the State. An ordinary hybrid registered after October 2010 pays on the CO₂ printed on its licence like any other car. Many small hybrids stay under the zero band of ${n(wltpFree)} g/km (WLTP), so they pay nothing: at ${n(105)} g/km the bill is ${$2(hybrid.amount)}.` },
+  { q: 'Which line of the Greek registration certificate gives the CO₂ figure?', a: `Field V.7, in grams per kilometre. Field B is the date of first registration and P.1 the engine size in cubic centimetres. These codes are the same on every EU registration certificate, so a car imported from Germany or Italy shows them in the same place. The tax office uses the V.7 value only if it matches the certificate of conformity filed at customs.` },
+  { q: 'Why does a 2-litre car from 2009 pay less than a new SUV?', a: `Because pre-November 2010 cars pay a flat amount by engine band, while newer cars pay per gram of CO₂. A ${n(1997)} cc car first registered in 2009 owes ${$(old.amount)}. A 2024 SUV emitting ${n(225)} g/km on the WLTP cycle pays ${$2(R.co2_wltp[5].rate)} on every gram, which comes to ${$2(big.amount)}.` },
+];
+---
+<GuideLayout lang={lang} id="road" breadcrumbLabel={label('road', lang)}
+  title={`Road Tax Greece ${F.year}: Teli Kykloforias by CO₂ or Engine Size`}
+  h1={`Road tax in Greece ${F.year}: what your car owes`}
+  description={`Road tax Greece ${F.year}: free teli kykloforias calculator by CO₂ (NEDC, WLTP) or engine size, all five official tables, electric cars exempt, off-road rules.`}
+  intro={`Greek road tax, the teli kykloforias, is an annual charge set by engine size for cars first registered up to 31 October 2010 and by CO₂ emissions for everything newer.`}
+  resume={`Greek road tax for ${F.year} depends first on when your car was registered for the first time anywhere in the EU. Cars registered up to 31 October 2010 pay a flat amount by engine size, from ${$(R.cc_until_2000[0])} for the smallest to ${$(ccMax)} above 4,000 cc, with slightly higher amounts the more recent the registration. Cars registered from 1 November 2010 to the end of 2020 pay per gram of CO₂ measured on the old NEDC cycle, and cars registered since 2021 per gram on the WLTP cycle. Every gram is charged at the rate of the band the car falls in, so a ${F.year} hatchback emitting ${n(128)} g/km owes ${$2(golf.amount)}, while anything up to ${n(wltpFree)} g/km (WLTP) or ${n(nedcFree)} g/km (NEDC) pays nothing. Battery-electric and hydrogen cars are exempt. The tax is due for the whole year and cannot be split by month: the only way out is to take the car off the road for the entire year, declared before 1 January. Enter two figures from your registration certificate below.`}
+  faqs={faqs}
+  related={[{ href: route('roadco2', lang), name: label('roadco2', lang), description: 'The NEDC and WLTP bands, and the cliff at each threshold.' }, { href: route('roadev', lang), name: label('roadev', lang), description: 'What an electric car saves in road tax over the years.' }, { href: route('home', lang), name: label('home', lang), description: 'Your Greek net salary, to budget for the annual bill.' }]}
+  sources={[src('road_tax', lang), src('road_tax_idle', lang), { name: 'Directive 1999/37/EC, Annex I: registration certificate codes (B, P.1, V.7)', url: 'https://www.legislation.gov.uk/eudr/1999/37/annex/I' }]}>
+  <div data-outil><ToolCalc client:load kind="road" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>Engine-size tables for cars registered up to October 2010</h2>
+  <ContentTable headers={['Engine (cc)', 'Registered up to 2000', '2001-2005', '2006 to 31.10.2010']} align={['l', 'r', 'r', 'r']} rows={ccRows} highlightRow={7} />
+  <p>Article 20 of Law 2948/2001 sets three engine-size tables, shown side by side here. The bands are identical in all three and up to {n(R.cc_bands[3])} cc so are the amounts; above that, the later the first registration, the more the car pays. Each band carries a fixed sum, so a {n(1997)} cc car from 2009 owes {$(old.amount)} whatever its fuel, power or emissions. The steepest step sits at {n(R.cc_bands[6])} cc, where the bill for a car from 2006 to October 2010 more than doubles, from {$(R.cc_from_2006[6])} to {$(R.cc_from_2006[7])}. Our <a href={route('roadcc', lang)}>engine-size guide</a> covers older cars and motorcycles in more depth.</p>
+
+  <h2>CO₂ tables: NEDC to 2020, WLTP from 2021</h2>
+  <ContentTable caption="NEDC table: first registered 1.11.2010 to 31.12.2020" headers={['CO₂ (g/km)', '€ per gram', 'Tax at start', 'Tax at end']} align={['l', 'r', 'r', 'r']} rows={co2Rows(R.co2_nedc)} />
+  <ContentTable caption="WLTP table: first registered from 1.1.2021" headers={['CO₂ (g/km)', '€ per gram', 'Tax at start', 'Tax at end']} align={['l', 'r', 'r', 'r']} rows={co2Rows(R.co2_wltp)} />
+  <p>Unlike a progressive income tax, the rate here is not applied slice by slice. Once a car crosses into a band, the band’s rate applies to every gram it emits. That creates cliffs: an estate on the NEDC table at {n(140)} g/km owes {$2(estateLow.amount)}, and the same model at {n(141)} g/km owes {$2(estate.amount)}. The two tables cannot be compared gram for gram, since they rest on different test procedures, which is why the WLTP table has its own thresholds and lower rates. The <a href={route('roadco2', lang)}>CO₂ band guide</a> lists every threshold worth knowing before you choose a trim level.</p>
+
+  <h2>Reading your registration certificate</h2>
+  <p>The Greek <em>adeia kykloforias</em> follows the EU model of Directive 1999/37/EC, so the fields carry the same codes as in the rest of the Union. Field <strong>B</strong> is the date of first registration, <strong>P.1</strong> the engine capacity in cubic centimetres and <strong>V.7</strong> the CO₂ figure in grams per kilometre. Those three numbers are everything the calculator needs.</p>
+  <p>If you brought a used car from another EU country, the date that counts is the first registration in any EU or EEA state, not the day it received Greek plates. A car first registered in Belgium in 2018 and re-registered in Athens in {F.year} pays on the NEDC table. A car deregistered and later registered again keeps the date of its first licence before deregistration. And a used car whose first year on the international market was before 1 January 2002 always pays on engine size, whatever its date of entry into the EU.</p>
+  <p>The CO₂ value on the licence counts only if it matches the certificate of conformity, or the document lodged with customs for the registration tax. If they differ, the certificate wins. When your licence shows a figure one or two grams above a threshold, it is worth checking the certificate too.</p>
+
+  <h2>Four cars, worked through</h2>
+  <p>A {F.year} petrol hatchback at {n(128)} g/km WLTP falls in the {n(R.co2_wltp[0].upTo as number + 1)}-{n(R.co2_wltp[1].upTo as number)} band at {$2(R.co2_wltp[1].rate)} a gram: {n(128)} × {$2(R.co2_wltp[1].rate)} = {$2(golf.amount)} a year.</p>
+  <p>A 2017 diesel estate at {n(141)} g/km NEDC pays {$2(estate.amount)}, against {$2(estateLow.amount)} for the version rated at {n(140)} g/km. When buying used, the exact version matters more than the model name.</p>
+  <p>A 2009 saloon with a {n(1997)} cc engine pays {$(old.amount)}, a flat amount from the third engine table.</p>
+  <p>A small hybrid from 2023 rated at {n(105)} g/km pays {$2(hybrid.amount)}, simply because it sits below the WLTP zero band, not because of any hybrid exemption.</p>
+
+  <div data-chrome><MiniSim client:load kind="roadco2" lang={lang} href={route('roadco2', lang)} /></div>
+
+  <h2>Electric cars, motorcycles, caravans and mopeds</h2>
+  <p>Battery-electric and hydrogen cars pay no road tax: they show zero grams of CO₂, which gives zero on any table, and article 20 also names them as exempt. Our page on <a href={route('roadev', lang)}>electric cars and road tax</a> works out the saving over the years you keep the car.</p>
+  <p>Motorcycles and three-wheelers always pay by engine size, even when registered after 2010, on the table matching their year of first registration. Private caravans and trailers pay a flat {$(R.caravan)}, and mopeds {$(R.moped)}.</p>
+
+  <h2>Taking the car off the road</h2>
+  <p>Paragraph 2a of article 20 makes the tax on private cars, motorcycles and caravans indivisible: it is owed for the whole year, however few months the vehicle was driven. The only exception is a car declared off the road, in Greek <em>akinisia</em>, for the entire year. The declaration is made online on gov.gr and must be filed before the year begins; one filed in January or later does not remove that year’s tax. You then take the plates off, keep them, and leave the car where you declared it.</p>
+  <p>The rules are enforced. A car under akinisia that is spotted driving, or parked somewhere other than the declared address, loses its status at once and the owner faces, on top of the tax, an administrative fine of ten thousand euros; a repeat within five years triples the fine and costs the owner their driving licence for three years. To put the car back on the road you must first pay the road tax for that year. For people who leave Greece every winter, that is the trade-off to weigh, and the <a href={route('roadmonth', lang)}>road tax per month</a> guide explains why paying only for the months you drive is not an option.</p>
+
+  <h2>What this calculator leaves out</h2>
+  <p>It covers private passenger cars. Lorries, buses, taxis and cars under temporary admission follow other tables or rules in the same article and are not included. Nor do we compute late-payment penalties: we could not confirm the current amounts from a source we were able to check, so we give no figure rather than a guess. The payment deadline is announced each year by the Greek tax authority, AADE. Every table on this page is generated from the {F.year} parameters used by the rest of the site, including the <a href={route('home', lang)}>Greek salary calculator</a> and the <a href={route('enfia', lang)}>ENFIA property tax calculator</a>, so a change in the law changes them all at once.</p>
+</GuideLayout>
