@@ -40,7 +40,7 @@ const faqs = [
 
   <h2>Net minimum wage by length of service</h2>
   <ContentTable headers={['Service', 'Gross', 'EFKA', 'Tax', 'Net (×14)', 'Net, 12-month basis']} align={['l', 'r', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={0} />
-  <p>The table assumes an employee over 30 with no dependent children and fourteen payments. The steps are the ones a Greek payroll office follows: gross times fourteen, minus the employee’s social security, income tax on the {F.year} scale, minus the employee tax reduction of article 16 of the Income Tax Code, and the year’s tax spread evenly across the payments. Against the twelve worked examples the Ministry of Labour published with the new minimum wage, our figures differ by at most one euro, the effect of rounding.</p>
+  <p>The table assumes an employee over 30 with no dependent children and fourteen payments. The steps are the ones a Greek payroll office follows: gross times fourteen, minus the employee’s social security, income tax on the {F.year} scale, minus the employee tax reduction of article 16 of the Income Tax Code, and the year’s tax spread evenly across the payments. Against the twelve worked examples the Ministry of Labour published with the new minimum wage, our figures differ by at most {F.maxDev} per payment, the effect of rounding.</p>
   <p>The “seniority increments” in the first column are called <em>trieties</em> in Greek: each completed three-year period of work adds {F.triennium} to the minimum wage, up to {F.trienniumMax} periods. They follow the new minimum automatically, so an employee with two increments moved from {F.minWithT(2)} gross this April without any new contract.</p>
 
   <h2>Fourteen payments: reading a Greek salary offer</h2>

@@ -13,6 +13,7 @@ export function facts(lang: 'el' | 'en') {
   const minNet = salary({ gross: P.minimum_wage.monthly }).net;
   const sevCap = severance({ pay: 1, years: 1 }).cap;
   const par = parentalBenefit();
+  const maxDev = Math.max(...P.minimum_wage.official_examples.map((e) => Math.abs(salary({ gross: e.gross, children: e.children }).net - e.net)));
   return {
     year: P.year,
     retrieved: P.retrieved_at,
@@ -24,6 +25,8 @@ export function facts(lang: 'el' | 'en') {
     minNet: m(minNet), minIncrease: p(P.minimum_wage.monthly / P.minimum_wage.monthly_2025 - 1), minFrom: P.minimum_wage.valid_from,
     triennium: p(P.minimum_wage.triennium_rate), trienniumMax: String(P.minimum_wage.triennium_max), minWithT: (n: number) => m(minimumWage(n)),
     avgWage: m(P.minimum_wage.average_wage_2025),
+    /** Écart maximal du moteur face aux 12 exemples officiels du ministère du Travail. */
+    maxDev: m(maxDev, 2),
     // Κλίμακα
     r: T.brackets.map((b) => p(b.rate)), limits: T.brackets.map((b) => (b.upTo === null ? '' : m(b.upTo))),
     second: T.second_bracket_by_children.map(p), third: T.third_bracket_by_children.map(p), thirdStep: p(T.third_bracket_step_after_4),
