@@ -1,0 +1,66 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, grossForNet, christmasBonus, easterBonus, leaveAllowance, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const offer = 42000, m14 = offer / 14, m12 = offer / 12;
+const so = salary({ gross: m14 }), so12 = salary({ gross: m12, payments: 12 });
+const g = 2000;
+const x = christmasBonus({ pay: g }).amount, e = easterBonus({ pay: g }).amount, a = leaveAllowance({ pay: g }).amount;
+const sg = salary({ gross: g });
+const rent = 900, needNet = 1600, perPay = needNet * 12 / 14, needGross = grossForNet(perPay);
+const cal = [
+  ['January – March', $(g), $(sg.net)],
+  ['April or May (Easter)', $(g + e), $(sg.net * (g + e) / g)],
+  ['Month your summer leave starts', $(g + a), $(sg.net * (g + a) / g)],
+  ['Other months', $(g), $(sg.net)],
+  ['December (Christmas)', $(g + x), $(sg.net * (g + x) / g)],
+];
+const rows = [25000, 32000, 42000, 55000, 70000, 90000].map((y) => { const s = salary({ gross: y / 14 }); return [$(y), $(y / 14), $(s.net), $(s.netAnnual), $(s.netPer12)]; });
+const faqs = [
+  { q: `My Greek job offer says ${$(offer)} a year. What will my monthly payslip show?`, a: `${$(m14)} gross, because private-sector salaries in Greece are paid fourteen times a year, not twelve. After e-EFKA social security (${F.efkaEe}) and income tax, that leaves ${$(so.net)} net per payment for someone over 30 without children. The extra two payments arrive as the Christmas bonus, the Easter bonus and the leave allowance, so the annual net is ${$(so.netAnnual)}.` },
+  { q: 'Do Greek employers have to pay the 13th and 14th salary, or is it a perk?', a: `It is a legal entitlement for private-sector employees, not a company benefit. The Christmas bonus (about one month’s pay) is due by 21 December, the Easter bonus (half a month) by Holy Wednesday, and the leave allowance (up to half a month) when your annual leave starts. If you leave mid-year you are paid the share you have earned.` },
+  { q: 'I am used to twelve salaries. Is a Greek fourteen-payment salary worth less?', a: `No, the year is the same if the annual gross is the same. ${$(offer)} paid as fourteen payments of ${$(m14)} or twelve of ${$(m12)} gives the same income tax and the same ${$(so.netAnnual)} net, because Greek tax is computed on annual income and spread across the payments. Only the timing of the money changes.` },
+  { q: `What gross salary do I need in Greece to live on ${formatMoney(1600, 0, 'en')} a month, bonuses included?`, a: `${$(needNet)} a month averaged over the year is ${$(needNet * 12)} net annually, or ${$(perPay)} in each of the fourteen payments. For a taxpayer over 30 without children that takes about ${$(needGross)} gross per payment. Asking for a gross that gives ${$(needNet)} in every payment would overshoot, because the two extra payments come on top.` },
+];
+---
+<GuideLayout lang={lang} id="fourteen" breadcrumbLabel={label('fourteen', lang)}
+  title={`14 Salaries Greece ${F.year}: Annual to Monthly Pay Explained`}
+  h1={`Fourteen salaries in Greece (${F.year}): turning an annual offer into monthly pay`}
+  description={`14 salaries Greece ${F.year}: why pay comes in 14 payments, how to convert an annual offer to monthly gross, and your net per payment and over twelve months.`}
+  intro={`Private-sector employees in Greece receive fourteen payments a year: twelve monthly salaries, a Christmas bonus, an Easter bonus and a leave allowance.`}
+  resume={`Greek private-sector pay comes in fourteen instalments: twelve monthly salaries plus a Christmas bonus worth about one month, an Easter bonus worth about half a month and a leave allowance of up to half a month. So the monthly gross on a contract is the annual figure divided by fourteen. A ${$(offer)} offer means ${$(m14)} gross a month, not the ${$(m12)} you would get dividing by twelve, and ${$(so.net)} net per payment for an employee over 30 without children. The split does not change the tax: Greece taxes employment income annually, so the same ${$(offer)} paid in twelve instalments would also leave ${$(so.netAnnual)} net over the year. What changes is cash flow. December brings almost a double salary, the Easter month half as much again, and the month your summer holiday starts another half. Spread over twelve months, ${$(offer)} is worth ${$(so.netPer12)} a month net, the figure to compare with a salary from abroad. The calculator below runs the comparison for your own annual figure.`}
+  faqs={faqs}
+  related={[{ href: route('christmas', lang), name: label('christmas', lang), description: 'The December payment, prorated if you joined mid-year.' }, { href: route('easter', lang), name: label('easter', lang), description: 'Half a month before Easter.' }, { href: route('minimum', lang), name: label('minimum', lang), description: `${F.minWage} gross, also paid fourteen times.` }]}
+  sources={[src('hli_christmas', lang), src('hli_easter', lang), src('hli_bonuses', lang), src('tax_scale', lang)]}>
+  <div data-chrome><MiniSim client:load kind="fourteen" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Annual offers converted, with net pay</h2>
+  <ContentTable headers={['Annual gross', 'Monthly gross (÷14)', 'Net per payment', 'Net per year', 'Net per month, 12-month basis']} align={['r', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={2} />
+  <p>Every row assumes a full year with one employer, fourteen payments, no dependent children and an age over 30. The fourth column is the number to keep in mind when you weigh a Greek offer against one from London, Berlin or Dubai: it is what reaches your account over twelve months. The last column simply divides it by twelve. If you are 30 or younger, or have children, your tax is lower; the main calculator handles both.</p>
+
+  <h2>What the two extra payments are</h2>
+  <p>Greeks call them the <em>doro Christougennon</em> (Christmas gift), the <em>doro Pascha</em> (Easter gift) and the <em>epidoma adeias</em> (leave allowance). Despite the word “gift”, they are compulsory for every private-sector employer and the Labour Inspectorate enforces them. The Christmas bonus covers work between 1 May and 31 December and equals one month’s pay; the Easter bonus covers 1 January to 30 April and equals half a month; the leave allowance equals up to half a month and comes with your annual leave. Both holiday bonuses are topped up by a {F.leaveShare} leave-allowance share, which is why a year of Greek pay is in fact slightly more than fourteen salaries.</p>
+  <p>The detailed rules, including the pro-rata formulas for anyone who started or left during a reference period, are on the pages for the <a href={route('christmas', lang)}>Christmas bonus</a>, the <a href={route('easter', lang)}>Easter bonus</a> and the <a href={route('leave', lang)}>leave allowance</a>. This page is about the shape of the year.</p>
+
+  <h2>A year of payslips on {$(g)} gross</h2>
+  <ContentTable headers={['Month', 'Gross paid', 'Approximate net']} align={['l', 'r', 'r']} rows={cal} />
+  <p>The net figures apply the same average deduction rate as the monthly salary, which is how Greek payroll treats a bonus: the annual tax is spread in proportion to each payment, so a bigger payment carries a bigger deduction but not a higher rate. Where exactly the leave allowance falls depends on when you take your main holiday; for many employees that is July or August, so summer often brings a heavier payslip as well.</p>
+  <p>For budgeting, the practical rule is to set fixed costs against the ordinary monthly net and earmark the three bonus months for annual bills: the car’s <a href={route('road', lang)}>road tax</a>, insurance, school fees, the property tax. A rent of {$(rent)} that looks comfortable against a twelve-month average can feel tight in October, when no bonus is due.</p>
+
+  <div data-chrome><MiniSim client:load kind="fourteensplit" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Negotiating: the three questions to ask</h2>
+  <p>First, ask whether a figure is “times fourteen” or “times twelve”. Greek recruiters usually quote monthly gross, international firms often quote an annual package, and the two can be confused in the same conversation. Second, ask whether the annual figure includes a performance bonus; a discretionary bonus is not one of the fourteen payments and carries no guarantee. Third, ask what the gross means in your situation: the same {$(m14)} gives a different net depending on your age and children, as the <a href={route('home', lang)}>Greek salary calculator</a> shows.</p>
+  <p>If you are working backwards from what you need to live on, decide first whether your target is per payment or per month averaged over the year, then use the <a href={route('nettogross', lang)}>net-to-gross calculator</a>. Confusing the two is the most common reason newcomers end up asking for less than they meant to, or, less often, pricing themselves out of an offer.</p>
+
+  <h2>When you do not get fourteen</h2>
+  <p>In your first calendar year, fourteen is rarely exactly fourteen. Start in June and that year’s Easter bonus is not yours, while the Christmas bonus is prorated from your first day. Leave in September and you receive the share of the Christmas bonus earned since 1 May, plus pay for any annual leave you had not taken. Day workers count bonuses in daily wages rather than months, {F.xmasDaily} for Christmas and {F.easterDaily} for Easter, which our <a href={route('daily', lang)}>daily wage guide</a> converts into euros. Part-time staff are paid in proportion to their agreed hours, and their leave allowance follows the same reduced pay.</p>
+</GuideLayout>

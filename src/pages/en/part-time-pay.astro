@@ -1,0 +1,61 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, leaveAllowance, easterBonus, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney, pct } from '../../lib/format';
+import { PART_TIME_EXTRA } from '../../lib/mini-extra-c';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const M = P.minimum_wage.monthly;
+const FT = 40;
+const at = (h: number, base = M) => salary({ gross: base * h / FT });
+const rows = [8, 12, 16, 20, 25, 28, 32, 36].map((h) => { const s = at(h); return [`${h}`, `${Math.round(h / FT * 100)} %`, $(M * h / FT), $(s.efka), $(s.net), $(s.netAnnual)]; });
+const s25 = at(25), s16 = at(16), s30d = at(30, 2400);
+const rate = 9.5, xh = 6, xPay = rate * (1 + PART_TIME_EXTRA) * xh;
+const leave25 = leaveAllowance({ pay: M * 25 / FT }).amount, easter25 = easterBonus({ pay: M * 25 / FT }).amount;
+const faqs = [
+  { q: 'I have a 25-hour contract at a café in Greece. What is the least I can be paid?', a: `Part-time pay must match a comparable full-time worker’s pay in proportion to your hours. On the ${F.minWage} full-time minimum and a ${FT}-hour week, 25 hours means at least ${$(M * 25 / FT)} gross a month. After the ${F.efkaEe} social security deduction you keep ${$(s25.net)} net per payment; at this level the employee tax credit cancels the income tax.` },
+  { q: 'My manager keeps asking me to stay late on a part-time contract. Do I get paid extra?', a: `Yes. Each hour beyond your agreed schedule is paid at your agreed rate plus ${pct(PART_TIME_EXTRA, lang)}, according to the Labour Ministry. At ${$2(rate)} an hour, ${xh} extra hours bring ${$2(xPay)} gross. You must help out when you reasonably can, but you may refuse when extra hours become the routine rather than the exception.` },
+  { q: 'Can my Greek employer split my four hours into two shifts?', a: `Generally no. When part-time work is arranged as shorter days, the hours must be continuous and worked once a day. The ministry lists narrow exceptions, such as drivers and escorts on school and nursery transport and teachers at private tutoring schools. Sunday, public holiday and night work still carry the legal premium, as for full-time staff.` },
+  { q: 'Can I ask my employer in Greece to switch me from full-time to part-time?', a: `Yes, if the company has more than 20 staff and you have worked there for a full calendar year. Your request states how long and what kind of part-time you want, and you keep the right to return to full-time. The employer can refuse only for business reasons, and if it does not reply in writing within a month, your request counts as accepted.` },
+  { q: 'Do part-time workers in Greece get paid holiday and the leave allowance?', a: `Yes, both, based on the pay you would have earned had you been working during your leave. On a 25-hour minimum-wage contract the leave allowance is up to ${$(leave25)} gross, half of your own monthly pay. The Christmas and Easter bonuses are due to all employees too, so the Easter bonus on the same contract is ${$(easter25)}.` },
+];
+---
+<GuideLayout lang={lang} id="parttime" breadcrumbLabel={label('parttime', lang)}
+  title={`Part-Time Pay Greece ${F.year}: Pro-Rata Wage, +${pct(PART_TIME_EXTRA, lang)} Extra Hours`}
+  h1={`Part-time pay in Greece (${F.year}): pro-rata wages, extra hours and your rights`}
+  description={`Part-time pay Greece ${F.year}: wages pro rata to hours, ${$(M * 25 / FT)} gross for 25 hours at the minimum, +${pct(PART_TIME_EXTRA, lang)} for extra hours, paid leave, bonuses and switching rules.`}
+  intro={`Part-time employees in Greece are paid in proportion to their hours, and every hour beyond the agreed schedule earns a ${pct(PART_TIME_EXTRA, lang)} premium.`}
+  resume={`Greek law treats a part-time employee as a full-time colleague on fewer hours: same rate, same rights, pay in proportion. With the ${F.minWage} monthly minimum for a ${FT}-hour week, 16 hours give at least ${$(M * 16 / FT)} gross and 25 hours ${$(M * 25 / FT)}, which leaves ${$(s16.net)} and ${$(s25.net)} net per payment once the ${F.efkaEe} social security contribution is deducted; on these amounts the employee tax credit wipes out income tax. You are still paid fourteen times a year and receive paid leave and the leave allowance. If your employer needs you beyond the agreed hours, each extra hour is paid ${pct(PART_TIME_EXTRA, lang)} above your normal rate. The contract must be in writing and notified to the Labour Inspectorate within eight days, otherwise the job is presumed full-time. In companies with more than 20 staff, a full-timer with a year’s service can ask to go part-time and keeps the right to come back. Use the calculator below with your own weekly hours.`}
+  faqs={faqs}
+  related={[{ href: route('minimum', lang), name: label('minimum', lang), description: `The ${F.minWage} full-time figure the pro rata starts from.` }, { href: route('fourteen', lang), name: label('fourteen', lang), description: 'Why part-timers also get fourteen payments.' }, { href: route('trienniums', lang), name: label('trienniums', lang), description: 'Seniority increments, which part-time service also earns.' }]}
+  sources={[src('severance_faq', lang), src('min_wage', lang), src('hli_christmas', lang), src('hli_easter', lang), src('efka_rates', lang), src('tax_credit', lang)]}>
+  <div data-chrome><MiniSim client:load kind="parttime" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Minimum part-time pay by weekly hours</h2>
+  <ContentTable headers={['Hours a week', 'Share of full time', 'Gross per month', 'EFKA', 'Net per payment', 'Net per year (14)']} align={['l', 'r', 'r', 'r', 'r', 'r']} rows={rows} highlightRow={4} />
+  <p>The table scales the full-time minimum wage to the hours shown, assuming a {FT}-hour full-time week, an employee over 30 and no children. Income tax is zero on every row because the article 16 employee tax credit, {F.credit[0]} a year without children, is larger than the scale tax at these incomes. Social security has no such threshold: {F.efkaEe} is deducted from the first euro, which is why net pay on short contracts is always {pct(1 - P.efka.employee_rate, lang)} of gross.</p>
+  <p>If the full-time salary for your role is above the minimum, the same proportion applies to it. A job advertised at {$(2400)} full time becomes {$(2400 * 30 / FT)} gross on 30 hours, or {$(s30d.net)} net per payment. The calculator at the top takes both inputs, so you can check an offer before you sign.</p>
+
+  <h2>The contract: written, notified, continuous</h2>
+  <p>Part-time work in Greece can be agreed by the day, the week, the fortnight or the month, for a fixed term or open-ended, as long as the hours are fewer than a comparable full-timer’s. The agreement must be written and notified to the local Labour Inspectorate within eight days. If either step is missing, the law presumes full-time employment, which means the employer must be able to justify paying you less than a full-time wage. Keep a copy of your contract and check that the hours on it match the hours you actually work.</p>
+  <p>Shorter days must be worked in one continuous block. A split schedule of two hours in the morning and two in the evening is not allowed, except in a few listed jobs such as school and nursery transport and private tutoring schools. Night work, Sundays and public holidays are paid with the same legal premiums as for full-time staff. And an employer who dismisses you because you turned down a proposal to go part-time has made an invalid dismissal.</p>
+
+  <h2>Extra hours and the {pct(PART_TIME_EXTRA, lang)} premium</h2>
+  <p>Hospitality and retail run on flexible rotas, so this is the rule part-timers meet most often. If the business needs more work than agreed, you are expected to provide it when you are able to and refusing would be in bad faith. You can say no when the extra work happens as a matter of routine. Each extra hour is paid at the agreed rate plus {pct(PART_TIME_EXTRA, lang)}: on {$2(rate)} an hour, {xh} extra hours in a month come to {$2(xPay)} gross instead of {$2(rate * xh)}.</p>
+  <p>When the extra hours stop being occasional, the cleaner solution is a new written agreement with more contracted hours. That protects you twice: your base pay, bonuses and leave allowance rise with it, and a later dismissal or severance calculation starts from the higher figure.</p>
+
+  <div data-chrome><MiniSim client:load kind="ptextra" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Holiday, bonuses and seniority</h2>
+  <p>Part-timers receive paid annual leave and the leave allowance, calculated on the pay they would have earned while working. Greek labour inspectors also state that all employees are entitled to the Christmas bonus and the Easter bonus, with no exception for part-time contracts. On a 25-hour minimum-wage contract the leave allowance is up to {$(leave25)} and the Easter bonus {$(easter25)}. Time worked part-time counts as service in the same way as for a full-timer, which matters for <a href={route('trienniums', lang)}>seniority increments</a> and for the <a href={route('severance', lang)}>severance calculator</a>.</p>
+
+  <h2>Moving between full-time and part-time</h2>
+  <p>In a company employing more than twenty people, a full-time employee with one complete calendar year of service can ask to convert to part-time, stating the duration and the type of arrangement, and keeps the right to return to full-time. The employer may refuse only for genuine business needs; silence for a month counts as a yes. In the other direction, part-timers have priority when the same company offers a full-time post on equal terms in their category. Once you know your new hours, run the pro-rata gross through the main <a href={route('home', lang)}>Greek salary calculator</a> to see the net with your age and children.</p>
+</GuideLayout>

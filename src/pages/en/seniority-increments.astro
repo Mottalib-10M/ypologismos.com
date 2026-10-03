@@ -1,0 +1,65 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { salary, minimumWage, christmasBonus, leaveAllowance, severance, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const M = P.minimum_wage;
+const step = minimumWage(1) - minimumWage(0);
+const s = [0, 1, 2, 3].map((n) => salary({ gross: minimumWage(n) }));
+const kids = [0, 1, 2].map((k) => [0, 1, 2, 3].map((n) => salary({ gross: minimumWage(n), children: k })));
+const grid = [0, 1, 2, 3].map((n) => [n === 0 ? 'None (0-2 years)' : `${n} (${n * 3}+ years)`, $(minimumWage(n)), $(kids[0][n].net), $(kids[1][n].net), $(kids[2][n].net)]);
+const young = [0, 3].map((n) => salary({ gross: minimumWage(n), age: 'u25' }));
+const x3 = christmasBonus({ pay: minimumWage(3) }).amount, x0 = christmasBonus({ pay: minimumWage(0) }).amount;
+const l3 = leaveAllowance({ pay: minimumWage(3) }).amount;
+const sev = [0, 3].map((n) => severance({ pay: minimumWage(n), years: 9 }).total);
+const half3 = salary({ gross: minimumWage(3) / 2 });
+const faqs = [
+  { q: 'I have worked in Greece for seven years on the minimum wage. How much should my payslip show?', a: `Seven years means two completed three-year periods, so your minimum is ${F.minWithT(2)} gross a month for full-time work, ${F.triennium} above the base for each period. That leaves ${$(s[2].net)} net per payment if you are over 30 with no children. Your third increment, worth another ${$(step)} gross, arrives when you complete nine years.` },
+  { q: 'Do seniority increments keep growing after nine years in Greece?', a: `Not on the statutory minimum wage. The rule allows at most ${F.trienniumMax} increments of ${F.triennium} each, so the minimum stops at ${F.minWithT(3)} however long you have worked. A sector-wide collective agreement can set its own seniority steps beyond that, but those are outside what this calculator covers.` },
+  { q: 'Are increments added to my Christmas bonus and leave allowance?', a: `Yes. Both are calculated on your regular pay, and the increments are part of it. With three increments the Christmas bonus is ${$(x3)} gross instead of ${$(x0)} on the bare minimum, and the leave allowance is ${$(l3)}. Severance follows the same logic: nine years at ${F.minWithT(3)} gives ${$(sev[1])} without notice.` },
+  { q: `I work half-time. Do I still get the ${F.triennium} seniority increments?`, a: `The increment is a percentage of the minimum wage, and part-time pay is the full-time rate scaled to your hours. On a half-time contract with three increments, the minimum is ${$(minimumWage(3) / 2)} gross, leaving about ${$(half3.net)} net. The calculator on this page handles the full-time figure; the part-time guide scales it.` },
+];
+---
+<GuideLayout lang={lang} id="trienniums" breadcrumbLabel={label('trienniums', lang)}
+  title={`Seniority Increments Greece ${F.year}: ${F.triennium} per 3 Years`}
+  h1={`Seniority increments in Greece (${F.year}): ${F.triennium} on the minimum wage every three years`}
+  description={`Seniority increments Greece ${F.year}: each 3 years of service adds ${F.triennium} to the minimum wage, up to ${F.trienniumMax}. Gross ${F.minWithT(1)} to ${F.minWithT(3)}, net pay, bonuses and severance.`}
+  intro={`Each completed three-year period of service raises the Greek minimum wage by ${F.triennium}, up to three periods.`}
+  resume={`Greek law tops up the minimum wage for experience. Every completed three-year period of service, called a trietia, adds ${F.triennium} to the statutory minimum, with a maximum of ${F.trienniumMax} periods. On the ${F.minWage} minimum in force since 1 April ${F.year}, each increment is worth ${$(step)} gross a month, so the minimum becomes ${F.minWithT(1)} after three years, ${F.minWithT(2)} after six and ${F.minWithT(3)} after nine. For a full-time employee over 30 with no children, net pay rises from ${$(s[0].net)} to ${$(s[3].net)} per payment, or ${$(s[3].netAnnual - s[0].netAnnual)} more over a year of fourteen payments. The increments flow into the Christmas and Easter bonuses, the leave allowance and severance, because all four are calculated on regular pay. Nothing more is added after nine years on the statutory minimum. Collective agreements may grant their own seniority allowances, which this page and its calculator do not cover.`}
+  faqs={faqs}
+  related={[{ href: route('minimum', lang), name: label('minimum', lang), description: `The ${F.minWage} base the increments sit on.` }, { href: route('parttime', lang), name: label('parttime', lang), description: 'Increments scaled to fewer hours.' }, { href: route('severance', lang), name: label('severance', lang), description: 'How increments raise a severance payment.' }]}
+  sources={[src('min_wage', lang), { name: 'Ministry of Labour (2024): statement on the minimum wage mentioning increments “unfrozen at the start of the year”', url: 'https://ypergasias.gov.gr/domna-michailidou-afximeno-sta-415-evro-to-doro-tou-pascha-paranomoi-osoi-den-to-katavaloun/' }, src('hli_christmas', lang), src('severance', lang)]}>
+  <div data-chrome><MiniSim client:load kind="trienniums" lang={lang} href={route('home', lang)} /></div>
+
+  <h2>Net minimum pay by increments and children</h2>
+  <ContentTable headers={['Increments', 'Gross minimum', 'Net, no children', 'Net, 1 child', 'Net, 2 children']} align={['l', 'r', 'r', 'r', 'r']} rows={grid} highlightRow={0} />
+  <p>Figures are per payment, for a full-time employee over 30, out of fourteen payments a year. The Ministry of Labour published the same nine combinations when the {F.year} minimum took effect, and the engine behind this site reproduces each of them to within one euro. Children lower the tax rather than raise the gross, which is why the gaps between columns are small: at this level of pay the employee tax credit already absorbs most of the income tax.</p>
+  <p>If you are 25 or younger the picture changes again. Taxpayers up to 25 pay {F.youthU25} on the first two brackets, so on the bare minimum you keep {$(young[0].net)}, and even with three increments, if you had them that early, {$(young[1].net)}: everything except the {F.efkaEe} social security contribution.</p>
+
+  <h2>How the increment is applied</h2>
+  <p>The increment is not a separate allowance with its own rules; it is a percentage of the minimum wage. That has a useful consequence: it moves automatically with every rise in the minimum. When the minimum went from {F.minWage2025} to {F.minWage} on 1 April {F.year}, an employee with three increments moved from {$(minimumWage(3) * M.monthly_2025 / M.monthly)} to {F.minWithT(3)} without signing anything. The ministry’s own announcement lists increments among the payments that follow the new minimum.</p>
+  <p>The legal figure is a floor for full-time salaried staff with that much service. If you already earn more, the calculator at the top of the page accepts any base salary and shows what a {F.triennium} step per period would add on top of it, which is useful when your contract or collective agreement uses the same mechanism. It does not apply such a step automatically to salaries above the minimum.</p>
+
+  <h2>The 2024 “unfreezing”</h2>
+  <p>Greek colleagues may tell you the increments were “unfrozen”. The official trace is a 2024 statement published by the Ministry of Labour on that year’s minimum wage rise, which counted among those affected “those entitled to the increments that were unfrozen at the start of the year” (<em>trieties pou xepagosan</em>). For {F.year}, the increments are part of the ministry’s published pay examples, and that is the rule this page applies.</p>
+
+  <div data-chrome><MiniSim client:load kind="minimum" lang={lang} href={route('minimum', lang)} /></div>
+
+  <h2>Checking your payslip</h2>
+  <p>On a Greek payslip the increments may appear inside the basic salary or as a separate line, often labelled with the word τριετίες. Either is fine; what matters is the total gross for a full month of full-time work. Compare it with the table above for your number of completed periods. If the total is lower, ask payroll how your service has been counted before assuming an error: a period only counts once it is complete, so someone at five years and eleven months still has one increment, not two. The Labour Inspectorate is the body that handles complaints about pay below the legal minimum.</p>
+
+  <h2>What three increments are worth over a year</h2>
+  <p>Seen month by month, {$(step)} gross per increment can look modest. Over a year it adds up, because it touches all fourteen payments and the payments derived from them. With three increments, the Christmas bonus alone rises from {$(x0)} to {$(x3)}, and the leave allowance reaches {$(l3)}. Severance is where the difference is largest: an employee dismissed without notice after nine years receives {$(sev[0])} on the bare minimum and {$(sev[1])} with three increments, since the payment is based on the last month’s regular pay plus one sixth for the bonuses.</p>
+  <p>For the employer, each increment costs the gross step plus the {F.efkaEr} employer contribution: {$(s[1].cost - s[0].cost)} per payment, so a little over {$((s[1].cost - s[0].cost) * 14)} a year.</p>
+
+  <h2>What this page does not cover</h2>
+  <p>Two things are outside the calculation. The first is seniority pay set by collective agreements, which can use a different percentage, more steps or a different base. If your sector has an agreement, its text decides, not this page. The second is proving your service: which past jobs count and what documents your employer may ask for depend on your own record. The calculator takes the number of periods as given and applies the statutory rule of {F.triennium} up to {F.trienniumMax}.</p>
+  <p>To see the complete picture with your age and children, enter the gross including increments in the main <a href={route('home', lang)}>Greek salary calculator</a>. If you are paid by the day rather than the month, start with the <a href={route('daily', lang)}>daily wage guide</a>.</p>
+</GuideLayout>
