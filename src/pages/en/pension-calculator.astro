@@ -1,0 +1,61 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { pension, replacementRate, nationalPension, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney, pct } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const p = (x: number) => pct(x, lang);
+const Q = P.pension;
+let lo = 0;
+const bands = Q.replacement_rates.map((r) => { const from = lo + 1; const to = r.upTo; lo = r.upTo ?? lo; return [to === null ? `over ${from - 1}` : `${from} to ${to}`, p(r.rate), to === null ? '–' : p(replacementRate(to))]; });
+const avg = 1800;
+const byAvg = [1000, 1400, 1800, 2400, 3200].map((a) => { const r = pension({ years: 30, avgEarnings: a }); return [$(a), $(r.contributory), $2(r.national), $(r.total)]; });
+const ex = pension({ years: 30, avgEarnings: avg });
+const short = pension({ years: 18, avgEarnings: avg, residenceYears: 22 });
+const ex40 = pension({ years: 40, avgEarnings: avg });
+const faqs = [
+  { q: 'I moved to Greece at 45 and will have about 20 years of Greek insurance. What pension can I expect?', a: `With 20 years you reach the full national pension on the insurance side, but residence matters too: it is cut by 1/40 for each year below ${Q.residence_years_full} years of residence between age 15 and pension age. With 22 years of residence and 18 of insurance on a ${$(avg)} average, our estimate is ${$(short.total)} gross: ${$(short.contributory)} contributory and ${$2(short.national)} national. EU insurance periods elsewhere are coordinated separately and are not added here.` },
+  { q: 'Which average salary should I type in, the one from 1995 or today’s?', a: `A present-day figure. Article 8 of Law 4387/2016 revalues each year’s earnings before averaging them: until 2026 by the change in the consumer price index, from 2027 by the ELSTAT wage index. So a salary you earned twenty years ago enters the average at a higher, indexed value. If unsure, use your current gross salary and then try a lower figure to see the range.` },
+  { q: 'Does working beyond 40 years still raise a Greek pension?', a: `Barely. Each year beyond 40 adds only ${p(Q.replacement_rates[Q.replacement_rates.length - 1].rate)} of your average pay, against ${p(Q.replacement_rates[Q.replacement_rates.length - 2].rate)} for each year from the 37th to the 40th. On a ${$(avg)} average, 40 years give ${$(ex40.total)} gross, and two extra years add about ${$(pension({ years: 42, avgEarnings: avg }).total - ex40.total)} a month. The national pension stays the same.` },
+  { q: 'Is the amount shown what lands in my account each month?', a: `No, it is gross. Greek pensioners pay a health contribution and income tax on the pension, which the calculator does not deduct. The national pension used is ${F.nationalFull}, the last full amount the Ministry of Labour published (from 1 January 2025); it is indexed each year, so the current figure may be slightly higher.` },
+];
+---
+<GuideLayout lang={lang} id="pension" breadcrumbLabel={label('pension', lang)}
+  title={`Pension Greece ${F.year}: National and Contributory Calculator`}
+  h1={`Pension in Greece ${F.year}: estimate your EFKA old-age pension`}
+  description={`Pension Greece ${F.year}: national pension of up to ${F.nationalFull} plus a contributory part from the Law 4387/2016 accrual table. Free estimate by years and average pay.`}
+  intro={`The calculator adds the national pension of article 7 and the contributory pension of article 8 of Law 4387/2016, the rules e-EFKA applies.`}
+  resume={`A Greek old-age pension is made of two layers. The national pension (ethniki syntaxi) is ${F.nationalFull} a month in the last full amount published by the Ministry of Labour, paid in full after ${Q.national_years_full} years of insurance and ${Q.residence_years_full} years of residence in Greece, and reduced for shorter records. On top comes the contributory pension (antapodotiki): your career-average monthly pay multiplied by an accrual rate that grows with each year of insurance, reaching ${p(replacementRate(30))} at 30 years and ${p(replacementRate(40))} at 40. With a ${$(avg)} average and 30 years, the estimate is ${$(ex.total)} gross per month, of which ${$(ex.contributory)} contributory and ${$2(ex.national)} national. At least ${F.minYears} years of insurance are needed, and the full pension starts at ${F.fullAge}. Figures are gross, before health contribution and tax, and they use your average pay in today’s money.`}
+  faqs={faqs}
+  related={[{ href: route('national', lang), name: label('national', lang), description: 'How residence and insurance years shape the flat-rate part.' }, { href: route('retireage', lang), name: label('retireage', lang), description: 'Ages 67 and 62, and the cost of leaving early.' }, { href: route('home', lang), name: label('home', lang), description: 'The contributions on your salary that build the pension.' }]}
+  sources={[src('pension', lang), src('pension_national', lang), src('pension_ministry', lang)]}>
+  <div data-outil><ToolCalc client:load kind="pension" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>Thirty years of insurance at different salaries</h2>
+  <ContentTable headers={['Career average pay', 'Contributory', 'National', 'Total gross']} align={['l', 'r', 'r', 'r']} rows={byAvg} highlightRow={2} />
+  <p>The national part is identical in every row because it does not depend on earnings. The contributory part is a fixed share of your average, {p(replacementRate(30))} after 30 years, so it scales in a straight line with pay. That is why the pension replaces a much larger share of a low salary than of a high one: at the bottom of the table the flat national amount does most of the work.</p>
+
+  <h2>The accrual table, band by band</h2>
+  <ContentTable headers={['Years of insurance', 'Rate per year', 'Cumulative at end of band']} align={['l', 'r', 'r']} rows={bands} />
+  <p>Since 1 October 2019, article 8 uses this second table. Each year of insurance earns the rate of the band it falls in, and the overall rate is the sum. The first fifteen years are the cheapest; the steepest band runs from the 31st to the 40th year. Anyone weighing whether to keep working at 60 should look at the band they are in rather than at an average: a year in the high band is worth several years from the start of a career.</p>
+  <p>The contributory pension can never exceed the pensionable earnings themselves. The calculator applies that ceiling, which only matters in very long careers.</p>
+
+  <h2>What counts as pensionable earnings</h2>
+  <p>e-EFKA, the single social insurance fund, takes the average of all monthly earnings on which contributions were paid over your insured life: total earnings divided by total insurance time. Each year’s earnings are first increased in line with consumer prices up to 2026, and with the ELSTAT wage index from 2027. Civil servants and military staff have their average computed from 2002 onwards, which the page on <a href={route('uniformed', lang)}>uniformed services pensions</a> covers.</p>
+
+  <div data-chrome><MiniSim client:load kind="national" lang={lang} href={route('national', lang)} /></div>
+
+  <h2>Newcomers and the residence test</h2>
+  <p>For foreigners who settle in Greece mid-career, the national pension is the part to check first. It requires at least 15 years of permanent, lawful residence between age 15 and pension age, and it is reduced by 1/40 for each year short of {Q.residence_years_full}. With 20 years of insurance but 30 of residence it is {$2(nationalPension(20, 30))}. With fewer than {Q.national_years_full} insurance years it also falls by {p(Q.national_reduction_per_year)} a year, down to {F.national15} at {Q.national_min_years} years. The <a href={route('national', lang)}>national pension guide</a> goes through these cases.</p>
+
+  <h2>What the estimate leaves out</h2>
+  <p>This is a full old-age pension. The calculator does not model the reduced pension from 62, disability or survivor pensions, auxiliary pensions, the lump sum, or the special rules for people insured before 1993. It does not total insurance periods from other EU countries, which are coordinated under EU rules. It uses the 2025 national pension amount and a single average salary, whereas e-EFKA uses your actual year-by-year record. Use it to compare scenarios, for example stopping at 35 or 38 years, and check the result against your official insurance history. The contributions that build this record come off every payslip; see them in the <a href={route('home', lang)}>Greek salary calculator</a>.</p>
+</GuideLayout>

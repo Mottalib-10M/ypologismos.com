@@ -1,0 +1,61 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { pension, replacementRate, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney, pct } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const p = (x: number) => pct(x, lang);
+const Q = P.pension;
+const avg = 2000;
+const paths = [[1600, 'flat career'], [1800, 'moderate promotions'], [2000, 'steady promotions'], [2300, 'last grade held for long']] as const;
+const final = 2600, yrs = 35;
+const pathRows = paths.map(([a, d]) => [d, $(a), $(pension({ years: yrs, avgEarnings: a }).contributory), $(pension({ years: yrs, avgEarnings: a }).total)]);
+const atFinal = pension({ years: yrs, avgEarnings: final });
+const y25 = pension({ years: 25, avgEarnings: avg }), y32 = pension({ years: 32, avgEarnings: avg }), y38 = pension({ years: 38, avgEarnings: avg });
+const art4 = { name: 'Law 4387/2016, article 4: civil servants and military staff brought into EFKA (in Greek)', url: 'https://www.taxheaven.gr/law/4387/2016/article/4/view' };
+const art6 = { name: 'Law 4387/2016, article 6: special and transitional public-sector pension rules (in Greek)', url: 'https://www.taxheaven.gr/law/4387/2016/article/6/view' };
+const faqs = [
+  { q: 'I am married to a Greek army officer. Can this calculator tell us when he can retire?', a: `No. Article 4 of Law 4387/2016 keeps the conditions for qualifying and the age limits of the Armed Forces, Security Corps and Fire Service under the existing public-sector pension legislation. We have not verified those rules and do not compute them. The officer’s personnel directorate and e-EFKA’s public-sector pension service can give the date from his service record.` },
+  { q: 'Which salary is used for a Greek uniformed officer’s pension: the last one or an average?', a: `An average. Article 8(3) takes the average monthly earnings from insurance year 2002 until the pension starts, revalued with consumer prices up to 2026 and with the wage index from 2027. For pensions starting from 2021, if there are fewer than ten insured years after 2002, earlier years are added to reach ten. On ${$(final)} final pay but a ${$(avg)} average, ${yrs} years give ${$(pension({ years: yrs, avgEarnings: avg }).contributory)} rather than ${$(atFinal.contributory)}.` },
+  { q: 'Do police officers and firefighters use the same accrual rates as private employees?', a: `For the contributory part, yes. Article 8(1) applies the accrual table of paragraph 5 to civil servants and military staff, and since 1 October 2019 that is table 2, the same for everyone: ${p(replacementRate(30))} after 30 years, ${p(replacementRate(35))} after 35, ${p(replacementRate(40))} after 40. What differs is the earnings base, averaged from 2002, and the qualifying conditions, which follow public-sector law.` },
+  { q: 'Are war pensions and disabled soldiers’ pensions covered by these rules?', a: `No. Article 4(3) of Law 4387/2016 excludes those entitled to a war pension, a peacetime disabled soldier’s pension or a National Resistance pension under the War Pensions Code and the Civil and Military Pensions Code. They follow their own rules, and nothing on this page applies to them.` },
+];
+---
+<GuideLayout lang={lang} id="uniformed" breadcrumbLabel={label('uniformed', lang)}
+  title={`Uniformed Services Pension Greece ${F.year}: What Is Covered`}
+  h1={`Pensions for Greek uniformed services ${F.year}: the part you can calculate`}
+  description={`Uniformed services pension Greece ${F.year}: table 2 accrual on average pay since 2002, plus the national pension. What Law 4387/2016 covers and what it leaves out.`}
+  intro={`For members of the Greek Armed Forces, police and fire service, and their families: what Law 4387/2016 sets in common, and what stays under public-sector pension law.`}
+  resume={`Since 2016, members of the Greek Armed Forces, Security Corps and Fire Service belong to the single social insurance fund for their main pension, and their pensions are calculated under Law 4387/2016; for them the transfer took effect on 1 July 2016 (articles 4 and 6). The amount has two parts. The contributory part is the average of monthly earnings from 2002 until the pension starts, revalued, multiplied by the accrual rate of table 2: ${p(replacementRate(25))} after 25 years, ${p(replacementRate(32))} after 32 and ${p(replacementRate(38))} after 38. On a ${$(avg)} average that gives ${$(y25.contributory)}, ${$(y32.contributory)} and ${$(y38.contributory)} a month. The national pension, up to ${F.nationalFull}, is added. What the law does not bring into the common rules is the question of when: qualifying conditions and age limits for uniformed staff remain those of public-sector pension law. Those, along with credited service and corps-specific rules, are not calculated here.`}
+  faqs={faqs}
+  related={[{ href: route('pension', lang), name: label('pension', lang), description: 'The full calculator, national plus contributory.' }, { href: route('national', lang), name: label('national', lang), description: 'Residence and insurance rules for the flat-rate part.' }, { href: route('retireage', lang), name: label('retireage', lang), description: 'General EFKA retirement ages.' }]}
+  sources={[src('pension', lang), src('pension_national', lang), art4, art6, src('pension_ministry', lang)]}>
+  <div data-chrome><MiniSim client:load kind="uniformed" lang={lang} href={route('pension', lang)} /></div>
+
+  <h2>Two questions, two sets of rules</h2>
+  <p>Anyone in the Greek Armed Forces, the police (<em>Elliniki Astynomia</em>) or the fire service wants to know two things: when they can retire and how much they will get. Law 4387/2016 answers them in different places. Article 4(1)(a) brings civil servants, “as well as members of the Armed Forces, the Security Corps and the Fire Service”, into the single fund for their main pension, and says their pensions are set and paid under that law. Article 6(4) dates the transfer for these groups to 1 July 2016.</p>
+  <p>Article 4(1)(b) then keeps one thing outside: for the conditions of entitlement and the age at which the pension is paid, “the relevant provisions of public-sector pension legislation continue to apply”. The amount follows common rules; the timing follows your own. This page deals with the amount.</p>
+
+  <h2>What a career average does to the result</h2>
+  <ContentTable headers={['Career path (illustrative)', 'Average since 2002', `Contributory (${yrs} years)`, 'With national pension']} align={['l', 'r', 'r', 'r']} rows={pathRows} highlightRow={2} />
+  <p>The table keeps {yrs} years of service and changes only the average pay since 2002. The labels are illustrations, not grades. The lesson is the same in every row: the base is an average, revalued, not the salary of your last rank. At a final salary of {$(final)}, the contributory part would be {$(atFinal.contributory)} if the last salary counted; with averages like those above it is lower. Enter your estimated average, not your current pay, in the calculator.</p>
+  <p>The rule comes from article 8(3). Pensionable earnings for civil servants and military staff are the average monthly earnings from insurance year 2002 until the pension starts. If there are fewer than five insured years after 1 January 2002, earlier years are added to reach five; for pensions starting from 1 January 2021 the threshold is ten years. Each year’s earnings are revalued, with consumer prices up to 2026 and the ELSTAT wage index from 2027.</p>
+
+  <h2>The accrual rates are the common ones</h2>
+  <p>Article 8(1) gives civil servants “as well as military staff” a contributory part based on pensionable earnings, insurance time and the accrual table of paragraph 5. Since 1 October 2019 that is table 2, which applies to every insured person: the rate for each year depends on the band it falls in, rising steeply after 30 years and flattening after 40. The contributory amount can never exceed the pensionable earnings themselves.</p>
+
+  <div data-chrome><MiniSim client:load kind="pension" lang={lang} href={route('pension', lang)} /></div>
+
+  <h2>The national pension</h2>
+  <p>Article 7 grants the national pension to everyone who qualifies for a pension. The full amount is {F.nationalFull} from 1 January 2025, the latest figure published by the Ministry of Labour and indexed each year, paid in full with {Q.national_years_full} years of insurance and {Q.residence_years_full} years of residence in Greece. Families who spent years abroad on postings should note that the law treats Greek civil servants serving abroad, paid by the Greek state and insured with e-EFKA, as resident. The <a href={route('national', lang)}>national pension guide</a> covers the reductions.</p>
+
+  <h2>What this page does not cover</h2>
+  <p>We do not calculate, because we have not verified them in an official source: the ages and years of service required in the army, navy, air force, police, fire service or coast guard; credited service and time supplements specific to each corps; the special conditions for people insured before 1993, which the Ministry of Labour notes vary by fund and for the public sector; lump sums and auxiliary benefits. Article 4(3) also excludes war pensions and peacetime disabled soldiers’ pensions from the law altogether.</p>
+  <p>For all of these, the right source is your corps’ personnel directorate and e-EFKA’s public-sector pension service, working from your service record. Use the calculator here to check the amount you are quoted, not the date. The general ages that apply to private-sector employees are on the <a href={route('retireage', lang)}>retirement age page</a>, the full estimate in the <a href={route('pension', lang)}>pension calculator</a>, and current payroll deductions in the <a href={route('home', lang)}>Greek salary calculator</a>.</p>
+</GuideLayout>
