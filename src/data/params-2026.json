@@ -549,7 +549,14 @@
   "low_income_100_income": 12000,
   "low_income_per_member": 1000,
   "low_income_max_sqm": 150,
-  "source": "enfia"
+  "source": "enfia",
+  "low_income_value_single": 85000,
+  "low_income_value_couple": 150000,
+  "low_income_value_family": 200000,
+  "full_exemption_children": 3,
+  "full_exemption_disability": 0.8,
+  "insurance_recon_min_per_sqm": 1000,
+  "insurance_min_months": 3
  },
  "pension": {
   "national_full": 436.4,

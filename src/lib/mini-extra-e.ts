@@ -12,11 +12,11 @@ import type { MiniSpec } from './mini-types';
  *  - art. 13 par. 2 δ : trois enfants à charge ou handicap ≥ 80 % pour la réduction de 100 % ;
  *  - art. 10 par. 5 : valeur de reconstruction retenue au moins 1 000 €/m², assurance d'au moins 3 mois.
  */
-export const ENFIA_LOW_WEALTH = { single: 85_000, couple: 150_000, family: 200_000 } as const;
-export const ENFIA_FULL_CHILDREN = 3;
-export const ENFIA_FULL_DISABILITY = 0.8;
-export const ENFIA_RECON_MIN_SQM = 1_000;
-export const ENFIA_INS_MIN_MONTHS = 3;
+export const ENFIA_LOW_WEALTH = { single: P.enfia.low_income_value_single, couple: P.enfia.low_income_value_couple, family: P.enfia.low_income_value_family } as const;
+export const ENFIA_FULL_CHILDREN = P.enfia.full_exemption_children;
+export const ENFIA_FULL_DISABILITY = P.enfia.full_exemption_disability;
+export const ENFIA_RECON_MIN_SQM = P.enfia.insurance_recon_min_per_sqm;
+export const ENFIA_INS_MIN_MONTHS = P.enfia.insurance_min_months;
 
 type L = string;
 const T = <A,>(l: L, el: A, en: A) => (l === 'en' ? en : el);

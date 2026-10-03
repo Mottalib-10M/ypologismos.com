@@ -370,8 +370,11 @@ export function enfia(input: EnfiaInput): EnfiaResult {
   const surchargeRate = valueUsed > E.surcharge_from_value ? pickRate(E.value_surcharges, valueUsed) : 0;
   const reductionRow = E.value_reductions.find((r) => valueUsed <= r.upTo);
   const valueReductionRate = reductionRow ? reductionRow.rate : 0;
-  const insuranceRate = input.insured ? (valueUsed <= E.insurance_value_limit ? E.insurance_reduction : E.insurance_reduction_high) : 0;
-  const smallSettlementRate = input.smallSettlement && valueUsed <= E.small_settlement_value_limit ? E.small_settlement_reduction_2026 : 0;
+  // Les plafonds de l'assurance (art. 10 par. 5) et des petites localités (art. 17 par. 3) visent la valeur du
+  // logement lui-même, en pleine propriété, et non le patrimoine total : estimée ici m² × prix de zone.
+  const homeValue = sqm * pos(num(input.zonePrice));
+  const insuranceRate = input.insured ? (homeValue <= E.insurance_value_limit ? E.insurance_reduction : E.insurance_reduction_high) : 0;
+  const smallSettlementRate = input.smallSettlement && homeValue <= E.small_settlement_value_limit ? E.small_settlement_reduction_2026 : 0;
   const total = principal * (1 + surchargeRate) * (1 - valueReductionRate) * (1 - insuranceRate) * (1 - smallSettlementRate);
   return {
     basicRate: b.rate, zoneBand: b.index, ageYears: a.age, ageFactor: a.factor, positionFactor, facadeFactor,
