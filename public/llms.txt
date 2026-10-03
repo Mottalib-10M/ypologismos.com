@@ -1,0 +1,16 @@
+# ΥπολογισμόςΜισθού.gr — Greek salary and tax calculators
+
+> Free Greek (el) and English (en) calculators for 2026: net salary from gross (e-EFKA 13.37 %, the 2026 income tax scale of Law 5246/2025 with the under-25, 26-30 and children rates, article 16 tax reduction, 14 payments a year), Christmas and Easter bonuses, leave allowance, severance pay, road tax (τέλη κυκλοφορίας), ENFIA property tax and pension estimates. Published by Radif Partners. All calculations run in the browser; every rate comes from Greek law, e-EFKA, the Ministry of Labour or the Labour Inspectorate, with sources on each page. The salary engine reproduces the Ministry of Labour's 12 official minimum-wage examples within €1.20.
+
+## Main calculators
+- [Υπολογισμός μισθού 2026](https://ypologismosmisthou.gr/el/): net salary from gross
+- [Greek net salary calculator](https://ypologismosmisthou.gr/en/)
+- [Τέλη κυκλοφορίας 2026](https://ypologismosmisthou.gr/el/teli-kykloforias/) · [Road tax](https://ypologismosmisthou.gr/en/road-tax/)
+- [Αποζημίωση απόλυσης](https://ypologismosmisthou.gr/el/apozimiosi-apolysis/) · [Severance pay](https://ypologismosmisthou.gr/en/severance-pay/)
+- [ΕΝΦΙΑ 2026](https://ypologismosmisthou.gr/el/enfia/) · [ENFIA](https://ypologismosmisthou.gr/en/enfia/)
+- [Δώρο Χριστουγέννων](https://ypologismosmisthou.gr/el/doro-xristougennon/) · [Christmas bonus](https://ypologismosmisthou.gr/en/christmas-bonus/)
+- [Υπολογισμός σύνταξης](https://ypologismosmisthou.gr/el/ypologismos-syntaxis/) · [Pension](https://ypologismosmisthou.gr/en/pension-calculator/)
+- [Κατώτατος μισθός 2026](https://ypologismosmisthou.gr/el/katotatos-misthos/) · [Minimum wage](https://ypologismosmisthou.gr/en/minimum-wage/)
+
+## Method
+- [Μεθοδολογία](https://ypologismosmisthou.gr/el/methodologia/) · [Methodology](https://ypologismosmisthou.gr/en/methodology/)
