@@ -1,0 +1,86 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { facts, src } from '../../lib/facts';
+import { enfia, PARAMS as P } from '../../lib/engine/gr';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const F = facts(lang);
+const $ = (x: number) => formatMoney(x, 0, lang);
+const $2 = (x: number) => formatMoney(x, 2, lang);
+const d = (x: number) => F.dec(x, 2);
+const E = P.enfia;
+const Y = P.year;
+const ex = { sqm: 85, zone: 1600, year: 1995 };
+const r = enfia({ sqm: ex.sqm, zonePrice: ex.zone, buildYear: ex.year, floor: 'f2_3', facades: 1 });
+const rIns = enfia({ sqm: ex.sqm, zonePrice: ex.zone, buildYear: ex.year, floor: 'f2_3', facades: 1, insured: true });
+// Island house: 120 m² detached, zone price €1,400, 2008 permit, two frontages, holiday home.
+const isl = enfia({ sqm: 120, zonePrice: 1400, buildYear: 2008, detached: true, facades: 2 });
+const islTotal = enfia({ sqm: 120, zonePrice: 1400, buildYear: 2008, detached: true, facades: 2, totalValue: 120 * 1400 + ex.sqm * ex.zone });
+const big = enfia({ sqm: 160, zonePrice: 4200, buildYear: 2012, floor: 'f4_5', facades: 2 });
+const zoneRows = E.zone_bands.map((b, i) => {
+  const from = i === 0 ? 0 : (E.zone_bands[i - 1].upTo as number) + 1;
+  const m = enfia({ sqm: 100, zonePrice: b.upTo ?? from, buildYear: 1990, floor: 'f2_3', facades: 1 });
+  return [String(i + 1), b.upTo === null ? `${$(from)} and above` : `${$(from)} to ${$(b.upTo)}`, $2(b.rate), $(m.mainBuilding)];
+});
+const ageRows: string[][] = [];
+E.age_factors.forEach((a, i) => { const lo = i === 0 ? 0 : (E.age_factors[i - 1].maxYears as number) + 1; ageRows.push([a.maxYears === null ? `${lo} years or more` : lo === 0 ? `Up to ${a.maxYears} years` : `${lo} to ${a.maxYears} years`, d(a.factor)]); });
+ageRows.push(['Built before 1930', d(E.age_factor_pre_1930)], ['Over 100 years old', d(E.age_factor_over_100)]);
+const FL = E.floor_factors;
+const posRows = [['Basement', d(FL.basement)], ['Ground or 1st floor', d(FL.ground_1)], ['2nd or 3rd floor', d(FL.f2_3)], ['4th or 5th floor', d(FL.f4_5)], ['6th floor or higher', d(FL.f6_up)], ['Detached house (instead of floor)', d(E.detached_factor)]];
+const red = E.value_reductions;
+const faqs = [
+  { q: 'I bought a flat in Greece this year. When do I start paying ENFIA?', a: `ENFIA is assessed on what you own on 1 January of the tax year, and on the zone price in force on that date. A flat bought during ${Y} therefore enters your ENFIA from the following year, whatever the date of the contract, and the seller remains liable for the whole of ${Y} (article 8(4) of the Property Tax Code). The tool computes the annual amount; it does not give issue or payment dates.` },
+  { q: 'Do non-residents pay ENFIA on a Greek holiday home?', a: `Yes. ENFIA is charged on property rights in Greece whoever holds them, so a foreign owner of an island house pays like a Greek one. Some reductions are narrower: the 50% and 100% low-income cuts of article 13 require the whole family to be Greek tax residents, and the ${Y} small-settlement cut covers only the main home of a Greek tax resident.` },
+  { q: 'Why is my ENFIA higher on a newly built villa than on an older one next door?', a: `Because of the age factor. Age is counted from the most recent building permit, and a building up to ${E.age_factors[0].maxYears} years old is multiplied by ${d(E.age_factors[0].factor)}, against ${d(E.age_factors[E.age_factors.length - 1].factor)} once it passes 25 years. On the same plot and the same zone price, a new villa therefore pays up to ${F.pct(E.age_factors[0].factor - 1)} more main tax than an old house of the same size.` },
+  { q: 'Can I estimate ENFIA before buying a property in Greece?', a: `Roughly, yes. Ask the seller or the notary for the floor area, permit year, floor and zone price, enter them in the calculator, and add the value of any property you already own in Greece in the total value field. For a ${ex.sqm} m² flat at a ${$(ex.zone)} zone price with a ${ex.year} permit, expect about ${$(r.total)} a year if it is your only Greek property.` },
+  { q: 'What happens to ENFIA on a property worth over €500,000?', a: `Two extra layers apply. Above ${$(E.right_tax_from_value)} of total value a tax on the value of each right is added, at 0% up to ${$(E.right_tax_bands[0].upTo ?? 0)} and then from ${F.pct(E.right_tax_bands[1].rate)} to ${F.pct(E.right_tax_bands[E.right_tax_bands.length - 1].rate)} by band. Above ${$(E.surcharge_from_value)} the whole tax is surcharged by ${F.pct(E.value_surcharges[0].rate)} to ${F.pct(E.value_surcharges[E.value_surcharges.length - 1].rate)}. A ${$(big.valueUsed)} flat in our example pays ${$(big.total)}.` },
+];
+---
+<GuideLayout lang={lang} id="enfia" breadcrumbLabel={label('enfia', lang)}
+  title={`ENFIA ${Y}: Greek Property Tax Calculator, Zone and Floor`}
+  h1={`ENFIA ${Y}: what the Greek property tax costs on your home`}
+  description={`ENFIA ${Y} calculator for owners in Greece: floor area, zone price, permit year and floor give the annual tax, with value cuts up to ${F.pct(red[0].rate)} and insurance relief.`}
+  intro={`ENFIA (Enfia, the Single Property Ownership Tax) is the annual tax every owner of Greek real estate pays, residents and non-residents alike.`}
+  resume={`ENFIA for ${Y} on an ${ex.sqm} m² flat with a zone price of ${$(ex.zone)} per m², a ${ex.year} building permit, on the 2nd floor with one street frontage, comes to ${$(r.total)} a year if the owner holds no other Greek property. The tax does not start from market value. It starts from a fixed basic rate per square metre for each of nine tax zones, ${$2(r.basicRate)} in this case, multiplied by the floor area and by small coefficients for age, floor and frontage: ${$2(r.mainBuilding)} of main tax. Because the owner’s total property value, ${$(r.valueUsed)}, is below ${$(red[1].upTo)}, that figure is cut by ${F.pct(r.valueReductionRate)}. Insuring the home against earthquake, fire and flood for the previous year takes off another ${F.insurance}, leaving ${$(rIns.total)}. Owners whose Greek property is worth more than ${$(E.right_tax_from_value)} pay an extra tax on value, and above ${$(E.surcharge_from_value)} a surcharge. The calculator below runs every step on your own property.`}
+  faqs={faqs}
+  related={[{ href: route('enfiadisc', lang), name: label('enfiadisc', lang), description: `The value cuts of ${F.pct(red[red.length - 1].rate)} to ${F.pct(red[0].rate)} and the low-income relief.` }, { href: route('zone', lang), name: label('zone', lang), description: 'What the zone price is and where to look it up.' }, { href: route('home', lang), name: label('home', lang), description: 'Net pay from a Greek salary, to budget the tax.' }]}
+  sources={[src('enfia', lang), { name: 'Property Tax Code (Law 5219/2025), article 8: who pays ENFIA and the 1 January rule', url: 'https://www.taxheaven.gr/law/5219/2025/article/8/view' }, { name: 'Property Tax Code, article 9: who is liable, including heirs', url: 'https://www.taxheaven.gr/law/5219/2025/article/9/view' }, src('enfia_reductions', lang), src('enfia_exemptions', lang), src('enfia_2026', lang)]}>
+  <div data-outil><ToolCalc client:load kind="enfia" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>How the tax is built: one flat, five numbers</h2>
+  <p>Article 11 of the Property Tax Code (Law 5219/2025) defines the main tax on a building as a straight product: floor area × basic rate of the tax zone × age factor × floor factor (or the detached-house factor) × frontage factor. Storage rooms and parking spaces are taxed with the same chain and an extra multiplier of {d(E.auxiliary_factor)}. All five inputs sit in your E9, the property declaration (<em>dilosi stoicheion akiniton</em>) held by AADE, the Greek tax authority.</p>
+  <p>Take the defaults the calculator opens with. A zone price of {$(ex.zone)} places the flat in tax zone 3, where the basic rate is {$2(r.basicRate)} per m². {ex.sqm} square metres give {$2(ex.sqm * r.basicRate)}. A {ex.year} permit makes the building {r.ageYears} years old in {Y}, so its age factor is {d(r.ageFactor)}. The 2nd floor multiplies by {d(r.positionFactor)} and one frontage by {d(r.facadeFactor)}. Main tax: {$2(r.mainBuilding)}. The value cut of {F.pct(r.valueReductionRate)} then brings the bill to {$2(r.total)} for the year.</p>
+  <p>Readers who know council tax in the UK or property tax in the US are often surprised that the number of bedrooms, the condition of the flat and the price you paid play no part. Two flats of the same size on the same street and floor pay the same main tax whether one was bought for twice the price of the other.</p>
+
+  <h2>The nine tax zones</h2>
+  <ContentTable headers={['Zone', 'Zone price per m²', 'Basic rate per m²', 'Main tax, 100 m², top of band']} align={['l', 'l', 'r', 'r']} rows={zoneRows} highlightRow={2} />
+  <p>The last column assumes a 2nd-floor flat with one frontage, more than 25 years old, before any reduction. The jump between zones 4 and 5 is the steepest: one euro more of zone price lifts the basic rate from {$2(E.zone_bands[3].rate)} to {$2(E.zone_bands[4].rate)}. Our <a href={route('zone', lang)}>zone price guide</a> explains how the price per street is set and where it appears.</p>
+
+  <h2>Age, floor and frontage factors</h2>
+  <ContentTable headers={['Building age', 'Factor']} align={['l', 'r']} rows={ageRows} />
+  <p>Age is the tax year minus the year of the newest building permit. A permit for an extension or major renovation restarts the clock, which matters if you are buying a renovated stone house on an island: on paper it may count as nearly new. Without a permit, the construction year from a public document is used, and failing that the year the building was first declared in the E9.</p>
+  <ContentTable headers={['Position', 'Factor']} align={['l', 'r']} rows={posRows} />
+  <p>A flat spread over several floors takes the factor of the highest one. A detached house replaces the floor factor with {d(E.detached_factor)}. Frontage adds {F.pct(E.facade_factors[1] - 1)} for one street side and {F.pct(E.facade_factors[2] - 1)} for two or more, and never applies to storage or parking.</p>
+
+  <h2>Two homes in Greece: why the second one changes the first bill</h2>
+  <p>Foreign buyers often own a flat in Athens and a holiday house elsewhere. The building tax is computed for each property separately, but the reductions, the value tax and the surcharge depend on the total value of everything you own in Greece. A 120 m² detached house on an island at a {$(1400)} zone price, with a 2008 permit and two frontages, would cost {$(isl.total)} on its own. Add the Athens flat from our first example and the combined value rises to {$(islTotal.valueUsed)}: the reduction on the house falls from {F.pct(isl.valueReductionRate)} to {F.pct(islTotal.valueReductionRate)} and its tax rises to {$(islTotal.total)}. To reproduce this, run each property through the calculator with the same figure in the total value field.</p>
+
+  <h2>Shared ownership, inheritance and usufruct</h2>
+  <p>Article 8 of the code taxes more than outright ownership. Bare ownership (<em>psili kyriotita</em>), usufruct (<em>epikarpia</em>), the right of habitation and surface rights are all within ENFIA, as is the exclusive use of a parking space, storage room or pool in the common parts of a building. This is common in families where parents keep the usufruct of a flat and give the bare ownership to their children. If you hold a share, enter it in the ownership field: the building tax of a half-owned flat from our first example falls to {$2(r.mainBuilding / 2)} before reductions, and each co-owner’s reduction then depends on their own total property value, not on the value of the flat alone.</p>
+  <p>For inherited property, article 9 makes a testamentary heir liable for a given year if the will was published by 31 December of the year before, and an heir on intestacy if no will had been published by that date, so an inherited Greek home normally reaches your ENFIA the year after the death. The tax follows whoever held the right on 1 January, whatever happens later in the year.</p>
+
+  <h2>Reductions, the value tax and the surcharge</h2>
+  <p>The value-based reduction of article 13 is the one almost everyone gets: {F.pct(red[0].rate)} up to {$(red[0].upTo)} of total value, {F.pct(red[1].rate)} up to {$(red[1].upTo)}, {F.pct(red[2].rate)} up to {$(red[2].upTo)}, {F.pct(red[3].rate)} up to {$(red[3].upTo)} and {F.pct(red[4].rate)} up to {$(red[4].upTo)}. Above that there is none. Article 10(5) adds {F.insurance} for a home insured against earthquake, fire and flood during the previous year ({F.insuranceHigh} if it is worth more than {$(E.insurance_value_limit)}), and for {Y} only, a main home in a settlement of up to {F.villagePop} people outside mainland Attica, worth up to {F.villageValue}, pays {F.village} less. The <a href={route('enfiadisc', lang)}>ENFIA reductions guide</a> covers the conditions in full.</p>
+  <p>At the top end, a tax on the value of each property right applies once total value passes {$(E.right_tax_from_value)}, with a zero rate on the first {$(E.right_tax_bands[0].upTo ?? 0)}, and a surcharge of {F.pct(E.value_surcharges[0].rate)} to {F.pct(E.value_surcharges[E.value_surcharges.length - 1].rate)} applies above {$(E.surcharge_from_value)}. A 160 m² flat at a {$(4200)} zone price, with a 2012 permit, on the 4th floor with two frontages, is estimated at {$(big.valueUsed)}: {$(big.mainBuilding)} of building tax, {$(big.rightTax)} of value tax, a {F.pct(big.surchargeRate)} surcharge, {$(big.total)} in all.</p>
+
+  <div data-chrome><MiniSim client:load kind="enfiavalue" lang={lang} href={route('enfia', lang)} /></div>
+
+  <h2>What the calculator approximates</h2>
+  <p>The coefficients and rates are those of articles 10, 11, 13 and 17 as they stand for {Y}. Four simplifications are worth knowing before you compare the result with your assessment. The tool handles one building at a time; several properties need several runs with the same total value. When you leave the value field blank it estimates value as floor area × zone price, while AADE’s taxable value follows the objective value system with its own coefficients, so the true figure can be higher or lower, which matters near a reduction threshold. Plots of land, unfinished buildings and special buildings, which have their own rules, are not computed. And it does not test the low-income cuts or the exemptions granted to areas hit by earthquakes and fires.</p>
+  <p>For a quick check of a bill you have received, that is usually enough. If the result is far from your assessment, compare the area, permit year and floor in your E9 first. If you are insured, the <a href={route('enfiains', lang)}>guide to ENFIA and home insurance</a> shows how a part-year policy is prorated.</p>
+</GuideLayout>
