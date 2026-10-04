@@ -37,9 +37,7 @@ jobs:
           path: './dist'
 
   deploy:
-    # Pages s'active à l'étape 9 de RECETTE §15.3 (domaine acheté) : d'ici là, la variable
-    # PAGES_ENABLED n'existe pas et seuls les tests et le build tournent à chaque push.
-    if: ${{ vars.PAGES_ENABLED == 'true' }}
+    # Domaine ypologismos.com acheté par l'éditeur le 2026-10-04 : déploiement à chaque push.
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
