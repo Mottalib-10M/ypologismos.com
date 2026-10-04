@@ -1,0 +1,50 @@
+---
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P } from '../../lib/engine/gr';
+import { childBenefit } from '../../lib/engine/epidomata';
+import { formatMoney, formatNumber, displayDate } from '../../lib/format';
+const lang = 'en';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const day = (iso: string) => displayDate(iso, 'en-GB');
+const Y = P.year;
+const C = P.child_benefit;
+const pays = C.payments_2026;
+const ex = childBenefit({ income: 14000, parents: 2, children: 2 });
+const one = childBenefit({ income: 20000, parents: 2, children: 1 });
+const payRows = pays.map((p, i) => [`Instalment ${i + 1}`, day(p), formatNumber(C.recipients_2026[i], 0, lang), $(ex.installment)]);
+payRows.push(['Extra catch-up payment', day(C.extra_payment_2026), '—', '—'], ['Instalments 5 and 6', 'not yet announced', '—', $(ex.installment)]);
+const winRows = C.application_windows_2026.map(([a, b], i) => [`Round ${i + 1}`, day(a), day(b)]);
+const faqs = [
+  { q: 'When is the next Greek child benefit payment in 2026?', a: `The next announced payment is the extra catch-up payment on ${day(C.extra_payment_2026)}, for applications that had been held back. The fifth and sixth regular instalments have not been dated by OPEKA yet. The first four were paid on ${day(pays[0])}, ${day(pays[1])}, ${day(pays[2])} and ${day(pays[3])}, each on the last working day of the month.` },
+  { q: 'I applied late. Do I lose the months I missed?', a: `No. An A21 claim covers the whole year, and the instalments already paid to others are paid to you retroactively with the next payment once your claim is approved, provided you met the conditions from January. Applying late only delays the money. The fifth round of the platform is open from ${day(C.application_windows_2026[4][0])} to ${day(C.application_windows_2026[4][1])}.` },
+  { q: 'Why did my child benefit go down in the summer?', a: `Usually because the tax return filed in ${Y} replaced the older one in OPEKA’s calculation. A higher family income can move you to a lower band, or above the band Γ ceiling, and the next instalment reflects it. A missing school enrolment record for a child aged 4 to 16 also stops the payment for that child until it is fixed.` },
+  { q: 'Does child benefit arrive in my normal bank account?', a: `Since May 2025 it is credited to a prepaid card rather than your own bank account. The money stays exempt from seizure and cannot be offset against tax debts. Other OPEKA benefits, such as the housing benefit, are paid on the same day each month.` },
+];
+---
+<GuideLayout lang={lang} id="childpay" breadcrumbLabel={label('childpay', lang)}
+  title={`Child Benefit Payment Dates Greece ${Y}: A21 Instalments`}
+  h1={`Greek child benefit ${Y}: when each payment is made`}
+  description={`Child benefit payment dates Greece ${Y}: OPEKA A21 instalments paid so far, the extra payment on ${day(C.extra_payment_2026)}, application rounds and each instalment’s value.`}
+  intro={`A21 is paid every two months, on the last working day of the payment month. Only the dates OPEKA has actually announced are listed here.`}
+  resume={`The next Greek child benefit payment is the extra catch-up payment on ${day(C.extra_payment_2026)}, for applications that had been stuck. The first four two-month instalments of ${Y} were paid on ${day(pays[0])}, ${day(pays[1])}, ${day(pays[2])} and ${day(pays[3])}, the last of them to ${formatNumber(C.recipients_2026[3], 0, lang)} A21 families. OPEKA, the welfare agency that pays it, has not yet announced the dates of the fifth and sixth instalments, so we do not guess them; they will be added here when published. Each instalment equals two months of benefit. A couple with two children and ${$(14000)} of income, in band Β, receives ${$(ex.installment)} per instalment; a couple with one child on ${$(20000)} gets ${$(one.installment)}. If you have not applied for ${Y} yet, the fifth application round runs from ${day(C.application_windows_2026[4][0])} to ${day(C.application_windows_2026[4][1])}, and missed months are paid back. Use the small calculator to see your own instalment.`}
+  faqs={faqs}
+  related={[{ href: route('childben', lang), name: label('childben', lang), description: 'Work out your band and monthly amount.' }, { href: route('housing', lang), name: label('housing', lang), description: 'Paid monthly on the same day as A21.' }, { href: route('rentrefund', lang), name: label('rentrefund', lang), description: 'One month of rent back in November.' }]}
+  sources={[src('child_benefit_mar', lang), src('child_benefit_may', lang), src('child_benefit_jul', lang), src('child_benefit_sept', lang), src('child_benefit_oct', lang), src('child_benefit_platform', lang), src('child_benefit', lang)]}>
+  <div data-outil><MiniSim client:load kind="childinst" lang={lang} href={route('childben', lang)} /></div>
+
+  <h2>Payments made in {Y}</h2>
+  <ContentTable headers={['Instalment', 'Date', 'A21 families paid', `Per instalment, 2 children, ${$(14000)}`]} align={['l', 'l', 'r', 'r']} rows={payRows} />
+  <p>The number of families paid moves from one instalment to the next because each application round adds claims and each new tax return can change a family’s band. Between the second and fourth instalments it fell by {formatNumber(C.recipients_2026[1] - C.recipients_2026[3], 0, lang)}; OPEKA did not publish a breakdown of why. If your own amount changed, re-run the <a href={route('childben', lang)}>child benefit calculator</a> with the income on your latest assessment.</p>
+
+  <h2>The A21 application rounds</h2>
+  <ContentTable headers={['Round', 'Opens', 'Closes']} align={['l', 'l', 'l']} rows={winRows} />
+  <p>The platform is not open all year. It opens in rounds, which in {Y} closed roughly three weeks before each payment while claims were checked. You can apply with your TAXISnet credentials; non-Greek residents who have a tax number and file returns use the same route. A claim made in a later round keeps its right to the earlier months.</p>
+
+  <h2>Before each payment, three checks</h2>
+  <p>First, the status of your claim on the IDIKA platform: a claim not approved before a round closes moves to the following payment. Second, your tax return: if you amended it, OPEKA recalculates. Third, school records for children aged 4 to 16: without an enrolment on the Ministry of Education system, the benefit for that child is suspended. The extra payment on {day(C.extra_payment_2026)} exists precisely for families caught by that last point.</p>
+</GuideLayout>

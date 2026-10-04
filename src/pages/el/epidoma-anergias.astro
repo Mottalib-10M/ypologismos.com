@@ -1,0 +1,53 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P } from '../../lib/engine/gr';
+import { unemploymentBenefit } from '../../lib/engine/epidomata';
+import { formatMoney } from '../../lib/format';
+const lang = 'el';
+const $ = (x: number) => formatMoney(x, 2, lang);
+const $0 = (x: number) => formatMoney(x, 0, lang);
+const Y = P.year;
+const U = P.unemployment;
+const ex = unemploymentBenefit({ days: 200, avgPay: 1100, age: 35 });
+const fam = unemploymentBenefit({ days: 250, avgPay: 1300, dependants: 2 });
+const low = unemploymentBenefit({ days: 150, avgPay: 400 });
+const durRows = U.duration.map((d, i, a) => [i < a.length - 1 ? `${d.minDays} έως ${a[i + 1].minDays - 1}` : `${d.minDays} και άνω`, `${d.months} μήνες`, $0(unemploymentBenefit({ days: d.minDays }).total)]);
+const depRows = [0, 1, 2, 3, 4, 6].map((k) => [String(k), $(unemploymentBenefit({ days: 250, dependants: k }).monthly)]);
+const faqs = [
+  { q: 'Πόσο είναι το επίδομα ανεργίας το 2026;', a: `${$(U.monthly_base)} τον μήνα από την 1η Απριλίου ${Y}, δηλαδή ${U.days_per_month} ημερήσια επιδόματα των ${$(U.daily_min_wage * U.rate)}, που είναι το ${Math.round(U.rate * 100)} % του κατώτατου ημερομισθίου των ${$(U.daily_min_wage)}. Μέχρι τον Μάρτιο ήταν ${$(U.monthly_before_april_2026)}. Η αύξηση ισχύει και για όσους ήταν ήδη άνεργοι πριν από τον Απρίλιο.` },
+  { q: 'Πόσα ένσημα χρειάζομαι για επίδομα ανεργίας;', a: `Τουλάχιστον ${U.duration[0].minDays} ημέρες ασφάλισης στους 14 μήνες πριν από τη λήξη της σύμβασης, χωρίς να υπολογίζονται οι δύο τελευταίοι μήνες. Αν κάνετε αίτηση πρώτη φορά, χρειάζονται επιπλέον ${U.first_claim_days_per_year} ημέρες σε καθένα από τα δύο προηγούμενα έτη, ή εναλλακτικά 200 ημέρες στη διετία. Όσοι έχουν ξαναπάρει επίδομα δεν πρέπει να έχουν ξεπεράσει τα ${U.max_days_4_years} ημερήσια στην τελευταία τετραετία.` },
+  { q: 'Παραιτήθηκα. Δικαιούμαι επίδομα ανεργίας;', a: `Όχι. Η τακτική επιδότηση δίνεται μετά από απόλυση ή λήξη σύμβασης ορισμένου χρόνου, και η ΔΥΠΑ δεν τη χορηγεί σε όσους αποχώρησαν οικειοθελώς. Αν η αποχώρηση έγινε με συμφωνία, ελέγξτε πώς δηλώθηκε στο ΕΡΓΑΝΗ, γιατί αυτό κρίνει την αίτηση. Η αίτηση γίνεται μέσα σε ${U.apply_within_days} ημέρες από τη λήξη της σύμβασης.` },
+  { q: 'Πόσο αυξάνεται το επίδομα ανεργίας με παιδιά;', a: `Κατά ${Math.round(U.dependant_uplift * 100)} % για κάθε προστατευόμενο μέλος: ${depRows[1][1]} με ένα, ${depRows[2][1]} με δύο και ${depRows[5][1]} με έξι. Μετρούν ο σύζυγος, τα παιδιά έως 24 ετών αν είναι άνεργα ή έως 26 αν σπουδάζουν, και οι γονείς, εφόσον είναι έμμεσα ασφαλισμένοι.` },
+  { q: 'Μπορώ να δουλέψω και να κρατήσω μέρος του επιδόματος ανεργίας;', a: `Ναι, με το επίδομα εργασίας της ΔΥΠΑ. Όποιος βρει δουλειά όσο επιδοτείται συνεχίζει να παίρνει το ${Math.round(U.work_benefit_share * 100)} % του βασικού ποσού, ${$(U.monthly_base * U.work_benefit_share)} τον μήνα, για το υπόλοιπο της επιδότησης. Η επιλογή αυτή αντικαθιστά την ανεργία και δεν προστίθεται σε αυτήν.` },
+];
+---
+<GuideLayout lang={lang} id="unemployment" breadcrumbLabel={label('unemployment', lang)}
+  title={`Επίδομα ανεργίας ${Y}: ποσό ${$0(U.monthly_base)} και διάρκεια ΔΥΠΑ`}
+  h1={`Επίδομα ανεργίας ${Y}: πόσα και για πόσους μήνες`}
+  description={`Επίδομα ανεργίας ${Y}: ${$(U.monthly_base)} τον μήνα από τη ΔΥΠΑ, +${Math.round(U.dependant_uplift * 100)} % για κάθε μέλος, για 5 έως 12 μήνες. Υπολογίστε ποσό και διάρκεια από τα ένσημα και τον μισθό σας.`}
+  intro={`Το ποσό είναι σχεδόν ίδιο για όλους· αυτό που αλλάζει από άνεργο σε άνεργο είναι οι μήνες, που εξαρτώνται από τις ημέρες εργασίας.`}
+  resume={`Ένας εργαζόμενος που απολύθηκε με ${200} ημέρες εργασίας στους 14 μήνες πριν από τη λήξη της σύμβασης παίρνει επίδομα ανεργίας ${$(ex.monthly)} τον μήνα για ${ex.months} μήνες, ${$0(ex.total)} συνολικά. Από την 1η Απριλίου ${Y}, όταν ο κατώτατος μισθός ανέβηκε, το βασικό ποσό της ΔΥΠΑ είναι ${$(U.monthly_base)}: ${U.days_per_month} ημερήσια επιδόματα, το καθένα ίσο με το ${Math.round(U.rate * 100)} % του κατώτατου ημερομισθίου των ${$(U.daily_min_wage)}. Προστίθεται ${Math.round(U.dependant_uplift * 100)} % για κάθε προστατευόμενο μέλος· με δύο, το ποσό γίνεται ${$(fam.monthly)}. Η διάρκεια ξεκινά από 5 μήνες για ${U.duration[0].minDays} ημέρες και φτάνει τους 12 από ${U.duration[U.duration.length - 1].minDays} ημέρες, ή από ${U.age49_days} ημέρες για όσους έχουν κλείσει τα ${U.age49_age}. Μόνο όσοι είχαν πολύ χαμηλές αποδοχές το τελευταίο εξάμηνο, κάτω από 12 κατώτατα ημερομίσθια τον μήνα, παίρνουν μειωμένο ποσό. Ο υπολογιστής βγάζει ποσό, μήνες και σύνολο από τα δικά σας ένσημα.`}
+  faqs={faqs}
+  related={[{ href: route('severance', lang), name: label('severance', lang), description: 'Η αποζημίωση που οφείλει ο εργοδότης στην απόλυση.' }, { href: route('notice', lang), name: label('notice', lang), description: 'Η προειδοποίηση πριν από την απόλυση.' }, { href: route('housing', lang), name: label('housing', lang), description: 'Το επίδομα ενοικίου της ΟΠΕΚΑ για χαμηλά εισοδήματα.' }]}
+  sources={[src('unemployment', lang), src('unemployment_rules', lang), src('min_wage', lang)]}>
+  <div data-outil><ToolCalc client:load kind="unemployment" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>Διάρκεια ανάλογα με τις ημέρες εργασίας</h2>
+  <ContentTable headers={['Ημέρες στους 14 μήνες', 'Διάρκεια', 'Σύνολο με το βασικό ποσό']} align={['l', 'l', 'r']} rows={durRows} />
+  <p>Οι ημέρες μετρώνται στους 14 μήνες πριν από τη λήξη της σύμβασης, αφήνοντας έξω τους δύο τελευταίους. Με {U.days_per_month} ημέρες ασφάλισης τον μήνα, δέκα μήνες συνεχούς εργασίας μέσα σε αυτό το διάστημα δίνουν {U.days_per_month * 10} ημέρες, άρα 12 μήνες επιδότησης. Δύο εξαιρέσεις φτάνουν επίσης στους 12 μήνες: {U.age49_days} ημέρες με ηλικία τουλάχιστον {U.age49_age}, και συνολικός χρόνος {U.career_days} ημερών εργασίας σε όλη τη σταδιοδρομία.</p>
+  <div data-chrome><MiniSim client:load kind="unempduration" lang={lang} href={route('unemployment', lang)} /></div>
+
+  <h2>Το ποσό, με τα προστατευόμενα μέλη</h2>
+  <ContentTable headers={['Προστατευόμενα μέλη', 'Επίδομα τον μήνα']} align={['l', 'r']} rows={depRows} />
+  <p>Το ποσό δεν είναι ποσοστό του μισθού σας, όπως σε άλλες χώρες της Ευρώπης. Είναι σταθερό, συνδεδεμένο με το κατώτατο ημερομίσθιο, και μειώνεται μόνο για πολύ χαμηλές αποδοχές: με μέσο μισθό τελευταίου εξαμήνου {$0(400)} το βασικό ποσό πέφτει στο 75 %, {$(low.base)}, και κάτω από 6 ημερομίσθια τον μήνα στο μισό. Τα δώρα Χριστουγέννων και Πάσχα της ανεργίας προστίθενται ανάλογα με τους μήνες επιδότησης.</p>
+  <div data-chrome><MiniSim client:load kind="unempraise" lang={lang} href={route('unemployment', lang)} /></div>
+
+  <h2>Αίτηση και πρώτη πληρωμή</h2>
+  <p>Η αίτηση γίνεται ηλεκτρονικά στη ΔΥΠΑ ή στο gov.gr, μέσα σε {U.apply_within_days} ημέρες από τη λήξη της σύμβασης. Αν υποβληθεί μέσα στις πρώτες επτά ημέρες, η επιδότηση αρχίζει από την έβδομη· αλλιώς από την ημέρα της αίτησης, οπότε κάθε μέρα καθυστέρησης κοστίζει. Ο πιλοτικός «νέος» τρόπος υπολογισμού, με ποσό που μειώνεται κάθε τρίμηνο, αφορά μόνο περίπου 15.000 κληρωμένους δικαιούχους και δεν έχει γενικευθεί· για όλους τους άλλους ισχύουν τα ποσά αυτής της σελίδας.</p>
+</GuideLayout>

@@ -1,0 +1,64 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P } from '../../lib/engine/gr';
+import { childBenefit, childBenefitLimits } from '../../lib/engine/epidomata';
+import { formatMoney, formatDecimal } from '../../lib/format';
+const lang = 'en';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const d = (x: number) => formatDecimal(x, 2, lang);
+const Y = P.year;
+const C = P.child_benefit;
+const K = C.categories;
+const ex = childBenefit({ income: 18000, parents: 2, children: 2 });
+const two = childBenefit({ income: 42000, parents: 2, children: 2 });
+const expat = childBenefit({ income: 26000, parents: 2, children: 1 });
+const lim21 = childBenefitLimits(2, 1);
+const worked = [
+  ['Two parents', '1', '0.5', '0.5 + 0.25 × children'],
+  ['Single parent', '1', '—', '0.5 for the first child, then 0.25'],
+];
+const scenarios = [[2, 1, 14000], [2, 2, 28000], [2, 3, 21000], [1, 2, 15000], [2, 4, 24500]].map(([p, c, i]) => { const r = childBenefit({ income: i, parents: p, children: c }); return [`${p === 2 ? 'Couple' : 'Single parent'}, ${c} ${c === 1 ? 'child' : 'children'}`, $(i), d(r.scale), $(r.equivalent), r.category >= 0 ? ['Α', 'Β', 'Γ'][r.category] : '—', $(r.monthly)]; });
+const faqs = [
+  { q: 'Can foreigners living in Greece get child benefit?', a: `Yes, if the residence condition is met. EU, EEA and Swiss citizens, recognised refugees and people of Greek origin need ${C.residence_years} years of legal, permanent residence before the year of the claim, proven by tax returns filed on time. Other non-EU nationals need ${C.residence_years_third_country} years. The children must live in Greece, and a tax return must be filed every year.` },
+  { q: 'We both work and earn about €42,000 together. Do we get anything for two children?', a: `No. For a couple with two children the scale is ${d(two.scale)}, so ${$(42000)} gives an equivalent income of ${$(two.equivalent)}, above the ${$(K[2].upTo)} ceiling of band Γ. The cut-off for that family is ${$(K[2].upTo * two.scale)} of total taxable income. There is no partial payment above it and no asset test that could help.` },
+  { q: 'How do I apply for the Greek child benefit (A21)?', a: `Online, every year, with your TAXISnet codes on the IDIKA A21 platform or through OPEKA. Applications open in successive rounds during the year, and benefit is paid from January if you qualified then. The application relies on the tax return of the reference year, so that return has to be filed first, and the benefit is paid to a prepaid card.` },
+  { q: 'Is the Greek child benefit taxed or counted as income?', a: `Neither. Article 214 makes it tax-free, exempt from seizure and from set-off against debts to the state, and it does not count as income for other means-tested benefits. You do not declare it as taxable income, and it does not reduce your housing benefit or heating allowance.` },
+  { q: 'Our first baby is due. Is there a one-off payment too?', a: `Yes, the birth allowance: ${$(P.birth_allowance.amounts[0])} for a first child, ${$(P.birth_allowance.amounts[1])} for a second, ${$(P.birth_allowance.amounts[2])} for a third and ${$(P.birth_allowance.amounts[3])} from the fourth, paid in two equal instalments. The income limit is ${$(P.birth_allowance.equivalent_income_limit)} of equivalent income, and you must apply within ${P.birth_allowance.apply_within_months} months of the birth.` },
+];
+---
+<GuideLayout lang={lang} id="childben" breadcrumbLabel={label('childben', lang)}
+  title={`Child Benefit Greece ${Y}: A21 Calculator, Bands Α, Β, Γ`}
+  h1={`Child benefit in Greece (A21): what your family gets in ${Y}`}
+  description={`Child benefit Greece ${Y} (A21): ${$(K[0].first_two)}, ${$(K[1].first_two)} or ${$(K[2].first_two)} a month per child, double from the third. Find your band, your equivalent income and each payment in seconds.`}
+  intro={`Greece’s child benefit turns on one figure: your family income divided by an equivalence scale that weights parents and children.`}
+  resume={`A couple with two children and ${$(18000)} of family income receives ${$(ex.monthly)} a month in Greek child benefit in ${Y}, paid as ${$(ex.installment)} every two months, or ${$(ex.annual)} over the year. The benefit, known by its form number A21 and paid by the welfare agency OPEKA, is set by article 214 of Law 4512/2018. Family income is divided by an equivalence scale: 1 for the first parent, 0.5 for the second and 0.25 per child, so ${d(ex.scale)} here. The resulting ${$(ex.equivalent)} falls in band Β, worth ${$(K[1].first_two)} for each of the first two children. There are three bands, Α up to ${$(K[0].upTo)}, Β up to ${$(K[1].upTo)} and Γ up to ${$(K[2].upTo)} of equivalent income, and nothing above. Third and later children count double. There is no asset test, but five years of legal residence are required, twelve for most non-EU nationals. Enter your figures to see your band and the income at which you would lose it.`}
+  faqs={faqs}
+  related={[{ href: route('childpay', lang), name: label('childpay', lang), description: 'When each two-month payment lands in 2026.' }, { href: route('children', lang), name: label('children', lang), description: 'Children also lower your income tax.' }, { href: route('maternity', lang), name: label('maternity', lang), description: 'The nine-month DYPA benefit after maternity leave.' }]}
+  sources={[src('child_benefit', lang), src('child_benefit_faq', lang), src('birth_allowance', lang), src('birth_allowance_limit', lang)]}>
+  <div data-outil><ToolCalc client:load kind="childbenefit" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>How the equivalence scale works</h2>
+  <ContentTable headers={['Household', 'First parent', 'Second parent', 'Children']} align={['l', 'r', 'r', 'l']} rows={worked} />
+  <p>The scale is the same idea as the OECD-modified scale used in poverty statistics: a second adult or a child adds needs, but less than the first adult. Dividing income by it puts a couple with three children and a single parent with one child on the same footing. In practice the scale rises by a quarter with every child, so each extra child lifts the income limits by a quarter of the band width, which is why large families keep the benefit at incomes where small ones have lost it.</p>
+
+  <h2>Five families, worked through</h2>
+  <ContentTable headers={['Family', 'Income', 'Scale', 'Equivalent', 'Band', 'Per month']} align={['l', 'r', 'r', 'r', 'l', 'r']} rows={scenarios} />
+  <p>The second row is OPEKA’s own published example: two parents, two children, {$(28000)} of income, a scale of 2, an equivalent income of {$(14000)}, band Γ and {$(56)} a month. For a couple with one child the band Γ limit sits at {$(lim21[2])}; an expat couple on {$(26000)} with a toddler therefore still receives {$(expat.monthly)} a month.</p>
+  <div data-chrome><MiniSim client:load kind="childnext" lang={lang} href={route('childben', lang)} /></div>
+
+  <h2>Which children count</h2>
+  <p>Unmarried children count up to {C.max_age}, up to {C.max_age_secondary} while in secondary school and up to {C.max_age_studies} while at university, an IEK vocational institute or the post-secondary apprenticeship year, as do children with a disability of 67% or more. For age purposes every child is treated as born on 31 December of the birth year. A child of compulsory school age, 4 to 16, must be enrolled and must not have repeated a year for absences, or the benefit stops.</p>
+
+  <h2>Payments and the income year used</h2>
+  <p>The benefit is paid in {C.installments_per_year} two-month instalments on the last working day of the payment month; the {Y} dates are on the <a href={route('childpay', lang)}>child benefit payment dates</a> page. Early in the year OPEKA uses the previous tax return; once the new return is filed, the amount is recalculated on the newer income, which can move a family up or down a band mid-year. Income here means the taxable income on the assessment plus amounts taxed separately.</p>
+
+  <h2>The birth allowance on top</h2>
+  <div data-chrome><MiniSim client:load kind="birth" lang={lang} href={route('childben', lang)} /></div>
+  <p>Unlike A21, the birth allowance under Law 4659/2020 is a lump sum per birth with a much higher ceiling, {$(P.birth_allowance.equivalent_income_limit)} of equivalent income, so most working families qualify even when they get no monthly child benefit.</p>
+</GuideLayout>

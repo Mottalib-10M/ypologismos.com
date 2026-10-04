@@ -1,7 +1,7 @@
 {
- "_lisezmoi": "Tous les paramètres légaux 2026 du site (RECETTE §4). Chaque valeur a été relue le 2026-10-03 sur la source citée dans `sources` (texte de loi codifié, circulaire e-ΕΦΚΑ, ministère du Travail, Inspection du travail) ; le moteur (lib/engine/gr.ts) et les pages lisent ce fichier, jamais une valeur en dur.",
+ "_lisezmoi": "Tous les paramètres légaux 2026 du site (RECETTE §4). Chaque valeur a été relue sur la source citée dans `sources` : le 2026-10-03 pour le salaire, les primes, ΕΝΦΙΑ, la taxe de circulation et la pension ; le 2026-10-04 pour les aides (child_benefit, birth_allowance, housing_benefit, heating, unemployment, rent_refund, maternity, student_housing, widow) et les impôts annuels (tax_2025, rental_tax, tax_return, transfer_tax, business) (texte de loi codifié, circulaire e-ΕΦΚΑ, ministère du Travail, Inspection du travail) ; le moteur (lib/engine/gr.ts, foroi.ts, epidomata.ts) et les pages lisent ce fichier, jamais une valeur en dur.",
  "year": 2026,
- "retrieved_at": "2026-10-03",
+ "retrieved_at": "2026-10-04",
  "valid_from": "2026-01-01",
  "valid_to": "2026-12-31",
  "minimum_wage": {
@@ -777,10 +777,783 @@
     "en": "Law 4387/2016, article 38(2): maximum insurable earnings"
    },
    "url": "https://www.taxheaven.gr/law/4387/2016/arthro/38"
+  },
+  "tax_2025": {
+   "label": {
+    "el": "Ν. 4646/2019, άρθρα 6 και 9: κλίμακα 9-22-28-36-44 % και μείωση φόρου έως το φορολογικό έτος 2025",
+    "en": "Law 4646/2019, articles 6 and 9: the 9-22-28-36-44% scale and tax reduction used up to tax year 2025"
+   },
+   "url": "https://www.taxheaven.gr/law/4646/2019/arthro/6"
+  },
+  "rental_tax": {
+   "label": {
+    "el": "Άρθρο 40 παρ. 4 ΚΦΕ, όπως ισχύει μετά το άρθρο 8 του ν. 5246/2025: κλίμακα ενοικίων 15-25-35-45 %",
+    "en": "Income Tax Code article 40(4), as amended by article 8 of Law 5246/2025: rental income scale 15-25-35-45%"
+   },
+   "url": "https://www.taxheaven.gr/law/4172/2013/arthro/40"
+  },
+  "rental_expenses": {
+   "label": {
+    "el": "Άρθρο 39 παρ. 3 ΚΦΕ: έκπτωση 5 % για δαπάνες ακινήτου",
+    "en": "Income Tax Code article 39(3): 5% deduction for property expenses"
+   },
+   "url": "https://www.taxheaven.gr/law/4172/2013/arthro/39"
+  },
+  "tax_2026_start": {
+   "label": {
+    "el": "Ν. 5246/2025, άρθρο 47 παρ. 3: οι νέες κλίμακες ισχύουν από το φορολογικό έτος 2026",
+    "en": "Law 5246/2025, article 47(3): the new scales apply from tax year 2026"
+   },
+   "url": "https://www.taxheaven.gr/law/5246/2025/arthro/47"
+  },
+  "tax_return": {
+   "label": {
+    "el": "Άρθρο 67 ΚΦΕ: υποβολή δήλωσης 15 Μαρτίου έως 15 Ιουλίου, οκτώ δόσεις, έκπτωση 4-3-2 %",
+    "en": "Income Tax Code article 67: filing 15 March to 15 July, eight instalments, 4-3-2% discount"
+   },
+   "url": "https://www.taxheaven.gr/law/4172/2013/arthro/67"
+  },
+  "card_spending": {
+   "label": {
+    "el": "Άρθρο 15 παρ. 6 ΚΦΕ: δαπάνες με κάρτα 30 % του εισοδήματος έως 20.000 €, πρόστιμο 22 %",
+    "en": "Income Tax Code article 15(6): card spending of 30% of income up to €20,000, 22% penalty"
+   },
+   "url": "https://www.taxheaven.gr/law/4172/2013/arthro/15"
+  },
+  "transfer_tax": {
+   "label": {
+    "el": "Κώδικας Φορολογίας Περιουσίας (ν. 5219/2025), άρθρο 27: φόρος μεταβίβασης 3 % και 3 % υπέρ δήμων",
+    "en": "Property Tax Code (Law 5219/2025), article 27: 3% transfer tax plus 3% for municipalities"
+   },
+   "url": "https://www.taxheaven.gr/law/5219/2025/arthro/27"
+  },
+  "transfer_value": {
+   "label": {
+    "el": "Κώδικας Φορολογίας Περιουσίας, άρθρο 25: φορολογητέα αξία, η μεγαλύτερη από τίμημα και αντικειμενική",
+    "en": "Property Tax Code article 25: taxable value is the higher of price and objective value"
+   },
+   "url": "https://www.taxheaven.gr/law/5219/2025/arthro/25"
+  },
+  "first_home": {
+   "label": {
+    "el": "Κώδικας Φορολογίας Περιουσίας, άρθρα 40 και 41: απαλλαγή πρώτης κατοικίας 200.000 / 250.000 €",
+    "en": "Property Tax Code articles 40 and 41: first-home exemption of €200,000 / €250,000"
+   },
+   "url": "https://www.taxheaven.gr/law/5219/2025/arthro/41"
+  },
+  "first_home_needs": {
+   "label": {
+    "el": "Κώδικας Φορολογίας Περιουσίας, άρθρο 40: πότε θεωρείται ότι καλύπτονται οι στεγαστικές ανάγκες",
+    "en": "Property Tax Code article 40: when housing needs count as already met"
+   },
+   "url": "https://www.taxheaven.gr/law/5219/2025/arthro/40"
+  },
+  "vat_new_build": {
+   "label": {
+    "el": "Ν. 5246/2025, άρθρο 12: αναστολή ΦΠΑ στα νεόδμητα για το 2026",
+    "en": "Law 5246/2025, article 12: VAT on new buildings suspended for 2026"
+   },
+   "url": "https://www.taxheaven.gr/law/5246/2025/arthro/12"
+  },
+  "business_tax": {
+   "label": {
+    "el": "Άρθρο 29 ΚΦΕ: κέρδη επιχειρηματικής δραστηριότητας μαζί με τον μισθό, χωρίς τη μείωση του άρθρου 16, και μισός συντελεστής 1ου κλιμακίου τα 3 πρώτα έτη",
+    "en": "Income Tax Code article 29: business profit added to salary, without the article 16 reduction, and a halved first-band rate in the first 3 years"
+   },
+   "url": "https://www.taxheaven.gr/law/4172/2013/arthro/29"
+  },
+  "child_benefit": {
+   "label": {
+    "el": "Ν. 4512/2018, άρθρο 214: επίδομα παιδιού, κλίμακα ισοδυναμίας και ποσά 70 / 42 / 28 €",
+    "en": "Law 4512/2018, article 214: child benefit, equivalence scale and €70 / 42 / 28 amounts"
+   },
+   "url": "https://www.taxheaven.gr/law/4512/2018/arthro/214"
+  },
+  "child_benefit_faq": {
+   "label": {
+    "el": "ΟΠΕΚΑ: συχνές ερωτήσεις και παραδείγματα υπολογισμού του επιδόματος παιδιού Α21",
+    "en": "OPEKA: child benefit A21 FAQ and worked examples"
+   },
+   "url": "https://opeka.gov.gr/oikogeneia/epidoma-paidiou-a21/synches-erotiseis/"
+  },
+  "child_benefit_sept": {
+   "label": {
+    "el": "ΟΠΕΚΑ: πληρωμή της 4ης διμηνιαίας δόσης του επιδόματος παιδιού στις 30.9.2026",
+    "en": "OPEKA: 4th bimonthly child benefit payment on 30 September 2026"
+   },
+   "url": "https://opeka.gov.gr/258-869-403-eyro-katavallontai-se-1-008-093-dikaioychoys-tin-tetarti-30-09-2026/"
+  },
+  "child_benefit_oct": {
+   "label": {
+    "el": "ΟΠΕΚΑ: έκτακτη συμπληρωματική πληρωμή Α21 στις 9.10.2026 και νέα πλατφόρμα από 5.10.2026",
+    "en": "OPEKA: extra A21 payment on 9 October 2026 and platform reopening on 5 October 2026"
+   },
+   "url": "https://opeka.gov.gr/oloklirosi-tis-diadikasias-elegchoy-ekkatharisis-kai-pliromis-toy-epidomatos-paidioy-a21-metathesi-tis-imerominias-epanaleitoyrgias-tis-efarmogis-ti-deytera-5-10-2026/"
+  },
+  "birth_allowance": {
+   "label": {
+    "el": "Ν. 4659/2020, άρθρο 1: επίδομα γέννησης 2.400 έως 3.500 €",
+    "en": "Law 4659/2020, article 1: birth allowance of €2,400 to €3,500"
+   },
+   "url": "https://www.taxheaven.gr/law/4659/2020/arthro/1"
+  },
+  "birth_allowance_limit": {
+   "label": {
+    "el": "Ν. 4659/2020, άρθρο 5: όριο ισοδύναμου εισοδήματος 40.000 €",
+    "en": "Law 4659/2020, article 5: €40,000 equivalent income limit"
+   },
+   "url": "https://www.taxheaven.gr/law/4659/2020/arthro/5"
+  },
+  "housing_benefit": {
+   "label": {
+    "el": "ΟΠΕΚΑ: επίδομα στέγασης, ποσά, εισοδηματικά και περιουσιακά κριτήρια",
+    "en": "OPEKA: housing benefit amounts, income and asset tests"
+   },
+   "url": "https://opeka.gov.gr/stegasi/epidoma-stegasis/"
+  },
+  "housing_benefit_law": {
+   "label": {
+    "el": "Ν. 4472/2017, άρθρο 3: θεσμοθέτηση του επιδόματος στέγασης",
+    "en": "Law 4472/2017, article 3: legal basis of the housing benefit"
+   },
+   "url": "https://www.taxheaven.gr/law/4472/2017/arthro/3"
+  },
+  "housing_benefit_kya": {
+   "label": {
+    "el": "ΚΥΑ Δ13οικ.10747/256/2019 (ΦΕΚ Β΄ 792): όροι του επιδόματος στέγασης",
+    "en": "Joint decision Δ13οικ.10747/256/2019 (Gazette B 792): housing benefit rules"
+   },
+   "url": "https://opeka.gov.gr/wp-content/uploads/2023/11/%CE%A6%CE%95%CE%9A.pdf"
+  },
+  "heating": {
+   "label": {
+    "el": "ΚΥΑ Α.1151/2025 (ΦΕΚ Β΄ 5802/31.10.2025): επίδομα θέρμανσης 2025-2026",
+    "en": "Joint decision A.1151/2025 (Gazette B 5802, 31 Oct 2025): heating allowance 2025-2026"
+   },
+   "url": "https://www.taxheaven.gr/circulars/51435/a-1151-span-classhl2025-span"
+  },
+  "heating_som": {
+   "label": {
+    "el": "ΚΥΑ Α.1116/2026 (ΦΕΚ Β΄ 3044/28.5.2026): συντελεστές τρεχουσών καιρικών συνθηκών ΣΟ-Μ ανά οικισμό",
+    "en": "Joint decision A.1116/2026 (Gazette B 3044, 28 May 2026): weather coefficients by settlement"
+   },
+   "url": "https://www.taxheaven.gr/circulars/53347/a-1116-2026"
+  },
+  "heating_annex_sk": {
+   "label": {
+    "el": "Παράρτημα του ΦΕΚ Β΄ 5802/2025: κλιματικός συντελεστής ΣΚ ανά οικισμό",
+    "en": "Annex to Gazette B 5802/2025: climate coefficient by settlement"
+   },
+   "url": "https://www.taxheaven.gr/attachment/28537"
+  },
+  "heating_annex_som": {
+   "label": {
+    "el": "Παράρτημα Β του ΦΕΚ Β΄ 3044/2026: ΣΟ-Μ ανά οικισμό",
+    "en": "Annex B to Gazette B 3044/2026: weather coefficient by settlement"
+   },
+   "url": "https://www.taxheaven.gr/attachment/35883"
+  },
+  "unemployment": {
+   "label": {
+    "el": "ΔΥΠΑ, εγκύκλιος 280487/2026: επίδομα ανεργίας 565 € από 1.4.2026",
+    "en": "DYPA circular 280487/2026: unemployment benefit of €565 from 1 April 2026"
+   },
+   "url": "https://www.dypa.gov.gr/storage/egkyklii-taktikhs-epidothshs/280487-06052026-egkyklios-anaprosarmogh-epidomatos-anergias-2026-orthh-epanalhpsh.pdf"
+  },
+  "unemployment_rules": {
+   "label": {
+    "el": "ΔΥΠΑ: τακτική επιδότηση ανεργίας, προϋποθέσεις και διάρκεια",
+    "en": "DYPA: regular unemployment benefit, conditions and duration"
+   },
+   "url": "https://www.dypa.gov.gr/el/anergia-kai-paroxes-asfalishs-misthwtwn"
+  },
+  "rent_refund": {
+   "label": {
+    "el": "Ν. 5217/2025, άρθρο 70: επιστροφή ενός μηνιαίου ενοικίου",
+    "en": "Law 5217/2025, article 70: refund of one month’s rent"
+   },
+   "url": "https://www.taxheaven.gr/law/5217/2025/arthro/70"
+  },
+  "rent_refund_2026": {
+   "label": {
+    "el": "Εγκύκλιος Ε. 3029/2026: νέα εισοδηματικά όρια επιστροφής ενοικίου από το 2026",
+    "en": "Circular E.3029/2026: new rent refund income limits from 2026"
+   },
+   "url": "https://www.taxheaven.gr/circulars/54313/o-3029-2026"
+  },
+  "rent_refund_kya": {
+   "label": {
+    "el": "ΚΥΑ Α.1132/2025: διαδικασία της επιστροφής ενοικίου",
+    "en": "Joint decision A.1132/2025: rent refund procedure"
+   },
+   "url": "https://www.taxheaven.gr/circulars/51037/a-1132-2025"
+  },
+  "rent_refund_paid": {
+   "label": {
+    "el": "ΥΠΕΘΟΟ: καταβολή της επιστροφής ενοικίου στις 28.11.2025",
+    "en": "Ministry of Finance: rent refund paid on 28 November 2025"
+   },
+   "url": "https://minfin.gov.gr/ypethoo-aade-simera-i-epistrofi-enos-miniaiou-enoikiou-se-peripou-900-000-dikaiouchous/"
+  },
+  "maternity": {
+   "label": {
+    "el": "ΔΥΠΑ: ειδική παροχή προστασίας μητρότητας 9 μηνών",
+    "en": "DYPA: nine-month special maternity protection benefit"
+   },
+   "url": "https://www.dypa.gov.gr/el/prostasia-tis-erghazomenis-miteras"
+  },
+  "maternity_efka": {
+   "label": {
+    "el": "e-ΕΦΚΑ: επίδομα μητρότητας μισθωτών, 119 ημέρες",
+    "en": "e-EFKA: maternity benefit for employees, 119 days"
+   },
+   "url": "https://www.efka.gov.gr/el/sychnes-eroteseis/paroches-kai-ygeia/paroches-se-chrema/epidoma-metrotetas/epidoma-metrotetas-misthoton"
+  },
+  "maternity_self": {
+   "label": {
+    "el": "Ν. 5078/2023, άρθρο 151: παροχή μητρότητας για αυτοαπασχολούμενες και αγρότισσες",
+    "en": "Law 5078/2023, article 151: maternity benefit for self-employed and farming mothers"
+   },
+   "url": "https://www.taxheaven.gr/law/5078/2023/arthro/151"
+  },
+  "maternity_law": {
+   "label": {
+    "el": "Α.Ν. 1846/1951, άρθρο 39: επίδομα κυοφορίας και λοχείας",
+    "en": "Emergency Law 1846/1951, article 39: pregnancy and childbirth benefit"
+   },
+   "url": "https://www.taxheaven.gr/law/1846/1951/arthro/39"
+  },
+  "student_housing": {
+   "label": {
+    "el": "Υπουργείο Παιδείας, εγκύκλιος 86585/Ζ1/2026: στεγαστικό επίδομα 2025-2026",
+    "en": "Ministry of Education circular 86585/Z1/2026: student housing allowance 2025-2026"
+   },
+   "url": "https://www.minedu.gov.gr/publications/docs2026/%CE%95%CE%B3%CE%BA%CF%8D%CE%BA%CE%BB%CE%B9%CE%BF%CF%82_%CF%83%CF%84%CE%B5%CE%B3%CE%B1%CF%83%CF%84%CE%B9%CE%BA%CE%BF%CF%8D_%CE%B5%CF%80%CE%B9%CE%B4%CF%8C%CE%BC%CE%B1%CF%84%CE%BF%CF%82_2025-2026_%CE%91%CE%94%CE%91.pdf"
+  },
+  "student_housing_law": {
+   "label": {
+    "el": "Ν. 3220/2004, άρθρο 10: στεγαστικό επίδομα φοιτητών",
+    "en": "Law 3220/2004, article 10: student housing allowance"
+   },
+   "url": "https://www.taxheaven.gr/law/3220/2004/arthro/10"
+  },
+  "widow": {
+   "label": {
+    "el": "Ν. 4387/2016, άρθρο 12: σύνταξη λόγω θανάτου, 70 % για τον σύζυγο, 25 % για κάθε παιδί",
+    "en": "Law 4387/2016, article 12: survivors’ pension, 70% for the spouse, 25% per child"
+   },
+   "url": "https://www.taxheaven.gr/law/4387/2016/arthro/12"
+  },
+  "child_benefit_mar": {
+   "label": {
+    "el": "ΟΠΕΚΑ: πληρωμή επιδομάτων στις 31.3.2026, 1η δόση Α21",
+    "en": "OPEKA: benefit payments on 31 March 2026, first A21 instalment"
+   },
+   "url": "https://opeka.gov.gr/253-191-819-eyro-katavallontai-se-987-379-dikaioychoys-tin-triti-31-03-2026/"
+  },
+  "child_benefit_may": {
+   "label": {
+    "el": "ΟΠΕΚΑ: πληρωμή επιδομάτων στις 29.5.2026, 2η δόση Α21",
+    "en": "OPEKA: benefit payments on 29 May 2026, second A21 instalment"
+   },
+   "url": "https://opeka.gov.gr/275-075-217-eyro-katavallontai-se-1-057-814-dikaioychoys-tin-paraskeyi-29-05-2026/"
+  },
+  "child_benefit_jul": {
+   "label": {
+    "el": "ΟΠΕΚΑ: πληρωμή επιδομάτων στις 30.7.2026, 3η δόση Α21",
+    "en": "OPEKA: benefit payments on 30 July 2026, third A21 instalment"
+   },
+   "url": "https://opeka.gov.gr/276-036-59142-eyro-katavallontai-se-1-007-152-dikaioychoys-tin-pempti-30-07-2026/"
+  },
+  "child_benefit_platform": {
+   "label": {
+    "el": "ΟΠΕΚΑ: κλείσιμο της πλατφόρμας Α21 στις 11.9.2026 και 4η διμηνιαία δόση",
+    "en": "OPEKA: A21 platform closing on 11 September 2026 and fourth instalment"
+   },
+   "url": "https://opeka.gov.gr/kleinei-tin-paraskeyi-11-09-2026-i-platforma-a21-epidoma-paidioy/"
   }
  },
  "part_time": {
   "extra_hours_rate": 0.12,
   "source": "severance_faq"
+ },
+ "tax_2025": {
+  "_note": "Κλίμακα και μείωση φόρου για εισοδήματα έως το φορολογικό έτος 2025 (ν. 4646/2019 άρθρα 6 και 9), μόνο για σύγκριση με το 2026, φορολογούμενος χωρίς τέκνα.",
+  "brackets": [
+   {
+    "upTo": 10000,
+    "rate": 0.09
+   },
+   {
+    "upTo": 20000,
+    "rate": 0.22
+   },
+   {
+    "upTo": 30000,
+    "rate": 0.28
+   },
+   {
+    "upTo": 40000,
+    "rate": 0.36
+   },
+   {
+    "upTo": null,
+    "rate": 0.44
+   }
+  ],
+  "credit_no_children": 777,
+  "credit_taper_threshold": 12000,
+  "credit_taper_per_1000": 20,
+  "source": "tax_2025"
+ },
+ "rental_tax": {
+  "brackets_2026": [
+   {
+    "upTo": 12000,
+    "rate": 0.15
+   },
+   {
+    "upTo": 24000,
+    "rate": 0.25
+   },
+   {
+    "upTo": 36000,
+    "rate": 0.35
+   },
+   {
+    "upTo": null,
+    "rate": 0.45
+   }
+  ],
+  "brackets_2025": [
+   {
+    "upTo": 12000,
+    "rate": 0.15
+   },
+   {
+    "upTo": 35000,
+    "rate": 0.35
+   },
+   {
+    "upTo": null,
+    "rate": 0.45
+   }
+  ],
+  "expense_deduction": 0.05,
+  "source": "rental_tax"
+ },
+ "tax_return": {
+  "card_spending_share": 0.3,
+  "card_spending_cap": 20000,
+  "card_penalty_rate": 0.22,
+  "filing_from": "15 Μαρτίου",
+  "filing_to": "15 Ιουλίου",
+  "filing_from_en": "15 March",
+  "filing_to_en": "15 July",
+  "installments": 8,
+  "discounts": [
+   {
+    "by": "15 Μαΐου",
+    "by_en": "15 May",
+    "rate": 0.04
+   },
+   {
+    "by": "15 Ιουνίου",
+    "by_en": "15 June",
+    "rate": 0.03
+   },
+   {
+    "by": "15 Ιουλίου",
+    "by_en": "15 July",
+    "rate": 0.02
+   }
+  ],
+  "source": "tax_return"
+ },
+ "transfer_tax": {
+  "rate": 0.03,
+  "municipal_surcharge": 0.03,
+  "first_home": {
+   "single": 200000,
+   "married": 250000,
+   "married_disabled": 275000,
+   "child_1_2": 25000,
+   "child_3_plus": 30000
+  },
+  "first_plot": {
+   "single": 50000,
+   "married": 100000,
+   "child_1_2": 10000,
+   "child_3_plus": 15000
+  },
+  "housing_needs_sqm": 70,
+  "housing_needs_sqm_disabled": 90,
+  "housing_needs_child_1_2": 25,
+  "housing_needs_child_3_plus": 30,
+  "source": "transfer_tax",
+  "housing_needs_min_population": 3000,
+  "first_home_hold_years": 5,
+  "parking_storage_max_sqm": 20
+ },
+ "business": {
+  "starter_first_bracket_cut": 0.5,
+  "starter_years": 3,
+  "starter_gross_limit": 10000,
+  "source": "business_tax"
+ },
+ "child_benefit": {
+  "_note": "Επίδομα παιδιού Α21, άρθρο 214 ν. 4512/2018 (ΟΠΕΚΑ).",
+  "weights": {
+   "parent1": 1,
+   "parent2": 0.5,
+   "child": 0.25,
+   "single_first_child": 0.5
+  },
+  "categories": [
+   {
+    "upTo": 6000,
+    "first_two": 70,
+    "third_plus": 140
+   },
+   {
+    "upTo": 10000,
+    "first_two": 42,
+    "third_plus": 84
+   },
+   {
+    "upTo": 15000,
+    "first_two": 28,
+    "third_plus": 56
+   }
+  ],
+  "installments_per_year": 6,
+  "max_age": 18,
+  "max_age_secondary": 19,
+  "max_age_studies": 24,
+  "residence_years": 5,
+  "residence_years_third_country": 12,
+  "payments_2026": [
+   "2026-03-31",
+   "2026-05-29",
+   "2026-07-30",
+   "2026-09-30"
+  ],
+  "extra_payment_2026": "2026-10-09",
+  "official_examples": [
+   {
+    "parents": 2,
+    "children": 2,
+    "income": 28000,
+    "monthly": 56
+   },
+   {
+    "parents": 2,
+    "children": 1,
+    "income": 26000,
+    "monthly": 28
+   },
+   {
+    "parents": 2,
+    "children": 2,
+    "income": 18800,
+    "monthly": 84
+   },
+   {
+    "parents": 2,
+    "children": 3,
+    "income": 13000,
+    "monthly": 280
+   },
+   {
+    "parents": 2,
+    "children": 2,
+    "income": 12000,
+    "monthly": 140
+   },
+   {
+    "parents": 2,
+    "children": 4,
+    "income": 14500,
+    "monthly": 420
+   },
+   {
+    "parents": 2,
+    "children": 4,
+    "income": 24500,
+    "monthly": 252
+   },
+   {
+    "parents": 2,
+    "children": 5,
+    "income": 27000,
+    "monthly": 336
+   },
+   {
+    "parents": 1,
+    "children": 3,
+    "income": 12000,
+    "monthly": 280
+   },
+   {
+    "parents": 1,
+    "children": 1,
+    "income": 9000,
+    "monthly": 70
+   },
+   {
+    "parents": 1,
+    "children": 2,
+    "income": 10500,
+    "monthly": 140
+   },
+   {
+    "parents": 2,
+    "children": 1,
+    "income": 14000,
+    "monthly": 42
+   }
+  ],
+  "source": "child_benefit",
+  "application_windows_2026": [
+   [
+    "2026-02-27",
+    "2026-03-11"
+   ],
+   [
+    "2026-03-31",
+    "2026-05-08"
+   ],
+   [
+    "2026-05-29",
+    "2026-07-10"
+   ],
+   [
+    "2026-07-31",
+    "2026-09-11"
+   ],
+   [
+    "2026-10-05",
+    "2026-11-13"
+   ]
+  ],
+  "recipients_2026": [
+   393985,
+   460803,
+   434267,
+   422148
+  ]
+ },
+ "birth_allowance": {
+  "amounts": [
+   2400,
+   2700,
+   3000,
+   3500
+  ],
+  "installments": 2,
+  "equivalent_income_limit": 40000,
+  "apply_within_months": 3,
+  "source": "birth_allowance"
+ },
+ "housing_benefit": {
+  "base": 70,
+  "per_member": 35,
+  "single_parent_extra": 35,
+  "unprotected_child_extra": 35,
+  "max": 210,
+  "income_base": 7000,
+  "income_per_member": 3500,
+  "income_max": 21000,
+  "property_base": 120000,
+  "property_per_member": 15000,
+  "property_max": 180000,
+  "deposits_base": 7000,
+  "deposits_per_member": 3500,
+  "deposits_max": 21000,
+  "residence_years": 5,
+  "source": "housing_benefit",
+  "private_school_fees_max": 1500
+ },
+ "heating": {
+  "season": "2025-2026",
+  "reference": {
+   "electricity": 380,
+   "pellet": 360,
+   "district": 350,
+   "wood": 350,
+   "gas": 325,
+   "oil": 300
+  },
+  "child_uplift": 0.2,
+  "min": 100,
+  "max": 800,
+  "cold_threshold": 1,
+  "cold_uplift": 0.25,
+  "cold_max": 1000,
+  "very_cold_threshold": 1.2,
+  "very_cold_uplift": 0.25,
+  "very_cold_max": 1200,
+  "purchase_multiple": 2,
+  "oil_price_per_litre": 1.14,
+  "income_single": 16000,
+  "income_couple": 24000,
+  "income_per_child": 5000,
+  "income_single_parent": 29000,
+  "business_turnover_max": 80000,
+  "property_single": 200000,
+  "property_couple": 260000,
+  "property_per_child": 40000,
+  "advance_returning_share": 0.6,
+  "advance_new_share": 0.5,
+  "advance_min": 80,
+  "wood_max_population": 10000,
+  "pellet_max_population": 25000,
+  "wood_pellet_min_sk": 0.8,
+  "application_deadline": "2025-12-05",
+  "advance_paid": "2025-12-23",
+  "balance_paid": "2026-05-29",
+  "source": "heating"
+ },
+ "unemployment": {
+  "daily_min_wage": 41.09,
+  "rate": 0.55,
+  "days_per_month": 25,
+  "monthly_base": 565.0,
+  "monthly_before_april_2026": 540.5,
+  "low_pay_bands": [
+   {
+    "maxDailyMultiple": 6,
+    "share": 0.5
+   },
+   {
+    "maxDailyMultiple": 12,
+    "share": 0.75
+   }
+  ],
+  "dependant_uplift": 0.1,
+  "duration": [
+   {
+    "minDays": 125,
+    "months": 5
+   },
+   {
+    "minDays": 150,
+    "months": 6
+   },
+   {
+    "minDays": 180,
+    "months": 8
+   },
+   {
+    "minDays": 220,
+    "months": 10
+   },
+   {
+    "minDays": 250,
+    "months": 12
+   }
+  ],
+  "age49_days": 210,
+  "age49_age": 49,
+  "career_days": 4050,
+  "first_claim_days_per_year": 80,
+  "max_days_4_years": 400,
+  "apply_within_days": 60,
+  "work_benefit_share": 0.5,
+  "source": "unemployment"
+ },
+ "rent_refund": {
+  "share": 0.08333333333333333,
+  "cap": 800,
+  "per_child": 50,
+  "student_cap": 800,
+  "income_single": 25000,
+  "income_couple": 35000,
+  "income_per_child": 5000,
+  "income_single_parent": 39000,
+  "income_single_2025": 20000,
+  "income_couple_2025": 28000,
+  "income_per_child_2025": 4000,
+  "income_single_parent_2025": 31000,
+  "property_base": 120000,
+  "property_per_member": 20000,
+  "lease_declared_by": "15 Ιουλίου",
+  "lease_declared_by_en": "15 July",
+  "paid_2025": "2025-11-28",
+  "official_examples": [
+   {
+    "rent": 12000,
+    "children": 0,
+    "refund": 800
+   },
+   {
+    "rent": 12000,
+    "children": 2,
+    "refund": 900
+   },
+   {
+    "rent": 6000,
+    "children": 2,
+    "refund": 500
+   },
+   {
+    "rent": 10800,
+    "children": 3,
+    "refund": 900
+   },
+   {
+    "rent": 8520,
+    "children": 0,
+    "refund": 710
+   },
+   {
+    "rent": 5100,
+    "children": 0,
+    "refund": 425
+   }
+  ],
+  "source": "rent_refund",
+  "art70a_cap": 1600,
+  "art70a_per_child": 100
+ },
+ "maternity": {
+  "efka_days": 119,
+  "efka_days_before": 56,
+  "efka_days_after": 63,
+  "efka_min_work_days": 200,
+  "efka_dependant_uplift": 0.1,
+  "special_months": 9,
+  "special_part_time_share": 0.5,
+  "special_transferable_to_father": 7,
+  "self_employed_months": 9,
+  "apply_within_days": 60,
+  "source": "maternity"
+ },
+ "student_housing": {
+  "base": 1500,
+  "regional": 2000,
+  "shared": 2000,
+  "regional_shared": 2500,
+  "income_limit": 30000,
+  "income_per_child_after_first": 3000,
+  "max_sqm": 200,
+  "small_town_population": 3000,
+  "min_lease_months": 6,
+  "source": "student_housing"
+ },
+ "widow": {
+  "spouse_share": 0.7,
+  "spouse_share_before_2019": 0.5,
+  "child_share": 0.25,
+  "orphan_share": 0.5,
+  "max_total": 1.0,
+  "lifetime_age": 55,
+  "temporary_years": 3,
+  "resume_age": 67,
+  "reduced_share": 0.5,
+  "min_marriage_years": 3,
+  "child_max_age": 24,
+  "disability": 0.67,
+  "source": "widow"
  }
 }

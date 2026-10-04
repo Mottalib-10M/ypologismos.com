@@ -7,11 +7,13 @@ import {
   pension, bonusNet, PARAMS as P, type Age, type Floor, type RoadCategory,
 } from './engine/gr';
 import { formatMoney, pct } from './format';
+import { CALCS_FOROI } from './calc-specs-foroi';
+import { CALCS_EPIDOMATA } from './calc-specs-epidomata';
 
 export type CalcValues = Record<string, number | string>;
 export interface CalcField {
   id: string; label: string; kind: 'number' | 'select' | 'toggle'; def: number | string;
-  unit?: string; max?: number; decimals?: number; help?: string; wide?: boolean;
+  unit?: string; max?: number; decimals?: number; help?: string; wide?: boolean; plain?: boolean;
   options?: Array<{ value: string; label: string }>; show?: (v: CalcValues) => boolean;
 }
 export interface CalcRow { label: string; value: string; strong?: boolean }
@@ -85,7 +87,7 @@ const SPECS: Record<string, (l: L) => CalcSpec> = {
   }),
   road: (l) => ({
     fields: [
-      { id: 'y', label: T(l, 'Έτος πρώτης ταξινόμησης (ΕΕ)', 'Year first registered (EU)'), kind: 'number', def: 2018, max: 2026, help: T(l, 'Πεδίο B της άδειας κυκλοφορίας.', 'Field B of the registration certificate.') },
+      { id: 'y', label: T(l, 'Έτος πρώτης ταξινόμησης (ΕΕ)', 'Year first registered (EU)'), kind: 'number', def: 2018, max: 2026, plain: true, help: T(l, 'Πεδίο B της άδειας κυκλοφορίας.', 'Field B of the registration certificate.') },
       { id: 'm', label: T(l, 'Μήνας', 'Month'), kind: 'number', def: 6, max: 12, help: T(l, 'Μετράει μόνο για το 2010 (από τον 11ο).', 'Only matters for 2010 (from month 11).') },
       { id: 'co2', label: T(l, 'Εκπομπές CO₂ (άδεια, πεδίο V.7)', 'CO₂ emissions (licence, field V.7)'), kind: 'number', def: 125, unit: 'g/km', max: 999, help: T(l, 'Χρησιμοποιείται για ταξινόμηση από 1.11.2010.', 'Used for cars registered from 1.11.2010.') },
       { id: 'cc', label: T(l, 'Κυβισμός', 'Engine size'), kind: 'number', def: 1400, unit: 'cc', max: 20000, help: T(l, 'Χρησιμοποιείται για ταξινόμηση έως 31.10.2010.', 'Used for cars registered up to 31.10.2010.') },
@@ -110,7 +112,7 @@ const SPECS: Record<string, (l: L) => CalcSpec> = {
     fields: [
       { id: 'sqm', label: T(l, 'Εμβαδόν κύριων χώρων', 'Main floor area'), kind: 'number', def: 85, unit: 'm²', max: 100000 },
       { id: 'zone', label: T(l, 'Τιμή ζώνης', 'Zone price'), kind: 'number', def: 1600, unit: '€/m²', max: 50000 },
-      { id: 'year', label: T(l, 'Έτος οικοδομικής άδειας', 'Building permit year'), kind: 'number', def: 1995, max: 2026 },
+      { id: 'year', label: T(l, 'Έτος οικοδομικής άδειας', 'Building permit year'), kind: 'number', def: 1995, max: 2026, plain: true },
       { id: 'floor', label: T(l, 'Όροφος', 'Floor'), kind: 'select', def: 'f2_3', options: [{ value: 'basement', label: T(l, 'Υπόγειο', 'Basement') }, { value: 'ground_1', label: T(l, 'Ισόγειο ή 1ος', 'Ground or 1st') }, { value: 'f2_3', label: T(l, '2ος ή 3ος', '2nd or 3rd') }, { value: 'f4_5', label: T(l, '4ος ή 5ος', '4th or 5th') }, { value: 'f6_up', label: T(l, '6ος και πάνω', '6th or higher') }, { value: 'detached', label: T(l, 'Μονοκατοικία', 'Detached house') }] },
       { id: 'fac', label: T(l, 'Προσόψεις', 'Street frontages'), kind: 'select', def: '1', options: [{ value: '0', label: '0' }, { value: '1', label: '1' }, { value: '2', label: T(l, '2 ή περισσότερες', '2 or more') }] },
       { id: 'share', label: T(l, 'Ποσοστό ιδιοκτησίας', 'Ownership share'), kind: 'number', def: 100, unit: '%', max: 100 },
@@ -215,7 +217,8 @@ function holidaySpec(l: L, which: 'christmas' | 'easter'): CalcSpec {
   };
 }
 
+const ALL_CALCS: Record<string, (l: L) => CalcSpec> = { ...SPECS, ...CALCS_FOROI, ...CALCS_EPIDOMATA };
 export function getCalc(kind: string, lang = 'el'): CalcSpec {
-  const f = SPECS[kind]; if (!f) throw new Error(`calc-spec inconnu : ${kind}`); return f(lang);
+  const f = ALL_CALCS[kind]; if (!f) throw new Error(`calc-spec inconnu : ${kind}`); return f(lang);
 }
-export const CALC_KINDS = Object.keys(SPECS);
+export const CALC_KINDS = Object.keys(ALL_CALCS);

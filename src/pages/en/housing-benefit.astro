@@ -1,0 +1,59 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P } from '../../lib/engine/gr';
+import { housingBenefit } from '../../lib/engine/epidomata';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const Y = P.year;
+const H = P.housing_benefit;
+const ex = housingBenefit({ members: 3, rent: 400, income: 11000, deposits: 3000 });
+const one = housingBenefit({ members: 1, rent: 380, income: 6500 });
+const minWageAnnual = P.minimum_wage.monthly * 14;
+const couple = housingBenefit({ members: 2, rent: 450, income: minWageAnnual });
+const checks = [
+  ['Lease', 'Electronic lease registered with AADE, on your main home'],
+  ['Landlord', 'Not a parent, child, spouse, ex-spouse or civil partner'],
+  ['Whole home', 'Renting a room or part of a flat does not qualify'],
+  ['Electricity', 'Account in the name of a household member'],
+  ['Residence', `${H.residence_years} years of legal, permanent residence (12 for most non-EU nationals)`],
+  ['Students', 'Under-25 students living alone are excluded'],
+];
+const faqs = [
+  { q: 'Can expats renting in Greece get the housing benefit?', a: `Yes, if the household has lived in Greece legally and permanently for ${H.residence_years} years, proven by tax returns filed on time; most non-EU nationals need twelve. EU citizens, recognised refugees and people of Greek origin come under the five-year rule. The lease must be electronic and on your main home, and every member’s income counts.` },
+  { q: 'Does a minimum-wage couple qualify for the Greek housing benefit?', a: `No. Fourteen minimum-wage payments of ${$(P.minimum_wage.monthly)} make ${$(minWageAnnual)} a year, already above the ${$(couple.incomeLimit)} limit for a two-person household, before counting any second income. The benefit is targeted at very low incomes: the ceiling is ${$(H.income_base)} for one person and never more than ${$(H.income_max)} whatever the household size.` },
+  { q: 'How is the housing benefit paid, and from when?', a: `Monthly, on the last working day, together with OPEKA’s other benefits. Entitlement starts on the first day of the month after you apply, so applying late in a month costs you nothing compared with the first day. The amount is never higher than your rent, and it stops if the lease ends or the household changes.` },
+  { q: 'Do savings stop me getting housing benefit?', a: `They can. Deposits, shares and bonds of the whole household must stay within ${$(H.deposits_base)} for one person, plus ${$(H.deposits_per_member)} per extra member, up to ${$(H.deposits_max)}. OPEKA also checks the interest declared on your tax return against what that ceiling would earn, so a large interest figure can trigger a rejection even if balances look low.` },
+];
+---
+<GuideLayout lang={lang} id="housing" breadcrumbLabel={label('housing', lang)}
+  title={`Housing Benefit Greece ${Y}: Amount, Income Limits, Rent`}
+  h1={`Greek housing benefit (epidoma stegasis) in ${Y}: amounts and limits`}
+  description={`Housing benefit Greece ${Y}: ${$(H.base)} to ${$(H.max)} a month from OPEKA for tenants. Check the amount and the income, property and savings limits for your household.`}
+  intro={`A monthly payment towards the rent of your main home, with tight income and asset limits.`}
+  resume={`A three-person household paying ${$(400)} a month in rent on a total income of ${$(11000)} receives ${$(ex.amount)} a month in Greek housing benefit, ${$(ex.annual)} a year. The benefit, paid by the welfare agency OPEKA under a 2019 ministerial decision implementing article 3 of Law 4472/2017, is ${$(H.base)} for the applicant and ${$(H.per_member)} for each additional member, with a ceiling of ${$(H.max)} a month and never more than the rent. The income limit starts at ${$(H.income_base)} for one person and rises by ${$(H.income_per_member)} per member, up to ${$(H.income_max)}, counting everyone’s income before tax, benefits included. Property is capped at ${$(H.property_max)} of ENFIA value and savings at ${$(H.deposits_max)}. An electronic lease and five years of legal residence are required. The calculator checks the three limits and gives the amount for your household.`}
+  faqs={faqs}
+  related={[{ href: route('rentrefund', lang), name: label('rentrefund', lang), description: 'One month of rent back each November, no application.' }, { href: route('heating', lang), name: label('heating', lang), description: 'Help with fuel bills, also open to tenants.' }, { href: route('student', lang), name: label('student', lang), description: 'The allowance for students renting in another town.' }]}
+  sources={[src('housing_benefit', lang), src('housing_benefit_law', lang), src('housing_benefit_kya', lang)]}>
+  <div data-outil><ToolCalc client:load kind="housing" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>The conditions on the home</h2>
+  <ContentTable headers={['Condition', 'Rule']} align={['l', 'l']} rows={checks} />
+  <p>Most refusals come from the first three lines rather than from income. A lease that was never registered on the AADE platform, a flat rented from a relative, or a room in a shared flat all disqualify the household outright, even with a very low income.</p>
+
+  <h2>Amounts and limits by household size</h2>
+  <div data-chrome><MiniSim client:load kind="housingtable" lang={lang} href={route('housing', lang)} /></div>
+  <p>A child counts as a full member, both for the amount and the limits. In a single-parent family the first minor child brings a double increment and lifts the income limit by a further {$(H.income_per_member)}; the same applies to each orphaned or unprotected child. A single person paying {$(380)} on {$(6500)} of income receives {$(one.amount)}.</p>
+
+  <h2>What counts as income</h2>
+  <p>Actual or deemed income from every source, before tax and after social contributions, for every member of the household, from the latest processed tax returns. Benefits and tax-free income count, with three exceptions: child benefit, non-contributory disability benefits and the foster-care allowance. A household that pays the luxury living tax, declares crew costs for a boat, pays private school fees above {$(H.private_school_fees_max)} or employs domestic staff is excluded.</p>
+
+  <h2>One point the official sources disagree on</h2>
+  <p>The 2019 decision and OPEKA’s FAQ describe a claim valid for twelve months with automatic renewal, while OPEKA’s main page now states that every claim lasts six months. We have not found the act behind the change, so check the expiry date shown on the platform rather than relying on either figure.</p>
+</GuideLayout>

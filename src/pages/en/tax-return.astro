@@ -1,0 +1,67 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { incomeTax, PARAMS as P } from '../../lib/engine/gr';
+import { taxReturn, rentalTax, cardSpending } from '../../lib/engine/foroi';
+import { formatMoney, pct } from '../../lib/format';
+const lang = 'en';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const p = (x: number) => pct(x, lang);
+const Y = P.year;
+const R = P.tax_return;
+const ex = { sal: 18000, rent: 6000, card: 6000 };
+const wh = incomeTax(ex.sal).tax;
+const r = taxReturn({ salaryTaxable: ex.sal, withheld: wh, rent: ex.rent, cardSpent: ex.card });
+const job2 = taxReturn({ salaryTaxable: 26000, withheld: incomeTax(14000).tax + incomeTax(12000).tax, cardSpent: 8000 });
+const rent30 = rentalTax(30000), rent30old = rentalTax(30000, 2025);
+const cg = cardSpending(32000, 3000);
+const timeline = [
+  [`${R.filing_from_en} ${Y + 1}`, `Returns for ${Y} income open on myAADE (Taxisnet)`],
+  [`by ${R.discounts[0].by_en}`, `File now and pay in full by the end of July: ${p(R.discounts[0].rate)} off`],
+  [`by ${R.discounts[1].by_en}`, `Same, ${p(R.discounts[1].rate)} off`],
+  [`by ${R.filing_to_en}`, `Last day to file; full payment still earns ${p(R.discounts[2].rate)}`],
+  ['last working day of July', `First of ${R.installments} monthly instalments`],
+];
+const faqs = [
+  { q: 'Do I have to file a Greek tax return if my employer already withholds tax?', a: `Yes. Every tax resident aged 18 or over declares all income, taxed or exempt, every year under article 67 of the Income Tax Code. Withholding is only a prepayment: the return settles the year, and for most salaried people with one employer all year it simply shows zero to pay. With rent, a second job or a mid-year change, there is usually a balance either way.` },
+  { q: 'I changed jobs in Greece during the year. Why do I owe tax now?', a: `Each employer withheld as if its salary were your only income for the year, so both applied the lower brackets. Combine ${$(14000)} and ${$(12000)} of taxable pay and the scale climbs into the higher bracket, while the article 16 reduction counts only once. In that example the return asks for ${$(job2.toPay)} more. The calculator shows it if you enter the total taxable income and the total withheld.` },
+  { q: 'How is rental income from a Greek flat taxed in 2026?', a: `Separately from your salary, on its own scale: ${p(P.rental_tax.brackets_2026[0].rate)} up to ${$(P.rental_tax.brackets_2026[0].upTo as number)}, then ${p(P.rental_tax.brackets_2026[1].rate)}, ${p(P.rental_tax.brackets_2026[2].rate)} and ${p(P.rental_tax.brackets_2026[3].rate)}, after a flat ${p(P.rental_tax.expense_deduction)} deduction for repairs and upkeep. On ${$(30000)} of rent that is ${$(rent30.tax)} for ${Y} income, against ${$(rent30old.tax)} on the ${Y - 1} scale.` },
+  { q: 'What counts towards the 30% card spending rule?', a: `Purchases of goods and services in Greece or the EU paid by card, bank transfer or e-wallet, grouped by consumer-price categories: food, clothing, utilities, health, transport, hotels and restaurants. Rent, road tax and buying a vehicle (bicycles aside) are excluded. The target is ${p(R.card_spending_share)} of your salary, pension and business income, capped at ${$(R.card_spending_cap)}, and any shortfall is taxed at ${p(R.card_penalty_rate)}.` },
+  { q: 'Can I pay my Greek income tax in instalments?', a: `Yes, in ${R.installments} equal monthly instalments, the first due on the last working day of July and the rest at the end of each following month, through February. There is no interest if you pay on time. Paying everything by the first deadline instead gives a ${p(R.discounts[0].rate)}, ${p(R.discounts[1].rate)} or ${p(R.discounts[2].rate)} discount depending on how early you filed.` },
+];
+---
+<GuideLayout lang={lang} id="taxreturn" breadcrumbLabel={label('taxreturn', lang)}
+  title={`Tax Return Greece for ${Y} Income: Tax Due and Instalments`}
+  h1={`Greek tax return: what you will owe on your ${Y} income`}
+  description={`Greek tax return ${Y + 1} for ${Y} income: work out the tax on your salary or pension and on rent, the ${p(R.card_penalty_rate)} card spending penalty, ${R.installments} instalments and up to ${p(R.discounts[0].rate)} off.`}
+  intro={`What the return asks you to pay is the year’s tax minus what was already withheld, plus rent, which is taxed on its own.`}
+  resume={`An employee with ${$(ex.sal)} of taxable salary and ${$(ex.rent)} of rent a year will find ${$(r.toPay)} to pay on the Greek tax return for ${Y} income. The salary tax of ${$(r.salaryTax)} has already been withheld month by month, so in practice the return only charges the rent: ${$(ex.rent)} minus a flat ${p(P.rental_tax.expense_deduction)} for expenses, at ${p(P.rental_tax.brackets_2026[0].rate)}. Returns are filed on myAADE between ${R.filing_from_en} and ${R.filing_to_en} ${Y + 1}. The bill can be paid in ${R.installments} monthly instalments of ${$(r.installment)}, or in one go with a ${p(R.discounts[0].rate)} discount if you file by ${R.discounts[0].by_en}. If your card payments fall short of ${p(R.card_spending_share)} of your income, a penalty is added on top. Enter the figures from your annual earnings statement (βεβαίωση αποδοχών) and the calculator settles the year for you, refund or bill.`}
+  faqs={faqs}
+  related={[{ href: route('incometax', lang), name: label('incometax', lang), description: 'The scale itself, and how much less you pay than in 2025.' }, { href: route('withholding', lang), name: label('withholding', lang), description: 'How the monthly withholding that the return offsets is worked out.' }, { href: route('youth', lang), name: label('youth', lang), description: 'Under 30? The first two brackets are lower for you.' }]}
+  sources={[src('tax_return', lang), src('card_spending', lang), src('rental_tax', lang), src('rental_expenses', lang), src('tax_scale', lang), src('tax_credit', lang)]}>
+  <div data-outil><ToolCalc client:load kind="taxreturn" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>The filing calendar for {Y} income</h2>
+  <ContentTable headers={['Date', 'What happens']} align={['l', 'l']} rows={timeline} />
+  <p>The return (form E1, with E2 for rented property) is pre-filled by AADE from the statements your employer, pension fund, bank and tenants’ declarations send in. Pre-filled does not mean correct: check the dependants, the rent figures and any income from abroad before you submit. Married couples and registered partners file one joint return, but the tax is calculated for each spouse separately and only shown on the same assessment.</p>
+
+  <h2>Why the balance is rarely zero when you have a second income</h2>
+  <p>Monthly withholding assumes the salary you are paid is your whole year. Anything else, a second employer, a few months of a better-paid job, a flat let to tenants, is invisible to the payroll and only meets the scale on the return. A second salary pushes you into higher brackets and does not bring a second article 16 reduction; rent never had any withholding at all. That is why expats who let their home country flat, or who joined a Greek employer in spring after a few months elsewhere, almost always receive a bill rather than a refund.</p>
+
+  <h2>Rent: the new {p(P.rental_tax.brackets_2026[1].rate)} band</h2>
+  <p>Law 5246/2025 split the old {p(P.rental_tax.brackets_2025[1].rate)} band that began straight after {$(P.rental_tax.brackets_2025[0].upTo as number)}, inserting a {p(P.rental_tax.brackets_2026[1].rate)} rate up to {$(P.rental_tax.brackets_2026[1].upTo as number)} and moving the top {p(P.rental_tax.brackets_2026[3].rate)} band to income above {$(P.rental_tax.brackets_2026[2].upTo as number)}. It applies from tax year {Y}, so the first returns to use it are those filed in {Y + 1}.</p>
+  <div data-chrome><MiniSim client:load kind="rentscale" lang={lang} href={route('taxreturn', lang)} /></div>
+
+  <h2>The card spending test, in euros</h2>
+  <p>On an income of {$(32000)} you need {$(cg.required)} of eligible electronic spending. Declare only {$(3000)} and the missing {$(cg.shortfall)} costs {$(cg.penalty)} in extra tax. Over-70s, people with a disability of 80% or more, recipients of the minimum guaranteed income (ΚΕΑ) and residents of villages of up to 500 inhabitants are exempt from the rule.</p>
+  <div data-chrome><MiniSim client:load kind="cardgap" lang={lang} href={route('taxreturn', lang)} /></div>
+
+  <h2>Pay at once or spread it?</h2>
+  <div data-chrome><MiniSim client:load kind="lumpsum" lang={lang} href={route('taxreturn', lang)} /></div>
+  <p>The calculator does not cover business or farming income, the deemed-income tests or special exemptions such as long-term lease relief. For the tax on each payslip, use the <a href={route('home', lang)}>Greek salary calculator</a>.</p>
+</GuideLayout>

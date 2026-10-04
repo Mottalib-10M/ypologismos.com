@@ -1,0 +1,50 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P } from '../../lib/engine/gr';
+import { transferTax, firstHomeLimit } from '../../lib/engine/foroi';
+import { formatMoney, formatNumber, pct } from '../../lib/format';
+const lang = 'el';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const p = (x: number) => pct(x, lang);
+const X = P.transfer_tax;
+const ex = transferTax({ price: 180000, objective: 150000 });
+const fh = transferTax({ price: 280000, firstHome: true, status: 'married', children: 1 });
+const limRows = [0, 1, 2, 3, 4].map((k) => [String(k), $(firstHomeLimit('single', k)), $(firstHomeLimit('married', k)), $(firstHomeLimit('married', k, true))]);
+const valRows = [50000, 100000, 150000, 250000, 400000].map((v) => { const t = transferTax({ price: v }); return [$(v), $(t.main), $(t.municipal), $(t.total)]; });
+const faqs = [
+  { q: 'Πόσο είναι ο φόρος μεταβίβασης ακινήτου;', a: `${p(X.rate)} της φορολογητέας αξίας, συν ${p(X.municipal_surcharge)} του φόρου υπέρ των δήμων, δηλαδή ${p(X.rate * (1 + X.municipal_surcharge))} συνολικά. Φορολογητέα αξία είναι η αντικειμενική αξία ή το τίμημα του συμβολαίου, όποιο είναι μεγαλύτερο. Για ακίνητο ${$(100000)} ο αγοραστής πληρώνει ${$(transferTax({ price: 100000 }).total)}, εφάπαξ, με την υποβολή της δήλωσης.` },
+  { q: 'Μέχρι ποιο ποσό ισχύει η απαλλαγή πρώτης κατοικίας;', a: `${$(X.first_home.single)} για άγαμο και ${$(X.first_home.married)} για έγγαμο ή μέρος συμφώνου συμβίωσης, συν ${$(X.first_home.child_1_2)} για καθένα από τα δύο πρώτα παιδιά και ${$(X.first_home.child_3_plus)} από το τρίτο. Για οικόπεδο τα όρια είναι ${$(X.first_plot.single)} και ${$(X.first_plot.married)}. Στο ποσό της απαλλαγής περιλαμβάνονται μία θέση στάθμευσης και μία αποθήκη έως ${X.parking_storage_max_sqm} m² η καθεμία.` },
+  { q: 'Ποιος πληρώνει τον φόρο μεταβίβασης, ο αγοραστής ή ο πωλητής;', a: `Ο αγοραστής, σύμφωνα με το άρθρο 24 του Κώδικα Φορολογίας Περιουσίας. Ο φόρος πληρώνεται εφάπαξ με την υποβολή της κοινής δήλωσης στην ΑΑΔΕ, πριν από την υπογραφή του συμβολαίου, και το αποδεικτικό το ζητά ο συμβολαιογράφος. Ο πωλητής μπορεί να έχει άλλες υποχρεώσεις, όπως φόρο υπεραξίας, που δεν αφορούν αυτόν τον φόρο.` },
+  { q: 'Πληρώνω φόρο μεταβίβασης σε καινούργιο διαμέρισμα;', a: `Στα νεόδμητα ισχύει κανονικά ΦΠΑ αντί για φόρο μεταβίβασης, αλλά ο ΦΠΑ είναι σε αναστολή και για το ${P.year}, σύμφωνα με το άρθρο 12 του ν. 5246/2025. Όσο ισχύει η αναστολή, η αγορά νεόδμητου επιβαρύνεται με φόρο μεταβίβασης ${p(X.rate)}, όπως και μια μεταπώληση. Ο υπολογιστής εφαρμόζει τον φόρο μεταβίβασης.` },
+];
+---
+<GuideLayout lang={lang} id="transfer" breadcrumbLabel={label('transfer', lang)}
+  title={`Φόρος μεταβίβασης ${P.year}: υπολογισμός ${p(X.rate)} και πρώτη κατοικία`}
+  h1={`Φόρος μεταβίβασης ακινήτου ${P.year}: πόσα πληρώνει ο αγοραστής`}
+  description={`Φόρος μεταβίβασης ακινήτου ${P.year}: ${p(X.rate)} της αξίας συν ${p(X.municipal_surcharge)} υπέρ δήμων, απαλλαγή πρώτης κατοικίας έως ${$(X.first_home.single)} ή ${$(X.first_home.married)} συν παιδιά. Υπολογίστε τον δικό σας.`}
+  intro={`Ένας απλός συντελεστής, με δύο λεπτομέρειες που αλλάζουν το ποσό: ποια αξία φορολογείται, και πόσο καλύπτει η απαλλαγή της πρώτης κατοικίας.`}
+  resume={`Για ένα διαμέρισμα που αγοράζεται ${$(180000)} με αντικειμενική αξία ${$(150000)}, ο αγοραστής πληρώνει φόρο μεταβίβασης ${$(ex.total)}: ${p(X.rate)} επί ${$(ex.value)}, δηλαδή ${$(ex.main)}, και ${p(X.municipal_surcharge)} αυτού του ποσού υπέρ των δήμων, ${$(ex.municipal)}. Ο Κώδικας Φορολογίας Περιουσίας (ν. 5219/2025) ορίζει στο άρθρο 25 ότι φορολογείται η μεγαλύτερη από την αντικειμενική αξία και το τίμημα, και στο άρθρο 27 τον συντελεστή. Η πρώτη κατοικία απαλλάσσεται έως ${$(X.first_home.single)} για άγαμο και ${$(X.first_home.married)} για ζευγάρι, συν ${$(X.first_home.child_1_2)} για καθένα από τα δύο πρώτα παιδιά και ${$(X.first_home.child_3_plus)} για κάθε επόμενο, αν ο αγοραστής και η οικογένειά του δεν έχουν ήδη σπίτι που καλύπτει τις ανάγκες τους. Ένα ζευγάρι με ένα παιδί που αγοράζει πρώτη κατοικία ${$(280000)} πληρώνει φόρο μόνο στο ποσό πάνω από το όριο: ${$(fh.total)}. Ο υπολογιστής κάνει τον λογαριασμό και για οικόπεδο.`}
+  faqs={faqs}
+  related={[{ href: route('enfia', lang), name: label('enfia', lang), description: 'Ο ετήσιος φόρος που θα πληρώνετε μετά την αγορά.' }, { href: route('zone', lang), name: label('zone', lang), description: 'Η τιμή ζώνης από την οποία βγαίνει η αντικειμενική αξία.' }, { href: route('taxreturn', lang), name: label('taxreturn', lang), description: 'Αν νοικιάσετε το ακίνητο, ο φόρος των ενοικίων.' }]}
+  sources={[src('transfer_tax', lang), src('transfer_value', lang), src('first_home', lang), src('first_home_needs', lang), src('vat_new_build', lang)]}>
+  <div data-outil><ToolCalc client:load kind="transfer" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>Ο φόρος για διάφορες αξίες</h2>
+  <ContentTable headers={['Φορολογητέα αξία', `Φόρος ${p(X.rate)}`, 'Υπέρ δήμων', 'Σύνολο']} align={['r', 'r', 'r', 'r']} rows={valRows} />
+  <p>Αν το τίμημα είναι χαμηλότερο από την αντικειμενική αξία, πληρώνετε στην αντικειμενική· αν είναι υψηλότερο, στο τίμημα. Η αντικειμενική αξία υπολογίζεται από την <a href={route('zone', lang)}>τιμή ζώνης</a> και τους συντελεστές του ακινήτου, και τη βεβαιώνει μηχανικός ή συμβολαιογράφος στο φύλλο υπολογισμού.</p>
+  <div data-chrome><MiniSim client:load kind="transfervalue" lang={lang} href={route('transfer', lang)} /></div>
+
+  <h2>Τα όρια της απαλλαγής πρώτης κατοικίας</h2>
+  <ContentTable headers={['Παιδιά', 'Άγαμος, κατοικία', 'Έγγαμος, κατοικία', 'Έγγαμος, οικόπεδο']} align={['l', 'r', 'r', 'r']} rows={limRows} />
+  <p>Η απαλλαγή δίνεται για αγορά ολόκληρου του ακινήτου, κατά πλήρη κυριότητα, από αγοραστή που κατοικεί μόνιμα στην Ελλάδα ή θα εγκατασταθεί, Έλληνα, ομογενή ή πολίτη της ΕΕ. Οι στεγαστικές ανάγκες θεωρούνται ήδη καλυμμένες αν η οικογένεια έχει κατοικία {X.housing_needs_sqm} m², συν {X.housing_needs_child_1_2} m² για καθένα από τα δύο πρώτα παιδιά και {X.housing_needs_child_3_plus} m² για κάθε επόμενο, σε περιοχή άνω των {formatNumber(X.housing_needs_min_population, 0, lang)} κατοίκων. Δεν ισχύει για αγορά από γονείς ή από σύζυγο. Το ακίνητο πρέπει να μείνει στον αγοραστή για {X.first_home_hold_years} χρόνια, αλλιώς ο φόρος καταβάλλεται.</p>
+  <div data-chrome><MiniSim client:load kind="firsthome" lang={lang} href={route('transfer', lang)} /></div>
+
+  <h2>Τι δεν υπολογίζει</h2>
+  <p>Δεν υπολογίζει γονική παροχή, δωρεά ή κληρονομιά, που έχουν δικές τους κλίμακες, ούτε τη μεταβίβαση ψιλής κυριότητας ή επικαρπίας με τους συντελεστές ηλικίας. Δεν περιλαμβάνει τα έξοδα του συμβολαιογράφου, του κτηματολογίου και του δικηγόρου, που προστίθενται στον φόρο.</p>
+</GuideLayout>

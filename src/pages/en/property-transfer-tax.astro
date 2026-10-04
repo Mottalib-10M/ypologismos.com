@@ -1,0 +1,54 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P } from '../../lib/engine/gr';
+import { transferTax, firstHomeLimit } from '../../lib/engine/foroi';
+import { formatMoney, pct } from '../../lib/format';
+const lang = 'en';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const p = (x: number) => pct(x, lang);
+const X = P.transfer_tax;
+const ex = transferTax({ price: 250000, objective: 190000 });
+const low = transferTax({ price: 120000, objective: 140000 });
+const steps = [
+  ['Value', 'Contract price or objective (zone-based) value, whichever is higher'],
+  ['Rate', `${p(X.rate)} of that value`],
+  ['Municipal surcharge', `${p(X.municipal_surcharge)} of the tax, so ${p(X.rate * (1 + X.municipal_surcharge))} in all`],
+  ['Who pays', 'The buyer, in one go, when the joint declaration is filed before the contract'],
+  ['First home', `Exempt up to ${$(X.first_home.single)} (single) or ${$(X.first_home.married)} (married), plus children`],
+];
+const faqs = [
+  { q: 'Can a foreign buyer claim the Greek first-home exemption?', a: `Only certain buyers: Greek citizens, people of Greek origin from specific countries and EU citizens, who live permanently in Greece or intend to settle there, buying a whole property in full ownership. Other non-EU buyers, including most golden-visa investors, pay the full ${p(X.rate * (1 + X.municipal_surcharge))}. The family must not already own a home that meets its housing needs in a place of over ${X.housing_needs_min_population} inhabitants.` },
+  { q: 'How much is property transfer tax on a €250,000 flat in Greece?', a: `It depends on which value is higher. With a price of ${$(250000)} and an objective value of ${$(190000)}, the tax is charged on the price: ${$(ex.main)} plus ${$(ex.municipal)} for the municipality, ${$(ex.total)} in total. If the objective value were higher than the price, the tax would be charged on that instead, as in a purchase at ${$(120000)} with a ${$(140000)} objective value: ${$(low.total)}.` },
+  { q: 'Is there transfer tax on new-build property in Greece in 2026?', a: `New builds are normally subject to VAT instead, but VAT on new buildings is suspended for ${P.year} as well, under article 12 of Law 5246/2025. While the suspension lasts, buying a new flat triggers the ordinary ${p(X.rate)} transfer tax, like a resale. Notary, land registry and lawyer fees come on top in every case.` },
+  { q: 'Do I lose the first-home exemption if I sell quickly?', a: `Yes, if you sell within ${X.first_home_hold_years} years. The exemption is granted on condition that you keep the property for at least ${X.first_home_hold_years} years; selling earlier, or granting another right over it other than a mortgage, means declaring and paying the tax first, calculated on the value at the time of the new sale.` },
+];
+---
+<GuideLayout lang={lang} id="transfer" breadcrumbLabel={label('transfer', lang)}
+  title={`Property Transfer Tax Greece ${P.year}: ${p(X.rate)}, First-Home Relief`}
+  h1={`Property transfer tax in Greece (${P.year}): what the buyer pays`}
+  description={`Property transfer tax Greece ${P.year}: ${p(X.rate)} of the value plus ${p(X.municipal_surcharge)} for the municipality, and the first-home exemption up to ${$(X.first_home.single)} or ${$(X.first_home.married)} plus children.`}
+  intro={`One flat rate, two details that change the bill: which value is taxed, and how far the first-home exemption reaches.`}
+  resume={`For a flat bought at ${$(250000)} with an objective value of ${$(190000)}, the buyer pays ${$(ex.total)} in Greek property transfer tax: ${p(X.rate)} of ${$(ex.value)}, which is ${$(ex.main)}, plus ${p(X.municipal_surcharge)} of that sum for the municipality, ${$(ex.municipal)}. The Property Tax Code (Law 5219/2025) taxes the higher of the contract price and the objective value, the official zone-based valuation (article 25), at the rate set in article 27. A first home is exempt up to ${$(X.first_home.single)} for a single buyer and ${$(X.first_home.married)} for a couple, plus ${$(X.first_home.child_1_2)} for each of the first two children and ${$(X.first_home.child_3_plus)} for each further child, if the family does not already own a suitable home; the exemption covers the value up to that limit. It is open to Greek and EU citizens living in Greece, not to most other foreign buyers. The tax is paid once, by the buyer, before signing. The calculator works it out for a home or a plot.`}
+  faqs={faqs}
+  related={[{ href: route('enfia', lang), name: label('enfia', lang), description: 'The yearly property tax you will pay after buying.' }, { href: route('zone', lang), name: label('zone', lang), description: 'The zone price behind the objective value.' }, { href: route('taxreturn', lang), name: label('taxreturn', lang), description: 'If you let the property, the tax on rent.' }]}
+  sources={[src('transfer_tax', lang), src('transfer_value', lang), src('first_home', lang), src('first_home_needs', lang), src('vat_new_build', lang)]}>
+  <div data-outil><ToolCalc client:load kind="transfer" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>The rules in five lines</h2>
+  <ContentTable headers={['Item', 'Rule']} align={['l', 'l']} rows={steps} />
+  <p>The objective value is computed from the <a href={route('zone', lang)}>zone price</a> and the property’s coefficients, and is certified on a value sheet by an engineer or the notary. Declaring a price below it saves nothing, because the higher of the two is taxed anyway.</p>
+  <div data-chrome><MiniSim client:load kind="transfervalue" lang={lang} href={route('transfer', lang)} /></div>
+
+  <h2>First-home exemption limits</h2>
+  <div data-chrome><MiniSim client:load kind="firsthome" lang={lang} href={route('transfer', lang)} /></div>
+  <p>Housing needs count as already met if the family owns {X.housing_needs_sqm} m², plus {X.housing_needs_child_1_2} m² for each of the first two children and {X.housing_needs_child_3_plus} m² for each further child. A parking space and a storage room of up to {X.parking_storage_max_sqm} m² each, bought in the same contract and building, fall within the exemption amount. Buying from a parent, a child or a spouse never qualifies. A married couple with two children can buy a first home worth up to {$(firstHomeLimit('married', 2))} without transfer tax.</p>
+
+  <h2>What this calculator leaves out</h2>
+  <p>Gifts from parents, donations and inheritances, which have their own scales, the transfer of bare ownership or usufruct with age coefficients, and the costs of the notary, land registry and lawyer.</p>
+</GuideLayout>

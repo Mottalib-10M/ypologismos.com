@@ -1,0 +1,57 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P, salary } from '../../lib/engine/gr';
+import { unemploymentBenefit } from '../../lib/engine/epidomata';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const $ = (x: number) => formatMoney(x, 2, lang);
+const $0 = (x: number) => formatMoney(x, 0, lang);
+const Y = P.year;
+const U = P.unemployment;
+const ex = unemploymentBenefit({ days: 200, avgPay: 1100, age: 35 });
+const one = unemploymentBenefit({ days: 250, dependants: 1 });
+const replace = [1100, 1500, 2200, 3500].map((g) => { const net = salary({ gross: g }).netPer12; return [$0(g), $0(net), $(U.monthly_base), `${Math.round(U.monthly_base / net * 100)}%`]; });
+const route5 = [
+  ['Dismissal or end of a fixed-term contract', 'Yes'],
+  ['Resignation', 'No'],
+  ['First claim', `125 days in the 14 months (or 200 in two years) and ${U.first_claim_days_per_year} days in each of the two previous years`],
+  ['Repeat claim', `125 days in the 14 months, no more than ${U.max_days_4_years} daily benefits in the last four years`],
+  ['Deadline', `${U.apply_within_days} days after the contract ends`],
+];
+const faqs = [
+  { q: 'Can foreigners get unemployment benefit in Greece?', a: `Yes. The benefit is insurance-based: what counts is the number of days you were insured in Greece through e-EFKA, not your nationality. EU citizens can also add insurance periods from another EU country with the U1 form. You must have been dismissed or reached the end of a fixed-term contract, register with DYPA as unemployed and apply within ${U.apply_within_days} days.` },
+  { q: 'Is Greek unemployment benefit a percentage of my salary?', a: `No, it is a flat amount tied to the statutory minimum daily wage: ${$(U.monthly_base)} a month since 1 April ${Y}, whatever you earned. Only very low earners get less, 75% or 50% of it. For someone on ${$0(2200)} gross that is ${Math.round(U.monthly_base / salary({ gross: 2200 }).netPer12 * 100)}% of their previous net pay, so savings or severance matter more than in most of Europe.` },
+  { q: 'How long does unemployment benefit last in Greece?', a: `Between 5 and 12 months, depending on the days you were insured in the 14 months before the job ended, leaving out the last two months: 5 months from 125 days, 12 months from 250. If you are ${U.age49_age} or older, ${U.age49_days} days are enough for 12 months, as are ${U.career_days} days of insurance over your whole career.` },
+  { q: 'Does unemployment benefit go up with a family?', a: `Yes, by ${Math.round(U.dependant_uplift * 100)}% per dependant: a spouse, children up to 24 if unemployed or 26 if studying, and parents insured through you. One dependant brings the monthly amount to ${$(one.monthly)}. Seasonal Christmas and Easter extras are paid too, in proportion to the months of benefit in each period.` },
+];
+---
+<GuideLayout lang={lang} id="unemployment" breadcrumbLabel={label('unemployment', lang)}
+  title={`Unemployment Benefit Greece ${Y}: ${$0(U.monthly_base)} a Month, Duration`}
+  h1={`Unemployment benefit in Greece (${Y}): how much and for how long`}
+  description={`Unemployment benefit Greece ${Y}: ${$(U.monthly_base)} a month from DYPA, plus ${Math.round(U.dependant_uplift * 100)}% per dependant, for 5 to 12 months. Amount and duration from your insured days and pay.`}
+  intro={`The amount is almost the same for everyone. What differs is the number of months, which depends on how many days you worked.`}
+  resume={`An employee dismissed after 200 insured days in the 14 months before the contract ended receives ${$(ex.monthly)} a month in unemployment benefit for ${ex.months} months, ${$0(ex.total)} in total. Since 1 April ${Y}, when the minimum wage rose, the basic amount paid by DYPA, the Greek public employment service, has been ${$(U.monthly_base)}: ${U.days_per_month} daily benefits, each worth ${Math.round(U.rate * 100)}% of the statutory minimum daily wage of ${$(U.daily_min_wage)}. Each dependant adds ${Math.round(U.dependant_uplift * 100)}%. Duration runs from 5 months for ${U.duration[0].minDays} days to 12 months from ${U.duration[U.duration.length - 1].minDays} days, or from ${U.age49_days} days for claimants aged ${U.age49_age} or more. Only people whose average pay over the last six months was below twelve minimum daily wages a month get a reduced rate. The benefit is not a share of your salary, which surprises many people arriving from elsewhere in Europe. Enter your insured days and pay to see the amount, the months and the total.`}
+  faqs={faqs}
+  related={[{ href: route('severance', lang), name: label('severance', lang), description: 'What your employer owes you on dismissal.' }, { href: route('notice', lang), name: label('notice', lang), description: 'The notice period before a dismissal.' }, { href: route('housing', lang), name: label('housing', lang), description: 'OPEKA’s help with rent on a low income.' }]}
+  sources={[src('unemployment', lang), src('unemployment_rules', lang), src('min_wage', lang)]}>
+  <div data-outil><ToolCalc client:load kind="unemployment" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>Who can claim</h2>
+  <ContentTable headers={['Situation', 'Rule']} align={['l', 'l']} rows={route5} />
+  <p>Benefit starts on the seventh day if you apply within a week of the contract ending, otherwise from the day you apply, so every day of delay is a day lost. Apply online through DYPA or gov.gr with your TAXISnet credentials.</p>
+  <div data-chrome><MiniSim client:load kind="unempduration" lang={lang} href={route('unemployment', lang)} /></div>
+
+  <h2>What it replaces of your income</h2>
+  <ContentTable headers={['Gross pay', 'Net a month (12-month basis)', 'Benefit', 'Replacement']} align={['r', 'r', 'r', 'r']} rows={replace} />
+  <p>Because the benefit is flat, the share of income it replaces falls quickly as pay rises. That is the main difference from the systems in Germany, France or the Netherlands, where benefits are a percentage of previous pay. A pilot scheme with pay-related, gradually decreasing amounts has been tested on about 15,000 randomly selected claimants, but it has not been extended to everyone.</p>
+  <div data-chrome><MiniSim client:load kind="unempraise" lang={lang} href={route('unemployment', lang)} /></div>
+
+  <h2>Working while on benefit</h2>
+  <p>If you take a job while still entitled, DYPA’s work benefit lets you keep {Math.round(U.work_benefit_share * 100)}% of the basic amount, {$(U.monthly_base * U.work_benefit_share)} a month, for the rest of the benefit period. It replaces the unemployment benefit rather than adding to it, and it is meant to make taking a lower-paid job worthwhile.</p>
+</GuideLayout>

@@ -48,6 +48,20 @@ export const ROUTES: RouteDef<Locale>[] = [
   R('national', 'ethniki-syntaxi/', 'national-pension/'),
   R('uniformed', 'syntaxi-enstolon/', 'uniformed-services-pension/'),
   R('retireage', 'oria-ilikias-syntaxis/', 'retirement-age/'),
+  // Επιδόματα
+  R('childben', 'epidoma-paidiou/', 'child-benefit/'),
+  R('childpay', 'epidoma-paidiou-pliromi/', 'child-benefit-payment-dates/'),
+  R('heating', 'epidoma-thermansis/', 'heating-allowance/'),
+  R('housing', 'epidoma-stegasis/', 'housing-benefit/'),
+  R('unemployment', 'epidoma-anergias/', 'unemployment-benefit/'),
+  R('rentrefund', 'epistrofi-enoikiou/', 'rent-refund/'),
+  R('maternity', 'epidoma-mitrotitas/', 'maternity-benefit/'),
+  R('student', 'foititiko-stegastiko-epidoma/', 'student-housing-allowance/'),
+  R('widow', 'syntaxi-xireias/', 'survivors-pension/'),
+  // Φόροι της χρονιάς
+  R('taxreturn', 'forologiki-dilosi/', 'tax-return/'),
+  R('incometax', 'foros-eisodimatos/', 'income-tax-calculator/'),
+  R('transfer', 'foros-metavivasis/', 'property-transfer-tax/'),
   // Σελίδες «πόσα καθαρά από Χ μικτά»
   ...AMOUNTS.map((a) => R(`amount-${a}`, `${a}-mikta-se-kathara/`, `${a}-euro-gross-to-net/`)),
   // Σελίδες υπηρεσίας

@@ -1,0 +1,51 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P } from '../../lib/engine/gr';
+import { studentHousing } from '../../lib/engine/epidomata';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const S = P.student_housing;
+const ex = studentHousing({ regional: false, shared: true, income: 28000, children: 1 });
+const two = studentHousing({ regional: false, shared: false, children: 2 });
+const reqs = [
+  ['Student', 'Greek or EU citizen, Greek tax resident, academic ID, within the normal length of the degree, no previous degree'],
+  ['Progress', 'First year: enrolled. Later years: at least half of last year’s courses passed'],
+  ['Lease', `Electronic lease of at least ${S.min_lease_months} months in the town of the university, a different town from the family home`],
+  ['Family home', `No home owned in the town of study; all family homes together up to ${S.max_sqm} m² (homes in places under ${S.small_town_population} inhabitants not counted)`],
+  ['Income', `${$(S.income_limit)} plus ${$(S.income_per_child_after_first)} per dependent child after the first`],
+];
+const faqs = [
+  { q: 'Can EU students studying in Greece get the student housing allowance?', a: `The student must be a Greek or EU citizen with a Greek tax number and be a Greek tax resident, and the claim normally goes through the parent who declares the student as a dependant. A student who is over 25, files their own return, is an orphan or whose parents live abroad can claim personally. Students from outside the EU are not covered by this allowance.` },
+  { q: 'How much is the Greek student housing allowance for 2025-2026?', a: `${$(S.base)} a year for a student at a university in Attica or Thessaloniki, ${$(S.regional)} anywhere else, and ${$(S.shared)} or ${$(S.regional_shared)} respectively when the student shares the rented flat with another student. There is no separate supplement for islands; what matters is where the institution is.` },
+  { q: 'When is the student housing allowance paid?', a: `Each university pays it once the Ministry of Education has transferred the funds, so the date varies by institution. For 2025-2026 the applications ran from 30 June to 31 July 2026 and reopened from 17 to 22 September; Patras, for example, received its full allocation for processed claims on 1 October 2026.` },
+];
+---
+<GuideLayout lang={lang} id="student" breadcrumbLabel={label('student', lang)}
+  title={`Student Housing Allowance Greece 2025-26: ${$(S.base)} to ${$(S.regional_shared)}`}
+  h1={`Greek student housing allowance 2025-2026: amounts and conditions`}
+  description={`Student housing allowance Greece 2025-2026: ${$(S.base)}, ${$(S.regional)} or ${$(S.regional_shared)} a year by town and flat-sharing, income limit ${$(S.income_limit)}. Check if you qualify and how much.`}
+  intro={`A yearly payment for families who pay rent because their child studies in another town.`}
+  resume={`A family with one child and ${$(28000)} of income, whose student shares a rented flat with another student in Athens, receives a student housing allowance of ${$(ex.amount)} for the 2025-2026 academic year. The allowance under article 10 of Law 3220/2004 is ${$(S.base)} for studies in Attica or Thessaloniki and ${$(S.regional)} for a university anywhere else, rising to ${$(S.shared)} and ${$(S.regional_shared)} when the student shares the flat with another student. Family income for 2025 must not exceed ${$(S.income_limit)}, plus ${$(S.income_per_child_after_first)} for each dependent child after the first, so ${$(two.limit)} for a family with two children. The student needs a lease of at least ${S.min_lease_months} months in a town other than the family home, must have passed half of last year’s courses, and the family’s homes must not exceed ${S.max_sqm} m² in total. Each university pays the allowance once funds arrive from the Ministry of Education. The calculator gives the amount for your situation.`}
+  faqs={faqs}
+  related={[{ href: route('rentrefund', lang), name: label('rentrefund', lang), description: 'The rent refund also covers student flats.' }, { href: route('childben', lang), name: label('childben', lang), description: 'Child benefit continues to 24 for students.' }, { href: route('housing', lang), name: label('housing', lang), description: 'Not available to under-25 students living alone.' }]}
+  sources={[src('student_housing', lang), src('student_housing_law', lang)]}>
+  <div data-outil><ToolCalc client:load kind="student" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>The conditions, line by line</h2>
+  <ContentTable headers={['Test', 'Rule']} align={['l', 'l']} rows={reqs} />
+  <p>Attica counts as one town, except its islands and areas more than 40 km away, and so does the Thessaloniki urban area: a family living in one Athens suburb cannot claim for a flat in another. A semester in a university residence is allowed; a whole year is not.</p>
+
+  <h2>Income limit for your family</h2>
+  <div data-chrome><MiniSim client:load kind="studentlimit" lang={lang} href={route('student', lang)} /></div>
+  <p>The income is the family’s total for the tax year before the academic year, 2025 for 2025-2026. For families on the edge, the {$(S.income_per_child_after_first)} per additional child matters: three children raise the ceiling to {$(studentHousing({ regional: false, shared: false, children: 3 }).limit)}.</p>
+
+  <h2>Two allowances, one flat</h2>
+  <p>The student housing allowance can be combined with the <a href={route('rentrefund', lang)}>rent refund</a> paid by AADE each November, which returns one twelfth of the year’s rent on a student flat up to {$(P.rent_refund.student_cap)}, with an income test only. On a typical student rent, together they cover several months of rent a year.</p>
+</GuideLayout>

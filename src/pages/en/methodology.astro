@@ -9,6 +9,11 @@ import { facts, src } from '../../lib/facts';
 import { salary, christmasBonus, easterBonus, leaveAllowance, severance, roadTax, enfia, pension, grossForNet, PARAMS as P } from '../../lib/engine/gr';
 import { formatMoney, formatDecimal, pct, displayDate } from '../../lib/format';
 import { webPageSchema, breadcrumbSchema } from '../../lib/seo';
+import { childBenefit, rentRefund } from '../../lib/engine/epidomata';
+import TH from '../../data/thermansi.json';
+const nTh = Object.values(TH as unknown as Record<string, unknown[]>).reduce((s, r) => s + r.length, 0);
+const okChild = P.child_benefit.official_examples.filter((e) => childBenefit({ income: e.income, parents: e.parents, children: e.children }).monthly === e.monthly).length;
+const okRent = P.rent_refund.official_examples.filter((e) => Math.abs(rentRefund({ annualRent: e.rent, children: e.children }).amount - e.refund) < 0.01).length;
 import { LANG_TAGS } from '../../data/site-config';
 
 const lang = 'en';
@@ -118,6 +123,12 @@ const jsonLd = [webPageSchema({ name: h1, description, path, lang }), breadcrumb
 
       <h2>Pension</h2>
       <p>The estimate follows articles 7 and 8 of Law 4387/2016. Contributory part = average pensionable earnings × the sum of the accrual rates for each year of insurance, never more than the earnings themselves. National pension = {F.nationalFull} with {Q.national_years_full} years of insurance and {Q.residence_years_full} years of residence, minus {pct(Q.national_reduction_per_year, lang)} for each year short of {Q.national_years_full} (minimum {F.minYears} years, {F.national15}), multiplied by residence years over {Q.residence_years_full}. Thirty-five years on an average of {$(1800)}: accrual {pct(pen.rate, lang)}, contributory {$2(pen.contributory)}, national {$2(pen.national)}, total {$2(pen.total)} gross.</p>
+
+      <h2>Benefits</h2>
+      <p>Each benefit has its own function in the engine and its amounts in the parameter file, next to their source. <a href={route('childben', lang)}>Child benefit</a> follows article 214 of Law 4512/2018: family income divided by the equivalence scale, three bands, an amount per child; the calculator reproduces {okChild} of OPEKA’s {P.child_benefit.official_examples.length} worked examples. The <a href={route('rentrefund', lang)}>rent refund</a> reproduces {okRent} of the {P.rent_refund.official_examples.length} examples in AADE’s FAQ. The <a href={route('heating', lang)}>heating allowance</a> uses the weather and climate coefficients of {nTh} settlements, extracted from the annexes to Gazette B 5802/2025 and B 3044/2026 by a script we re-run with every new decision; where the decision is ambiguous, on the uplift for very cold settlements, both readings are shown. Unemployment benefit follows DYPA’s circular for the amount from 1 April 2026, the special maternity benefit the minimum wage, and the survivors’ pension the percentages of article 12 of Law 4387/2016. Amounts we could not confirm on an official source, such as e-EFKA’s maternity benefit or the minimum survivors’ pension, are not computed, and the page says so.</p>
+
+      <h2>Tax return, rent and property transfer</h2>
+      <p>The <a href={route('taxreturn', lang)}>tax return</a> adds to the scale tax the separate tax on rent (Income Tax Code article 40(4), after the {pct(P.rental_tax.expense_deduction, lang)} deduction of article 39) and the {pct(P.tax_return.card_penalty_rate, lang)} penalty on missing card spending (article 15(6)), then deducts withholding. <a href={route('incometax', lang)}>Income tax</a> for the self-employed applies the same scale without the article 16 reduction (article 29); the article 28A minimum deemed income is not computed. <a href={route('transfer', lang)}>Property transfer tax</a> is {pct(P.transfer_tax.rate, lang)} of the higher of objective value and price, plus {pct(P.transfer_tax.municipal_surcharge, lang)} for municipalities (Property Tax Code articles 25 and 27), with the first-home exemption of articles 40 and 41.</p>
 
       <h2>What the engine does not cover</h2>
       <p>These are the cases where our figures can differ from reality:</p>

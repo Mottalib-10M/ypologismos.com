@@ -39,10 +39,10 @@ export default function ToolCalc({ kind, lang = 'el', defaults = {}, methodHref,
   return (
     <div data-chrome data-calculator={kind} className="not-prose rounded-xl border border-navy-200 bg-white p-4 sm:p-6">
       <div className={`grid gap-6 ${compact ? '' : 'lg:grid-cols-2'}`}>
-        <form className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2" onSubmit={(e) => e.preventDefault()}>
+        <form className="grid grid-cols-1 content-start gap-x-4 gap-y-3 sm:grid-cols-2" onSubmit={(e) => e.preventDefault()}>
           {shown.map((f) => {
             const cls = f.wide ? 'sm:col-span-2' : '';
-            if (f.kind === 'number') return <NumberField key={f.id} id={`c-${kind}-${f.id}`} label={f.label} value={Number(v[f.id])} onChange={set(f.id)} unit={f.unit} max={f.max} decimals={f.decimals} help={f.help} lang={lang} className={cls} />;
+            if (f.kind === 'number') return <NumberField key={f.id} id={`c-${kind}-${f.id}`} label={f.label} value={Number(v[f.id])} onChange={set(f.id)} unit={f.unit} max={f.max} decimals={f.decimals} plain={f.plain} help={f.help} lang={lang} className={cls} />;
             if (f.kind === 'toggle') return <Toggle key={f.id} id={`c-${kind}-${f.id}`} label={f.label} value={String(v[f.id])} onChange={set(f.id)} options={f.options ?? []} className={cls} />;
             return <SelectField key={f.id} id={`c-${kind}-${f.id}`} label={f.label} value={String(v[f.id])} onChange={set(f.id)} options={f.options ?? []} help={f.help} className={cls} />;
           })}

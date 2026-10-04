@@ -1,0 +1,63 @@
+---
+import HeatingCalc from '../../components/calc/HeatingCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P } from '../../lib/engine/gr';
+import { heatingAllowance, heatingLimits, heatingAdvanceNew } from '../../lib/engine/epidomata';
+import { formatMoney, formatDecimal, formatNumber, displayDate } from '../../lib/format';
+import TH from '../../data/thermansi.json';
+const lang = 'en';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const d2 = (x: number) => formatDecimal(x, 2, lang);
+const n0 = (x: number) => formatNumber(x, 0, lang);
+const H = P.heating;
+const data = TH as unknown as Record<string, Array<[string, number | null, number | null, number]>>;
+const all = Object.values(data).flat();
+const cold = all.filter((r) => (r[2] ?? 0) >= H.cold_threshold).length;
+const DEF = '45221';
+const towns: Array<[string, string, string]> = [['11141', 'Αθήναι', 'Athens'], ['54621', 'Θεσσαλονίκη', 'Thessaloniki'], ['26221', 'Πάτραι', 'Patras'], ['71201', 'Ηράκλειον', 'Heraklion'], ['85100', 'Ρόδος', 'Rhodes'], ['41222', 'Λάρισα', 'Larissa'], ['45221', 'Ιωάννινα', 'Ioannina'], ['50100', 'Κοζάνη', 'Kozani'], ['53100', 'Φλώρινα', 'Florina']];
+const townRows = towns.map(([tk, nm, show]) => { const r = data[tk].find((x) => x[0].startsWith(nm))!; const g = heatingAllowance({ fuel: 'gas', som: r[2] as number, children: 1 }), e = heatingAllowance({ fuel: 'electricity', som: r[2] as number, children: 1 }); return [show, tk, d2(r[2] as number), $(g.amount), $(e.amount)]; });
+const thess = data['54621'][0];
+const ex = heatingAllowance({ fuel: 'gas', som: thess[2] as number, children: 1 });
+const ex0 = heatingAllowance({ fuel: 'electricity', som: thess[2] as number });
+const adv = heatingAdvanceNew('gas', thess[1] as number, 1);
+const lc = heatingLimits('couple', 1);
+const faqs = [
+  { q: 'Can foreigners living in Greece get the heating allowance?', a: `Yes, if you are tax resident in Greece, file a Greek tax return and meet the income and property limits; nationality is not a condition. Tax residents of another country who file in Greece are excluded, together with their spouse. You must not be declared as a dependant or as hosted by someone else, and the home must be your main residence.` },
+  { q: 'I rent my flat. Can I still claim the heating allowance?', a: `Yes. The decision covers main homes that are owned, rented or provided free of charge. For a flat in a block with central heating, the building manager declares the fuel purchases and the share of each flat on the AADE platform, so check that your manager has registered the building, otherwise your purchases will not count.` },
+  { q: 'What is the weather coefficient (ΣΟ-Μ) in the heating allowance?', a: `It measures how cold the winter actually was in each settlement, from October to March, and multiplies the reference amount. It is published after the winter, in Annex B of decision A.1116/2026, for ${n0(all.length)} settlements. Thessaloniki’s is ${d2(thess[2] as number)}, Athens ${d2(data['11141'][0][2] as number)}, while some mountain villages exceed 1.3.` },
+  { q: 'How much heating oil must I buy to get the full allowance?', a: `Purchases worth at least twice the allowance, with invoices, between 15 October and 31 March for heating oil. The value is counted at a fixed €${d2(H.oil_price_per_litre)} a litre whatever you actually paid. Buy less and you receive half of what you spent, never less than ${$(H.min)}. The calculator shows the litres needed for your settlement.` },
+  { q: 'Is the 2026-2027 heating allowance already out?', a: `Not as of 4 October ${P.year}: no ministerial decision for the coming winter has been published. The calculator applies the ${H.season} rules and the final weather coefficients published in May ${P.year}. When the new decision appears we will update amounts, limits and coefficients and say so on this page.` },
+];
+---
+<GuideLayout lang={lang} id="heating" breadcrumbLabel={label('heating', lang)}
+  title={`Heating Allowance Greece ${H.season}: Amount by Postcode (TK)`}
+  h1={`Greek heating allowance (epidoma thermansis): your amount by settlement`}
+  description={`Heating allowance Greece ${H.season}: your amount by postcode, from the official weather coefficient of ${n0(all.length)} settlements, for oil, gas, power, pellets or wood.`}
+  intro={`Two identical households on the same fuel get different heating allowances in two different villages. The difference is the settlement’s coefficient.`}
+  resume={`In Thessaloniki, a family with one child heating with natural gas received ${$(ex.amount)} of heating allowance for the ${H.season} winter; a single person with electric heating there received ${$(ex0.amount)}. The Greek heating allowance (επίδομα θέρμανσης), paid by the tax authority AADE, is the reference amount for your fuel, ${$(H.reference.gas)} for gas, ${$(H.reference.oil)} for heating oil or ${$(H.reference.electricity)} for electricity, raised by ${Math.round(H.child_uplift * 100)}% for each child and multiplied by your settlement’s weather coefficient (ΣΟ-Μ). It never falls below ${$(H.min)} and is capped at ${$(H.max)}, except in the ${n0(cold)} cold settlements with a coefficient of 1 or more, where ${Math.round(H.cold_uplift * 100)}% is added and the cap rises to ${$(H.cold_max)} or ${$(H.very_cold_max)}. To receive the whole amount you need fuel purchases worth twice as much. Income limits start at ${$(H.income_single)} for a single person. Type your five-digit postcode and the calculator finds your settlement’s coefficient in the official annex.`}
+  faqs={faqs}
+  related={[{ href: route('housing', lang), name: label('housing', lang), description: 'Monthly help with rent from OPEKA.' }, { href: route('rentrefund', lang), name: label('rentrefund', lang), description: 'One month of rent back every November.' }, { href: route('enfia', lang), name: label('enfia', lang), description: 'The ENFIA value used in the property test.' }]}
+  sources={[src('heating', lang), src('heating_som', lang), src('heating_annex_som', lang), src('heating_annex_sk', lang)]}>
+  <div data-outil><HeatingCalc client:load lang={lang} defaultTk={DEF} initialRows={data[DEF]} methodHref={route('method', lang)} /></div>
+
+  <h2>Why your settlement changes everything</h2>
+  <ContentTable headers={['Town', 'Postcode', 'ΣΟ-Μ', 'Gas, 1 child', 'Electricity, 1 child']} align={['l', 'l', 'r', 'r', 'r']} rows={townRows} />
+  <p>The coefficient is not set by region but by settlement: {n0(all.length)} of them, listed by postcode in the government gazette. In the south and on the islands it is so low that most households get the {$(H.min)} floor; in western Macedonia and the Pindus mountains it passes 1 and the uplift kicks in. Sites that quote “up to €800” cannot tell you what you will get. This calculator reads the same line of the annex that AADE reads.</p>
+  <p>Two coefficients exist. The climate coefficient (ΣΚ), fixed before the winter, sets the December advance and decides where firewood and pellets qualify. The weather coefficient (ΣΟ-Μ), measured over the actual winter and published afterwards, sets the final amount. Where a settlement is missing from an annex, the decision uses the postcode average, and the calculator flags it.</p>
+  <div data-chrome><MiniSim client:load kind="heatfuel" lang={lang} href={route('heating', lang)} /></div>
+
+  <h2>Who qualifies</h2>
+  <p>Family income, actual or deemed, excluding tax-free amounts, must not exceed {$(H.income_single)} for a single, widowed or separated person and {$(H.income_couple)} for a married couple or civil partners, plus {$(H.income_per_child)} per child; {$(H.income_single_parent)} for a single-parent family. Property on the ENFIA assessment must stay within {$(H.property_single)} or {$(H.property_couple)}, plus {$(H.property_per_child)} per child. A couple with one child can therefore earn up to {$(lc.income)} and own up to {$(lc.property)}. People liable to the luxury living tax, owners of more than two cars and anyone with business turnover above {$(H.business_turnover_max)} are excluded.</p>
+
+  <h2>Timeline of the {H.season} season</h2>
+  <p>Applications were made on myAADE until {displayDate(H.application_deadline, 'en-GB')}. An advance was paid by {displayDate(H.advance_paid, 'en-GB')}: 60% of last year’s allowance for returning claimants, and for new ones half the reference amount times the climate coefficient, at least {$(H.advance_min)} ({$(adv)} for the Thessaloniki gas family above). Purchases counted from 1 October 2025 to 31 March 2026, from 15 October for heating oil and from 1 June 2025 for wood and pellets. The balance was paid by {displayDate(H.balance_paid, 'en-GB')}, later for gas, district heating and electricity bills.</p>
+  <div data-chrome><MiniSim client:load kind="heatpurchase" lang={lang} href={route('heating', lang)} /></div>
+
+  <h2>The cold-settlement uplift, and one ambiguity</h2>
+  <p>Where the coefficient is 1 or more, the allowance rises by {Math.round(H.cold_uplift * 100)}%, capped at {$(H.cold_max)}. Where it is 1.2 or more, the decision adds “a further {Math.round(H.cold_uplift * 100)}%” capped at {$(H.very_cold_max)}, without saying whether that {Math.round(H.cold_uplift * 100)}% applies to the original or the already increased amount. Rather than pick one silently, the calculator shows both figures; they meet at the cap.</p>
+</GuideLayout>

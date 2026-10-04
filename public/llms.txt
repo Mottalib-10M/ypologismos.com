@@ -1,16 +1,32 @@
-# ΥπολογισμόςΜισθού.gr — Greek salary and tax calculators
+# Υπολογισμός — Greek salary and tax calculators
 
-> Free Greek (el) and English (en) calculators for 2026: net salary from gross (e-EFKA 13.37 %, the 2026 income tax scale of Law 5246/2025 with the under-25, 26-30 and children rates, article 16 tax reduction, 14 payments a year), Christmas and Easter bonuses, leave allowance, severance pay, road tax (τέλη κυκλοφορίας), ENFIA property tax and pension estimates. Published by Radif Partners. All calculations run in the browser; every rate comes from Greek law, e-EFKA, the Ministry of Labour or the Labour Inspectorate, with sources on each page. The salary engine reproduces the Ministry of Labour's 12 official minimum-wage examples within €1.20.
+> Free Greek (el) and English (en) calculators for 2026: net salary from gross (e-EFKA 13.37 %, the 2026 income tax scale of Law 5246/2025 with the under-25, 26-30 and children rates, article 16 tax reduction, 14 payments a year), Christmas and Easter bonuses, leave allowance, severance pay, road tax (τέλη κυκλοφορίας), ENFIA property tax, pension estimates, the tax return, property transfer tax, and the main benefits (child benefit A21, heating allowance by settlement, housing benefit, unemployment benefit, rent refund, maternity, student housing, survivors' pension). Published by Radif Partners. All calculations run in the browser; every rate comes from Greek law, e-EFKA, the Ministry of Labour or the Labour Inspectorate, with sources on each page. The salary engine reproduces the Ministry of Labour's 12 official minimum-wage examples within €1.20.
 
 ## Main calculators
-- [Υπολογισμός μισθού 2026](https://ypologismosmisthou.gr/el/): net salary from gross
-- [Greek net salary calculator](https://ypologismosmisthou.gr/en/)
-- [Τέλη κυκλοφορίας 2026](https://ypologismosmisthou.gr/el/teli-kykloforias/) · [Road tax](https://ypologismosmisthou.gr/en/road-tax/)
-- [Αποζημίωση απόλυσης](https://ypologismosmisthou.gr/el/apozimiosi-apolysis/) · [Severance pay](https://ypologismosmisthou.gr/en/severance-pay/)
-- [ΕΝΦΙΑ 2026](https://ypologismosmisthou.gr/el/enfia/) · [ENFIA](https://ypologismosmisthou.gr/en/enfia/)
-- [Δώρο Χριστουγέννων](https://ypologismosmisthou.gr/el/doro-xristougennon/) · [Christmas bonus](https://ypologismosmisthou.gr/en/christmas-bonus/)
-- [Υπολογισμός σύνταξης](https://ypologismosmisthou.gr/el/ypologismos-syntaxis/) · [Pension](https://ypologismosmisthou.gr/en/pension-calculator/)
-- [Κατώτατος μισθός 2026](https://ypologismosmisthou.gr/el/katotatos-misthos/) · [Minimum wage](https://ypologismosmisthou.gr/en/minimum-wage/)
+- [Υπολογισμός μισθού 2026](https://ypologismos.com/el/): net salary from gross
+- [Greek net salary calculator](https://ypologismos.com/en/)
+- [Τέλη κυκλοφορίας 2026](https://ypologismos.com/el/teli-kykloforias/) · [Road tax](https://ypologismos.com/en/road-tax/)
+- [Αποζημίωση απόλυσης](https://ypologismos.com/el/apozimiosi-apolysis/) · [Severance pay](https://ypologismos.com/en/severance-pay/)
+- [ΕΝΦΙΑ 2026](https://ypologismos.com/el/enfia/) · [ENFIA](https://ypologismos.com/en/enfia/)
+- [Δώρο Χριστουγέννων](https://ypologismos.com/el/doro-xristougennon/) · [Christmas bonus](https://ypologismos.com/en/christmas-bonus/)
+- [Υπολογισμός σύνταξης](https://ypologismos.com/el/ypologismos-syntaxis/) · [Pension](https://ypologismos.com/en/pension-calculator/)
+- [Κατώτατος μισθός 2026](https://ypologismos.com/el/katotatos-misthos/) · [Minimum wage](https://ypologismos.com/en/minimum-wage/)
+
+## Benefits (επιδόματα)
+- [Επίδομα παιδιού](https://ypologismos.com/el/epidoma-paidiou/) · [Child benefit](https://ypologismos.com/en/child-benefit/)
+- [Πληρωμή επιδόματος παιδιού](https://ypologismos.com/el/epidoma-paidiou-pliromi/) · [Payment dates](https://ypologismos.com/en/child-benefit-payment-dates/)
+- [Επίδομα θέρμανσης](https://ypologismos.com/el/epidoma-thermansis/) · [Heating allowance](https://ypologismos.com/en/heating-allowance/): weather coefficient (ΣΟ-Μ) of 19,435 settlements by postcode
+- [Επίδομα στέγασης](https://ypologismos.com/el/epidoma-stegasis/) · [Housing benefit](https://ypologismos.com/en/housing-benefit/)
+- [Επίδομα ανεργίας](https://ypologismos.com/el/epidoma-anergias/) · [Unemployment benefit](https://ypologismos.com/en/unemployment-benefit/)
+- [Επιστροφή ενοικίου](https://ypologismos.com/el/epistrofi-enoikiou/) · [Rent refund](https://ypologismos.com/en/rent-refund/)
+- [Επίδομα μητρότητας](https://ypologismos.com/el/epidoma-mitrotitas/) · [Maternity benefit](https://ypologismos.com/en/maternity-benefit/)
+- [Φοιτητικό στεγαστικό επίδομα](https://ypologismos.com/el/foititiko-stegastiko-epidoma/) · [Student housing allowance](https://ypologismos.com/en/student-housing-allowance/)
+- [Σύνταξη χηρείας](https://ypologismos.com/el/syntaxi-xireias/) · [Survivors' pension](https://ypologismos.com/en/survivors-pension/)
+
+## Taxes of the year
+- [Φορολογική δήλωση](https://ypologismos.com/el/forologiki-dilosi/) · [Tax return](https://ypologismos.com/en/tax-return/)
+- [Φόρος εισοδήματος](https://ypologismos.com/el/foros-eisodimatos/) · [Income tax](https://ypologismos.com/en/income-tax-calculator/)
+- [Φόρος μεταβίβασης](https://ypologismos.com/el/foros-metavivasis/) · [Property transfer tax](https://ypologismos.com/en/property-transfer-tax/)
 
 ## Method
-- [Μεθοδολογία](https://ypologismosmisthou.gr/el/methodologia/) · [Methodology](https://ypologismosmisthou.gr/en/methodology/)
+- [Μεθοδολογία](https://ypologismos.com/el/methodologia/) · [Methodology](https://ypologismos.com/en/methodology/)

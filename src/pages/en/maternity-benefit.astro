@@ -1,0 +1,53 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P, parentalBenefit, salary } from '../../lib/engine/gr';
+import { maternitySpecial } from '../../lib/engine/epidomata';
+import { formatMoney } from '../../lib/format';
+const lang = 'en';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const Y = P.year;
+const M = P.maternity;
+const full = maternitySpecial('full'), part = maternitySpecial('part'), self = maternitySpecial('self');
+const par = parentalBenefit();
+const cmp = [1200, 1800, 2500].map((g) => [$(g), $(salary({ gross: g }).net), $(full.monthly), `${Math.round(full.monthly / g * 100)}%`]);
+const steps = [
+  ['Pregnancy and birth', `${M.efka_days} days (${M.efka_days / 7} weeks): ${M.efka_days_before} before, ${M.efka_days_after} after`, 'e-EFKA maternity benefit, topped up by DYPA towards your pay'],
+  ['After maternity leave', `Up to ${M.special_months} months`, `DYPA special maternity benefit, ${$(full.monthly)} a month`],
+  ['Until the child is 8', `${P.parental.leave_months} months per parent`, `Parental leave, the first ${P.parental.paid_months} paid by DYPA`],
+];
+const faqs = [
+  { q: 'How much maternity pay do you get in Greece?', a: `Two layers. During the ${M.efka_days} days of maternity leave, e-EFKA pays a benefit based on your insurance class, and DYPA tops it up towards your normal pay. After that, DYPA pays a special benefit equal to the minimum wage, ${$(full.monthly)} a month gross, for up to ${M.special_months} months, ${$(full.total)} in total, plus a share of holiday bonuses for employees.` },
+  { q: 'I am a foreign employee in Greece. Do I qualify for maternity benefits?', a: `Yes, the rules depend on your insurance record, not your nationality. For the e-EFKA benefit you need ${M.efka_min_work_days} days of insured work in the two years before the birth. For the DYPA special benefit you need an active employment contract when maternity leave starts and must apply within ${M.apply_within_days} days of the special leave beginning.` },
+  { q: 'Can my partner take some of the nine months?', a: `Yes, up to ${M.special_transferable_to_father} of the ${M.special_months} months can be transferred to the father. For self-employed mothers the transfer is possible once the mother has taken the first two months. Separately, fathers have ${14} working days of fully paid paternity leave around the birth, which does not come out of the nine months.` },
+  { q: 'Is Greek maternity pay taxed?', a: `The DYPA special maternity benefit is tax-free and cannot be seized. DYPA also pays your pension and health contributions during those months, so the period counts towards your insurance record. For part-time employees the benefit is half, ${$(part.monthly)} a month; self-employed and farming mothers receive ${$(self.monthly)} a month for ${M.self_employed_months} months.` },
+];
+---
+<GuideLayout lang={lang} id="maternity" breadcrumbLabel={label('maternity', lang)}
+  title={`Maternity Benefit Greece ${Y}: ${M.efka_days} Days Leave and DYPA Pay`}
+  h1={`Maternity benefit in Greece (${Y}): what e-EFKA and DYPA pay`}
+  description={`Maternity benefit Greece ${Y}: ${M.efka_days} days of leave paid by e-EFKA, then ${M.special_months} months of DYPA special benefit at ${$(full.monthly)} a month. Employees, part-timers, self-employed.`}
+  intro={`Two agencies pay one after the other around a birth: first e-EFKA for maternity leave, then DYPA for nine months.`}
+  resume={`A full-time employee in Greece receives, after her maternity leave, a DYPA special maternity benefit of ${$(full.monthly)} a month for ${M.special_months} months, ${$(full.total)} gross in total, plus a share of the holiday bonuses. Before that comes maternity leave of ${M.efka_days} days, ${M.efka_days_before} before and ${M.efka_days_after} after the birth, paid by e-EFKA, the social insurance fund, on the basis of the mother’s insurance class and topped up by DYPA towards her usual pay. The special benefit is pegged to the statutory minimum wage, so it rose automatically when that went up in April ${Y}, and DYPA pays the social contributions on it. Part-time employees receive half, ${$(part.monthly)}. Since 2023, self-employed and farming mothers are covered too, ${M.self_employed_months} months at ${$(self.monthly)}. Up to ${M.special_transferable_to_father} months can be handed to the father, and the benefit is tax-free. The calculator shows the amount, the months and how they split between parents.`}
+  faqs={faqs}
+  related={[{ href: route('parental', lang), name: label('parental', lang), description: 'Two months of parental leave paid by DYPA.' }, { href: route('childben', lang), name: label('childben', lang), description: 'OPEKA’s monthly child benefit.' }, { href: route('minimum', lang), name: label('minimum', lang), description: 'The minimum wage the benefit is pegged to.' }]}
+  sources={[src('maternity', lang), src('maternity_efka', lang), src('maternity_self', lang), src('maternity_law', lang), src('min_wage', lang)]}>
+  <div data-outil><ToolCalc client:load kind="maternity" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>The sequence of leave, and who pays</h2>
+  <ContentTable headers={['Period', 'Length', 'Paid by']} align={['l', 'l', 'l']} rows={steps} />
+  <p>The e-EFKA benefit during maternity leave equals the basic sickness benefit of your insurance class, half the notional daily wage of that class, plus {Math.round(M.efka_dependant_uplift * 100)}% per dependant, and it is paid for non-working days too. We do not compute it: the {Y} table of insurance classes is not published in a form we can verify, and a figure we cannot check does not go on this site. If your baby arrives early, unused days before the birth are added after it.</p>
+
+  <h2>The special benefit against your salary</h2>
+  <ContentTable headers={['Your gross pay', 'Your net pay', 'Special benefit', 'Share of gross']} align={['r', 'r', 'r', 'r']} rows={cmp} />
+  <p>Because the special benefit is a flat minimum wage, it replaces most of a low salary and only part of a higher one. For DYPA, part-time means up to four hours a day or thirteen days a month on average over the six months before pregnancy leave.</p>
+  <div data-chrome><MiniSim client:load kind="maternitytotal" lang={lang} href={route('maternity', lang)} /></div>
+
+  <h2>After the nine months</h2>
+  <p>Each parent still has {P.parental.leave_months} months of <a href={route('parental', lang)}>parental leave</a> until the child turns 8, the first {P.parental.paid_months} paid by DYPA at {$(par.perMonth)} a month. Added to the special benefit, a full-time mother can receive {$(full.total + par.total)} gross from DYPA over the child’s first years, before counting the e-EFKA benefit. The one-off <a href={route('childben', lang)}>birth allowance</a> comes on top.</p>
+</GuideLayout>

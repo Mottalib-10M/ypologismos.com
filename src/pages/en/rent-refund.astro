@@ -1,0 +1,55 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P } from '../../lib/engine/gr';
+import { rentRefund } from '../../lib/engine/epidomata';
+import { formatMoney, displayDate } from '../../lib/format';
+const lang = 'en';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const Y = P.year;
+const R = P.rent_refund;
+const ex = rentRefund({ annualRent: 7200, household: 'couple', children: 1, income: 30000 });
+const single = rentRefund({ annualRent: 9600, household: 'single', income: 24000 });
+const over = rentRefund({ annualRent: 9600, household: 'single', income: 26000 });
+const steps = [
+  ['1', `Lease registered on the AADE platform by ${R.lease_declared_by_en}`, 'Your landlord'],
+  ['2', 'Lease number entered in table 6 of your E1 tax return', 'You or your accountant'],
+  ['3', 'Correct IBAN registered with AADE', 'You, on myAADE'],
+  ['4', 'Return final by the last working day of September', 'Amend it before then if needed'],
+  ['5', `Refund paid by 30 November ${Y}`, 'AADE, automatically'],
+];
+const faqs = [
+  { q: 'Do foreigners renting in Greece get the rent refund?', a: `Yes, if you are tax resident in Greece, file a Greek tax return and your lease is registered with AADE. Nationality plays no role. The refund is calculated on the rent you paid the previous year, so someone who arrived mid-year gets one twelfth of what they actually paid, for example ${$(4800 / 12)} on ${$(4800)} of rent.` },
+  { q: 'When will the 2026 rent refund be paid?', a: `By 30 November ${Y}: the law sets a single payment by the end of November each year. The exact day has not been announced. In ${Y - 1} it was paid on ${displayDate(R.paid_2025, 'en-GB')} to about 887,000 tenants, with top-ups in December and January for corrected returns.` },
+  { q: 'I earn just over the limit. Do I get part of the refund?', a: `No, the income test is a hard threshold. A single person paying ${$(800)} a month on ${$(24000)} of income receives ${$(single.amount)}, but the same person on ${$(26000)} receives ${$(over.amount)}. The limit counts total family income, taxable and tax-free, actual or deemed, so tax-free allowances can tip you over.` },
+  { q: 'Does paying rent in cash disqualify me from the refund?', a: `Not under the text of article 70 or the implementing decision, neither of which makes bank payment a condition, although the Ministry announced that intention in 2025. Bank records are requested only if you dispute the amount. Paying by transfer is still wise: it is the evidence AADE asks for in a dispute.` },
+];
+---
+<GuideLayout lang={lang} id="rentrefund" breadcrumbLabel={label('rentrefund', lang)}
+  title={`Rent Refund Greece ${Y}: How Much You Get Back in November`}
+  h1={`Greek rent refund (epistrofi enoikiou) ${Y}: your amount and the rules`}
+  description={`Rent refund Greece ${Y}: one twelfth of last year’s rent, up to ${$(R.cap)} plus ${$(R.per_child)} per child, under the new income limits. See what AADE pays you in November.`}
+  intro={`Once a year, without any application, the tax authority gives tenants back one month of rent. The amount comes from the lease and the tax return.`}
+  resume={`A couple with one child who paid ${$(600)} a month in rent in ${Y - 1}, ${$(7200)} over the year, will receive a rent refund of ${$(ex.amount)} by the end of November ${Y}. The measure, created by article 70 of Law 5217/2025 and paid by AADE, the Greek tax authority, returns one twelfth of the year’s rent on your main home, capped at ${$(R.cap)} plus ${$(R.per_child)} for each dependent child, and separately up to ${$(R.student_cap)} for each student flat. From this year the income limits are higher: ${$(R.income_single)} for a single person, ${$(R.income_couple)} for a couple plus ${$(R.income_per_child)} per child, ${$(R.income_single_parent)} for a single-parent family. For a main home, property is also checked, up to ${$(R.property_base)} plus ${$(R.property_per_member)} per member. Nothing to apply for, but the lease must be registered with AADE by ${R.lease_declared_by_en} and quoted on your tax return. Enter the rent you paid to see the refund.`}
+  faqs={faqs}
+  related={[{ href: route('housing', lang), name: label('housing', lang), description: 'OPEKA’s monthly rent benefit for low incomes.' }, { href: route('taxreturn', lang), name: label('taxreturn', lang), description: 'The E1 return the refund is calculated from.' }, { href: route('heating', lang), name: label('heating', lang), description: 'Help with heating bills, for owners and tenants.' }]}
+  sources={[src('rent_refund', lang), src('rent_refund_2026', lang), src('rent_refund_kya', lang), src('rent_refund_paid', lang)]}>
+  <div data-outil><ToolCalc client:load kind="rentrefund" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>Five steps between your lease and the payment</h2>
+  <ContentTable headers={['Step', 'What must be true', 'Who does it']} align={['l', 'l', 'l']} rows={steps} />
+  <p>Most tenants who receive nothing fail at step 1 or 2. A lease your landlord never registered, or a lease number missing from table 6 of the E1, means AADE cannot match the rent to you. Both can be fixed with an amended return until the last working day of September; after that, the year is lost.</p>
+
+  <h2>The cap, child by child</h2>
+  <div data-chrome><MiniSim client:load kind="rentcap" lang={lang} href={route('rentrefund', lang)} /></div>
+  <p>The refund is the smaller of one twelfth of your rent and your family cap. With successive leases in the year, the rents are added up. If your landlord declared some rent as unpaid, only the amount on the landlord’s E2 counts. Divorced parents each get the child increment on their own refund.</p>
+
+  <h2>New income limits from {Y}</h2>
+  <div data-chrome><MiniSim client:load kind="rentlimit" lang={lang} href={route('rentrefund', lang)} /></div>
+  <p>Law 5313/2026 raised the limits for refunds paid from {Y} onwards, that is for rent paid from {Y - 1}. A separate article 70A gives teachers, doctors and nurses posted outside Attica and Thessaloniki two months of rent instead of one, with a combined cap of {$(R.art70a_cap)} plus {$(R.art70a_per_child)} per child. False information means repaying the refund with interest and a three-year exclusion.</p>
+</GuideLayout>

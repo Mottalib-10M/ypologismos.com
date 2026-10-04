@@ -13,7 +13,7 @@ export const EXTRA_D: Record<string, (l: string) => MiniSpec> = {
    * il montre la somme due, l'épargne mensuelle qui la couvre et le coût réel par mois roulé. */
   roadmonth: (l) => ({ title: T(l, 'Τα τέλη σας ως μηνιαίο κόστος', 'Your road tax as a monthly cost'), cta: T(l, 'Πλήρης υπολογιστής τελών', 'Full road tax calculator'),
     inputs: [
-      { id: 'y', label: T(l, 'Έτος πρώτης ταξινόμησης', 'Year first registered'), def: 2021, max: P.year },
+      { id: 'y', label: T(l, 'Έτος πρώτης ταξινόμησης', 'Year first registered'), def: 2021, max: P.year, plain: true },
       { id: 'c', label: T(l, 'CO₂ (g/km) ή κυβικά για ταξινόμηση έως 2010', 'CO₂ (g/km), or cc if registered up to 2010'), def: 150, max: 20000 },
       { id: 'm', label: T(l, 'Μήνες που θα κινηθεί το αυτοκίνητο', 'Months the car will be driven'), def: 12, max: 12 },
     ],

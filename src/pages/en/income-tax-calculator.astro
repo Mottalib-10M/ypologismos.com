@@ -1,0 +1,47 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { incomeTax, PARAMS as P } from '../../lib/engine/gr';
+import { businessTax } from '../../lib/engine/foroi';
+import { formatMoney, pct } from '../../lib/format';
+const lang = 'en';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const p = (x: number) => pct(x, lang);
+const Y = P.year;
+const B = P.business;
+const ex = incomeTax(30000);
+const exB = businessTax(30000);
+const young = incomeTax(18000, 0, 'u25');
+const rows = [10000, 18000, 30000, 50000, 80000].map((i) => { const s = incomeTax(i), y = incomeTax(i, 0, '26_30'), b = businessTax(i); return [$(i), $(s.tax), $(y.tax), $(b.tax)]; });
+const faqs = [
+  { q: 'What is the income tax rate in Greece in 2026?', a: `A progressive scale from ${p(P.tax.brackets[0].rate)} on the first ${$(P.tax.brackets[0].upTo as number)} to ${p(P.tax.brackets[P.tax.brackets.length - 1].rate)} above ${$(P.tax.brackets[P.tax.brackets.length - 2].upTo as number)}, introduced by Law 5246/2025 for income from 2026. Employees and pensioners then deduct up to ${$(P.tax.credit_by_children[0])} with no children. On ${$(30000)} of taxable income that leaves ${$(ex.tax)}, an average rate of ${p(ex.average)}.` },
+  { q: 'I am self-employed in Greece. Is my tax higher than an employee’s?', a: `On the same income, yes: article 29 applies the same scale to business profit but denies the article 16 reduction. On ${$(30000)} of net profit you pay ${$(exB.tax)}, against ${$(ex.tax)} for an employee. In your first ${B.starter_years} years, with turnover up to ${$(B.starter_gross_limit)}, the first-band rate is halved. The article 28A minimum deemed income is not included here.` },
+  { q: 'Do young workers pay less income tax in Greece?', a: `Yes. On income up to ${$(P.tax.youth_income_limit)}, the first two bands are taxed at ${p(P.tax.youth_rate_u25)} up to age 25 and ${p(P.tax.youth_rate_26_30)} from 26 to 30. A 24-year-old with ${$(18000)} of taxable salary therefore pays ${$(young.tax)}. The calculator applies it once you choose the age band.` },
+  { q: 'Does Greece tax my worldwide income if I move there?', a: `A Greek tax resident is taxed on worldwide income, and the scale on this page applies to employment, pension and business income wherever earned, subject to double tax treaties. New residents may opt into the special regimes of articles 5A to 5C of the Income Tax Code, which this calculator does not model.` },
+];
+---
+<GuideLayout lang={lang} id="incometax" breadcrumbLabel={label('incometax', lang)}
+  title={`Income Tax Greece ${Y}: Employees, Pensioners, Freelancers`}
+  h1={`Greek income tax ${Y}: employees, pensioners and the self-employed`}
+  description={`Income tax Greece ${Y}: annual tax on salary, pension or self-employed profit on the new scale, with children, youth rates and the relief for new businesses.`}
+  intro={`The scale is the same for everyone. What separates an employee from a freelancer is the article 16 tax reduction.`}
+  resume={`On ${$(30000)} of taxable income a year, an employee or pensioner over 30 with no children pays ${$(ex.tax)} of Greek income tax in ${Y}, while a self-employed person with the same net profit pays ${$(exB.tax)}. Both are taxed on the article 15 scale of the Income Tax Code as rewritten by Law 5246/2025, from ${p(P.tax.brackets[0].rate)} to ${p(P.tax.brackets[P.tax.brackets.length - 1].rate)}, with lower rates for parents and for workers up to 30. The gap is the article 16 tax reduction, up to ${$(P.tax.credit_by_children[0])} with no children, which only salaries and pensions receive; article 29 excludes it for business profit. A newly self-employed person does get a halved first-band rate for ${B.starter_years} years if turnover stays at or below ${$(B.starter_gross_limit)}. Taxable income means pay or pension after social contributions, or net profit for a business. The calculator shows the tax, the average and marginal rates, and what you would pay in the other status.`}
+  faqs={faqs}
+  related={[{ href: route('brackets', lang), name: label('brackets', lang), description: 'The scale in detail and the comparison with 2025.' }, { href: route('taxreturn', lang), name: label('taxreturn', lang), description: 'The full return, rent included.' }, { href: route('youth', lang), name: label('youth', lang), description: 'The reduced rates for workers up to 30.' }]}
+  sources={[src('tax_scale', lang), src('tax_credit', lang), src('business_tax', lang), src('tax_2026_start', lang)]}>
+  <div data-outil><ToolCalc client:load kind="incometax" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>Employee, young employee, freelancer</h2>
+  <ContentTable headers={['Taxable income', 'Employee over 30', 'Employee aged 26 to 30', 'Self-employed']} align={['r', 'r', 'r', 'r']} rows={rows} />
+  <p>At low incomes the article 16 reduction wipes out an employee’s tax while the freelancer pays the full first band. Higher up, the reduction shrinks by {$(P.tax.credit_taper_per_1000)} for every {$(1000)} above {$(P.tax.credit_taper_threshold)} until it disappears, and the two columns converge. Youth rates only affect income up to {$(P.tax.youth_income_limit)}.</p>
+  <div data-chrome><MiniSim client:load kind="busvssal" lang={lang} href={route('incometax', lang)} /></div>
+
+  <h2>Starting a business</h2>
+  <div data-chrome><MiniSim client:load kind="starter" lang={lang} href={route('incometax', lang)} /></div>
+  <p>The relief in article 29(2) applies to people whose first business registration was in 2013 or later, for the first {B.starter_years} years, and halves only the first-band rate. It is worth at most half the tax on the first {$(P.tax.brackets[0].upTo as number)}, small in absolute terms but real for a new freelancer with a modest turnover. For a full year with rent and withholding, use the <a href={route('taxreturn', lang)}>tax return calculator</a>.</p>
+</GuideLayout>

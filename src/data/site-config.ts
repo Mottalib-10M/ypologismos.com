@@ -1,6 +1,6 @@
 /** Configuration centrale du site (générée par new-site.py). */
-export const SITE_URL = "https://ypologismosmisthou.gr";
-export const SITE_NAMES: Record<string, string> = {"el": "ΥπολογισμόςΜισθού.gr", "en": "Greek Salary Calculator"};
+export const SITE_URL = "https://ypologismos.com";
+export const SITE_NAMES: Record<string, string> = {"el": "Υπολογισμός", "en": "Ypologismos"};
 export const LANG_TAGS: Record<string, string> = {"el": "el-GR", "en": "en-GR"};
 export const OG_LOCALES: Record<string, string> = {"el": "el_GR", "en": "en_GB"};
 export const LOCALE_TAG = 'el-GR';
@@ -10,15 +10,15 @@ export const CURRENCY = 'EUR';
 export const YEAR = 2026;
 /** Année de création du site — signal d'ancienneté (RECETTE §8.0). */
 export const SITE_FOUNDED = '2026';
-export const LAST_UPDATED = '2026-10-03';
+export const LAST_UPDATED = '2026-10-04';
 export const AUTHOR_NAME = 'Radif Partners';
-export const AUTHOR_ROLE: Record<string, string> = {"el": "Εκδότης υπολογιστών μισθού και φόρων · μισθοδοσία, ΕΦΚΑ, φόρος εισοδήματος, ΕΝΦΙΑ και τέλη κυκλοφορίας", "en": "Publisher of Greek salary and tax calculators · payroll, EFKA, income tax, ENFIA and road tax"};
+export const AUTHOR_ROLE: Record<string, string> = {"el": "Εκδότης υπολογιστών μισθού, φόρων και επιδομάτων · μισθοδοσία, ΕΦΚΑ, φόρος εισοδήματος, ΕΝΦΙΑ, τέλη κυκλοφορίας και επιδόματα", "en": "Publisher of Greek salary, tax and benefit calculators · payroll, EFKA, income tax, ENFIA, road tax and benefits"};
 export const AUTHOR_DESC: Record<string, string> = {"el": "Η Radif Partners εκδίδει δωρεάν υπολογιστές μισθού και φόρων με δημοσιευμένη μέθοδο. Κάθε συντελεστής του ιστότοπου προέρχεται από τον νόμο, την ΑΑΔΕ, τον e-ΕΦΚΑ και το Υπουργείο Εργασίας, με πηγή και ημερομηνία ελέγχου.", "en": "Radif Partners publishes free Greek salary and tax calculators with a published method. Every rate on this site comes from Greek law, AADE, e-EFKA and the Ministry of Labour, with source and check date shown."};
 /** Sujets sur lesquels l'editeur est competent (schema.org knowsAbout). Ce sont les
  *  themes reellement traites par le site, pas une liste de mots-cles : un sujet
  *  declare ici sans page qui le couvre est une declaration fausse. */
-export const KNOWS_ABOUT: Record<string, string[]> = {"el": ["Φόρος εισοδήματος μισθωτών", "Ασφαλιστικές εισφορές e-ΕΦΚΑ", "Δώρα εορτών και επίδομα αδείας", "Αποζημίωση απόλυσης", "ΕΝΦΙΑ", "Τέλη κυκλοφορίας", "Σύνταξη ν. 4387/2016"], "en": ["Greek employment income tax", "e-EFKA social security contributions", "Holiday bonuses and leave allowance", "Severance pay in Greece", "ENFIA property tax", "Greek road tax", "Greek pensions (Law 4387/2016)"]};
-export const CONTACT_EMAIL = "contact@ypologismosmisthou.gr";
+export const KNOWS_ABOUT: Record<string, string[]> = {"el": ["Φόρος εισοδήματος μισθωτών", "Ασφαλιστικές εισφορές e-ΕΦΚΑ", "Δώρα εορτών και επίδομα αδείας", "Αποζημίωση απόλυσης", "ΕΝΦΙΑ", "Τέλη κυκλοφορίας", "Σύνταξη ν. 4387/2016", "Επίδομα παιδιού Α21", "Επίδομα θέρμανσης", "Επίδομα στέγασης και επιστροφή ενοικίου", "Επίδομα ανεργίας ΔΥΠΑ", "Φόρος μεταβίβασης ακινήτων"], "en": ["Greek employment income tax", "e-EFKA social security contributions", "Holiday bonuses and leave allowance", "Severance pay in Greece", "ENFIA property tax", "Greek road tax", "Greek pensions (Law 4387/2016)", "Greek child benefit (A21)", "Greek heating allowance", "Greek housing benefit and rent refund", "DYPA unemployment benefit", "Greek property transfer tax"]};
+export const CONTACT_EMAIL = "contact@ypologismos.com";
 export const THEME_COLOR = '#0D5EAF';
 export const LOGO_SYMBOL = '€';
 export const BING_VERIFY_CODE = '';

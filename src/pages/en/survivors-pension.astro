@@ -1,0 +1,53 @@
+---
+import ToolCalc from '../../components/calc/ToolCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P } from '../../lib/engine/gr';
+import { widowPension } from '../../lib/engine/epidomata';
+import { formatMoney, pct } from '../../lib/format';
+const lang = 'en';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const p = (x: number) => pct(x, lang);
+const W = P.widow;
+const ex = widowPension({ pension: 1400, age: 61 });
+const young = widowPension({ pension: 1400, age: 45 });
+const kids = widowPension({ pension: 1400, age: 45, children: 1 });
+const timeline = [
+  ['Years 1 to 3 after the death', 'Full survivor’s share, whatever else you earn'],
+  ['From year 4, if you work or have your own pension', `${p(W.reduced_share)} of the share, not below the legal minimum`],
+  ['From year 4, no other income', 'Full share continues'],
+  [`Under ${W.lifetime_age} with no eligible child or disability`, `Paid for ${W.temporary_years} years, then again from age ${W.resume_age}`],
+];
+const faqs = [
+  { q: 'How much is the survivor’s pension in Greece?', a: `${p(W.spouse_share)} of the pension the deceased received or was entitled to, for deaths since 17 May 2019, under article 12 of Law 4387/2016. Each child under ${W.child_max_age} receives ${p(W.child_share)}, or ${p(W.orphan_share)} if orphaned of both parents, and the family total never exceeds the deceased’s full pension. On a ${$(1400)} pension the spouse receives ${$(ex.spouse)} a month.` },
+  { q: 'I am 45 and was widowed. Will I receive the pension for life?', a: `Not automatically. A surviving spouse under ${W.lifetime_age} at the date of death receives the pension for ${W.temporary_years} years, and it restarts at ${W.resume_age}. It continues without a break if you have a child entitled to a survivor’s share, or a disability of 67% or more. In the example, ${$(young.spouse)} a month would stop after three years without children.` },
+  { q: 'My late husband worked in Greece but I live abroad. Can I claim?', a: `The right depends on his Greek insurance record with e-EFKA. The ${p(W.spouse_share)} share applies to the Greek pension he received or was entitled to; insurance periods in other EU countries are coordinated under EU social security rules, each country paying its own part.` },
+  { q: 'Does remarrying end a Greek survivor’s pension?', a: `Yes. The pension ends on remarriage or on entering a civil partnership, as well as on death. Children’s shares end when they reach ${W.child_max_age} or marry, unless they are unable to work because of an incapacity that began before that age.` },
+];
+---
+<GuideLayout lang={lang} id="widow" breadcrumbLabel={label('widow', lang)}
+  title={`Survivors’ Pension Greece ${P.year}: ${p(W.spouse_share)} for the Spouse, Rules`}
+  h1={`Widow’s and survivors’ pension in Greece: who gets what`}
+  description={`Survivors’ pension Greece ${P.year}: ${p(W.spouse_share)} of the deceased’s pension for the spouse, ${p(W.child_share)} per child, ${W.temporary_years} years if under ${W.lifetime_age}, and a ${p(W.reduced_share)} cut after 3 years if you work.`}
+  intro={`The death pension of Law 4387/2016 shares the deceased’s pension out in fixed percentages, with an age rule and a cut that starts after three years.`}
+  resume={`If the deceased received a pension of ${$(1400)}, a surviving spouse aged 61 receives a widow’s pension of ${$(ex.spouse)} a month for life. Article 12 of Law 4387/2016 gives the spouse ${p(W.spouse_share)} of the deceased’s pension for deaths since 17 May 2019, and each child under ${W.child_max_age} ${p(W.child_share)}, or ${p(W.orphan_share)} if orphaned of both parents. The family total can never exceed 100% of the deceased’s pension; when it would, the children’s shares are reduced equally. For the first three years the pension is paid in full. After that, if the spouse works or draws a pension of their own, it is halved, never below the legal minimum. A spouse under ${W.lifetime_age} with no eligible child or disability receives it for ${W.temporary_years} years only, then again from ${W.resume_age}. ${W.min_marriage_years} years of marriage are required, with exceptions. The calculator shows the amounts for your family.`}
+  faqs={faqs}
+  related={[{ href: route('pension', lang), name: label('pension', lang), description: 'The pension the survivor’s share is taken from.' }, { href: route('national', lang), name: label('national', lang), description: 'The basic amount behind the legal minimum.' }, { href: route('retireage', lang), name: label('retireage', lang), description: 'When your own pension starts.' }]}
+  sources={[src('widow', lang), src('pension', lang)]}>
+  <div data-outil><ToolCalc client:load kind="widow" lang={lang} methodHref={route('method', lang)} /></div>
+
+  <h2>How the pension evolves over time</h2>
+  <ContentTable headers={['Period', 'What is paid']} align={['l', 'l']} rows={timeline} />
+  <p>The three-year rule is the part most families do not expect. A 45-year-old widow with no children receives {$(young.spouse)} a month on a {$(1400)} pension, but only for three years; with one child under {W.child_max_age}, the pension continues, and the family receives {$(kids.total)} in total while the child is entitled.</p>
+  <div data-chrome><MiniSim client:load kind="widowshare" lang={lang} href={route('widow', lang)} /></div>
+
+  <h2>The marriage condition</h2>
+  <p>No pension is paid if the death occurs less than {W.min_marriage_years} years after the wedding, unless it was caused by an accident, a child was born or adopted during the marriage, the widow was pregnant and the child was born alive, or the couple had remarried each other with at least five years of marriage in total.</p>
+
+  <h2>What this calculator leaves out</h2>
+  <p>It does not compute the legal minimum survivor’s pension, which is linked to the national pension and the deceased’s years of insurance, because we have not confirmed the {P.year} amount after indexation on an official source. It also leaves out the reduction for marriages made after retirement with a large age gap, and the split with an ex-spouse who received maintenance. If the deceased was insured but not yet retired, they must have had enough insurance for an old-age or disability pension; e-EFKA decides the exact requirement.</p>
+</GuideLayout>

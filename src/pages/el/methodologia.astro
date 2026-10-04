@@ -9,6 +9,11 @@ import { facts, src } from '../../lib/facts';
 import { salary, christmasBonus, easterBonus, leaveAllowance, severance, roadTax, enfia, pension, nationalPension, grossForNet, PARAMS as P } from '../../lib/engine/gr';
 import { formatMoney, formatDecimal, pct, displayDate } from '../../lib/format';
 import { webPageSchema, breadcrumbSchema } from '../../lib/seo';
+import { childBenefit, rentRefund } from '../../lib/engine/epidomata';
+import TH from '../../data/thermansi.json';
+const nTh = Object.values(TH as unknown as Record<string, unknown[]>).reduce((s, r) => s + r.length, 0);
+const okChild = P.child_benefit.official_examples.filter((e) => childBenefit({ income: e.income, parents: e.parents, children: e.children }).monthly === e.monthly).length;
+const okRent = P.rent_refund.official_examples.filter((e) => Math.abs(rentRefund({ annualRent: e.rent, children: e.children }).amount - e.refund) < 0.01).length;
 import { LANG_TAGS } from '../../data/site-config';
 
 const lang = 'el';
@@ -118,6 +123,12 @@ const jsonLd = [webPageSchema({ name: h1, description, path, lang }), breadcrumb
 
       <h2>Σύνταξη</h2>
       <p>Η εκτίμηση ακολουθεί τα άρθρα 7 και 8 του ν. 4387/2016. Ανταποδοτικό μέρος = μέσες συντάξιμες αποδοχές × άθροισμα των ποσοστών αναπλήρωσης ανά έτος ασφάλισης, με ανώτατο τις ίδιες τις αποδοχές. Εθνική σύνταξη = {F.nationalFull} με {Q.national_years_full} έτη ασφάλισης και {Q.residence_years_full} έτη διαμονής, μείον {pct(Q.national_reduction_per_year, lang)} για κάθε έτος κάτω από τα {Q.national_years_full} (κατώτατο {F.minYears} έτη, {F.national15}) και επί τον λόγο ετών διαμονής προς {Q.residence_years_full}. Με 30 έτη και μέσο μισθό {$(1400)}: ποσοστό {pct(pen.rate, lang)}, ανταποδοτικό {$2(pen.contributory)}, εθνική {$2(pen.national)}, σύνολο {$2(pen.total)} μικτά.</p>
+
+      <h2>Επιδόματα</h2>
+      <p>Κάθε επίδομα έχει δική του συνάρτηση στον κώδικα και τα ποσά του στο αρχείο παραμέτρων, με την πηγή δίπλα. Το <a href={route('childben', lang)}>επίδομα παιδιού</a> ακολουθεί το άρθρο 214 του ν. 4512/2018: οικογενειακό εισόδημα διά κλίμακα ισοδυναμίας, τρεις κατηγορίες, ποσό ανά παιδί· ο υπολογιστής βγάζει σωστά {okChild} από τα {P.child_benefit.official_examples.length} αριθμητικά παραδείγματα της ΟΠΕΚΑ. Η <a href={route('rentrefund', lang)}>επιστροφή ενοικίου</a> αναπαράγει {okRent} από τα {P.rent_refund.official_examples.length} παραδείγματα των συχνών ερωτήσεων της ΑΑΔΕ. Το <a href={route('heating', lang)}>επίδομα θέρμανσης</a> χρησιμοποιεί τους συντελεστές ΣΟ-Μ και ΣΚ {nTh} οικισμών, όπως τους εξαγάγαμε από τα παραρτήματα των ΦΕΚ Β΄ 5802/2025 και Β΄ 3044/2026 με ένα σενάριο που ξανατρέχει σε κάθε νέα απόφαση· όπου η ΚΥΑ είναι διφορούμενη, για την προσαύξηση των πολύ ψυχρών οικισμών, δείχνουμε και τις δύο αναγνώσεις. Το επίδομα ανεργίας ακολουθεί την εγκύκλιο της ΔΥΠΑ για το ποσό από 1-4-2026, η ειδική παροχή μητρότητας τον κατώτατο μισθό, η σύνταξη χηρείας τα ποσοστά του άρθρου 12 του ν. 4387/2016. Όσα ποσά δεν μπορέσαμε να επιβεβαιώσουμε σε επίσημη πηγή, όπως το επίδομα μητρότητας του e-ΕΦΚΑ ή το ελάχιστο της σύνταξης χηρείας, δεν υπολογίζονται, και η σελίδα το λέει.</p>
+
+      <h2>Φορολογική δήλωση, ενοίκια, μεταβίβαση</h2>
+      <p>Η <a href={route('taxreturn', lang)}>φορολογική δήλωση</a> προσθέτει στον φόρο της κλίμακας τον αυτοτελή φόρο των ενοικίων (άρθρο 40 παρ. 4 ΚΦΕ, μετά την έκπτωση {pct(P.rental_tax.expense_deduction, lang)} του άρθρου 39) και το πρόστιμο {pct(P.tax_return.card_penalty_rate, lang)} για τις δαπάνες με κάρτα που λείπουν (άρθρο 15 παρ. 6), και αφαιρεί την παρακράτηση. Ο <a href={route('incometax', lang)}>φόρος εισοδήματος</a> των ελεύθερων επαγγελματιών εφαρμόζει την ίδια κλίμακα χωρίς τη μείωση του άρθρου 16 (άρθρο 29)· το ελάχιστο τεκμαρτό εισόδημα του άρθρου 28Α δεν υπολογίζεται. Ο <a href={route('transfer', lang)}>φόρος μεταβίβασης</a> είναι {pct(P.transfer_tax.rate, lang)} της μεγαλύτερης από αντικειμενική αξία και τίμημα, συν {pct(P.transfer_tax.municipal_surcharge, lang)} υπέρ δήμων (άρθρα 25 και 27 του Κώδικα Φορολογίας Περιουσίας), με την απαλλαγή πρώτης κατοικίας των άρθρων 40 και 41.</p>
 
       <h2>Τι δεν υπολογίζουμε</h2>
       <p>Προτιμάμε να γράψουμε καθαρά πού σταματά το μοντέλο. Τα αποτελέσματα μπορεί να διαφέρουν από την πραγματικότητα στις εξής περιπτώσεις:</p>

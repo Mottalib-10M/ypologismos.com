@@ -13,6 +13,7 @@ import { EXTRA_D } from './mini-extra-d';
 import { EXTRA_E } from './mini-extra-e';
 import { EXTRA_F } from './mini-extra-f';
 import { EXTRA_G } from './mini-extra-g';
+import { EXTRA_H } from './mini-extra-h';
 
 type L = string;
 const T = <A,>(l: L, el: A, en: A) => (l === 'en' ? en : el);
@@ -120,7 +121,7 @@ const SPECS: Record<string, (l: L) => MiniSpec> = {
     run: ({ d, y }) => { const s = severance({ pay: d, daily: true, years: y });
       return { head: [T(l, 'Αποζημίωση χωρίς προειδοποίηση', 'Severance without notice'), $(s.total, l)], rows: [[T(l, 'Μηνιαίος μισθός (× 22)', 'Monthly pay (× 22)'), $(s.monthly, l)], [T(l, 'Μισθοί αποζημίωσης', 'Months of pay'), String(s.months)]] }; } }),
   road: (l) => ({ title: T(l, 'Τα τέλη κυκλοφορίας του αυτοκινήτου σας', 'Your car’s road tax'), cta: T(l, 'Πλήρης υπολογιστής τελών', 'Full road tax calculator'),
-    inputs: [{ id: 'y', label: T(l, 'Έτος ταξινόμησης', 'Year registered'), def: 2019, max: 2026 }, { id: 'c', label: T(l, 'CO₂ (από 11/2010) ή κυβικά', 'CO₂ (from 11/2010) or cc'), def: 120, max: 20000 }],
+    inputs: [{ id: 'y', label: T(l, 'Έτος ταξινόμησης', 'Year registered'), def: 2019, max: 2026, plain: true }, { id: 'c', label: T(l, 'CO₂ (από 11/2010) ή κυβικά', 'CO₂ (from 11/2010) or cc'), def: 120, max: 20000 }],
     run: ({ y, c }) => { const cat = roadCategoryFor(y); const r = roadTax({ category: cat, cc: c, co2: c });
       return { head: [T(l, 'Τέλη κυκλοφορίας', 'Road tax'), $2(r.amount, l)], rows: [[T(l, 'Μέθοδος', 'Method'), r.method === 'co2' ? 'CO₂' : T(l, 'κυβισμός', 'engine size')], [T(l, 'Ανά μήνα', 'Per month'), $2(r.amount / 12, l)]] }; } }),
   roadmonth: (l) => ({ title: T(l, 'Τα τέλη σας ανά μήνα', 'Your road tax per month'), cta: T(l, 'Πλήρης υπολογιστής τελών', 'Full road tax calculator'),
@@ -179,7 +180,7 @@ const SPECS: Record<string, (l: L) => MiniSpec> = {
       return { head: [T(l, 'Καθαρή αύξηση ανά καταβολή', 'Net raise per payment'), $(b.net - a.net, l)], rows: [[T(l, 'Μένει από κάθε 100 € αύξηση', 'Kept from each €100 of raise'), $(r > 0 ? (b.net - a.net) / r * 100 : 0, l)], [T(l, 'Καθαρή αύξηση τον χρόνο', 'Net raise per year'), $(b.netAnnual - a.netAnnual, l)]] }; } }),
 };
 
-const ALL: Record<string, (l: L) => MiniSpec> = { ...SPECS, ...EXTRA_A, ...EXTRA_B, ...EXTRA_C, ...EXTRA_D, ...EXTRA_E, ...EXTRA_F, ...EXTRA_G };
+const ALL: Record<string, (l: L) => MiniSpec> = { ...SPECS, ...EXTRA_A, ...EXTRA_B, ...EXTRA_C, ...EXTRA_D, ...EXTRA_E, ...EXTRA_F, ...EXTRA_G, ...EXTRA_H };
 export function getSpec(kind: string, lang = 'el'): MiniSpec {
   const f = ALL[kind]; if (!f) throw new Error(`mini-spec inconnu : ${kind}`); return f(lang);
 }

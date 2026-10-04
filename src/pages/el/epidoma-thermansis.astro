@@ -1,0 +1,72 @@
+---
+import HeatingCalc from '../../components/calc/HeatingCalc';
+import MiniSim from '../../components/calc/MiniSim';
+import GuideLayout from '../../components/GuideLayout.astro';
+import ContentTable from '../../components/ContentTable.astro';
+import { route } from '../../i18n/routes';
+import { label } from '../../i18n/nav';
+import { src } from '../../lib/facts';
+import { PARAMS as P } from '../../lib/engine/gr';
+import { heatingAllowance, heatingLimits } from '../../lib/engine/epidomata';
+import { formatMoney, formatDecimal, formatNumber, displayDate } from '../../lib/format';
+import TH from '../../data/thermansi.json';
+const lang = 'el';
+const $ = (x: number) => formatMoney(x, 0, lang);
+const d2 = (x: number) => formatDecimal(x, 2, lang);
+const n0 = (x: number) => formatNumber(x, 0, lang);
+const H = P.heating;
+const data = TH as unknown as Record<string, Array<[string, number | null, number | null, number]>>;
+const all = Object.values(data).flat();
+const cold = all.filter((r) => (r[2] ?? 0) >= H.cold_threshold).length;
+const veryCold = all.filter((r) => (r[2] ?? 0) >= H.very_cold_threshold).length;
+const tks = Object.keys(data).length;
+const DEF = '45221';
+const towns: Array<[string, string, string]> = [['11141', 'Αθήναι', 'Αθήνα'], ['54621', 'Θεσσαλονίκη', 'Θεσσαλονίκη'], ['26221', 'Πάτραι', 'Πάτρα'], ['71201', 'Ηράκλειον', 'Ηράκλειο'], ['41222', 'Λάρισα', 'Λάρισα'], ['45221', 'Ιωάννινα', 'Ιωάννινα'], ['22100', 'Τρίπολις', 'Τρίπολη'], ['50100', 'Κοζάνη', 'Κοζάνη'], ['53100', 'Φλώρινα', 'Φλώρινα'], ['44200', 'Μέτσοβον', 'Μέτσοβο'], ['51100', 'Σαμαρίνα', 'Σαμαρίνα']];
+const townRows = towns.map(([tk, nm, show]) => { const r = data[tk].find((x) => x[0].startsWith(nm))!; const a = heatingAllowance({ fuel: 'oil', som: r[2] as number }), b = heatingAllowance({ fuel: 'oil', som: r[2] as number, children: 2 }); return [show, tk, d2(r[2] as number), d2(r[1] as number), $(a.amount), $(b.amount)]; });
+const io = data[DEF][0];
+const ex = heatingAllowance({ fuel: 'oil', som: io[2] as number });
+const ex2 = heatingAllowance({ fuel: 'oil', som: io[2] as number, children: 2 });
+const ath = heatingAllowance({ fuel: 'oil', som: data['11141'][0][2] as number });
+const met = heatingAllowance({ fuel: 'oil', som: 1.03, children: 2 });
+const limRows = (['single', 'couple', 'singleParent'] as const).map((h) => { const a = heatingLimits(h, 0), b = heatingLimits(h, 2); return [h === 'single' ? 'Άγαμος, χήρος, σε διάσταση' : h === 'couple' ? 'Έγγαμοι ή σύμφωνο' : 'Μονογονεϊκή', $(h === 'singleParent' ? heatingLimits(h, 1).income : a.income), $(b.income), $(a.property), $(b.property)]; });
+const refRows = (Object.entries(H.reference) as Array<[string, number]>).filter(([k]) => k !== 'district').map(([k, v]) => [{ oil: 'Πετρέλαιο, κηροζίνη, υγραέριο', gas: 'Φυσικό αέριο', electricity: 'Ρεύμα', pellet: 'Πέλετ', wood: 'Καυσόξυλα ή τηλεθέρμανση' }[k] as string, $(v)]);
+const faqs = [
+  { q: 'Πόσο είναι το επίδομα θέρμανσης στην Αθήνα;', a: `Στην Αθήνα ο συντελεστής ΣΟ-Μ της περιόδου ${H.season} είναι ${d2(data['11141'][0][2] as number)}, πολύ χαμηλός. Για πετρέλαιο χωρίς παιδιά ο λογαριασμός δίνει λιγότερο από το ελάχιστο, οπότε καταβάλλεται το κατώτατο ποσό των ${$(H.min)}, όπως και για τους περισσότερους οικισμούς του λεκανοπεδίου. Με ρεύμα και τρία παιδιά το ποσό ανεβαίνει πάνω από το ελάχιστο.` },
+  { q: 'Τι είναι ο συντελεστής ΣΟ-Μ και πού τον βρίσκω;', a: `Είναι ο συντελεστής τρεχουσών καιρικών συνθηκών κάθε οικισμού, που μετρά πόσο κρύο έκανε πραγματικά από τον Οκτώβριο ως τον Μάρτιο. Δημοσιεύεται στο Παράρτημα Β της ΚΥΑ Α.1116/2026 (ΦΕΚ Β΄ 3044) για ${n0(all.length)} οικισμούς. Ο υπολογιστής αυτής της σελίδας τον βρίσκει από τον ταχυδρομικό κώδικα, χωρίς να ψάξετε το ΦΕΚ.` },
+  { q: 'Γιατί πήρα μόνο το μισό επίδομα θέρμανσης;', a: `Επειδή οι αγορές καυσίμου με τιμολόγιο δεν έφτασαν το διπλάσιο του επιδόματος. Σε αυτή την περίπτωση η ΚΥΑ δίνει το μισό της αξίας των αγορών, με ελάχιστο ${$(H.min)}. Για το πετρέλαιο η αξία υπολογίζεται με σταθερή τιμή ${formatDecimal(H.oil_price_per_litre, 2, lang)} € το λίτρο, όποια κι αν ήταν η τιμή στο πρατήριο.` },
+  { q: 'Ποια είναι τα εισοδηματικά κριτήρια για το επίδομα θέρμανσης;', a: `Οικογενειακό εισόδημα έως ${$(H.income_single)} για άγαμο και ${$(H.income_couple)} για έγγαμους, συν ${$(H.income_per_child)} για κάθε παιδί, ή ${$(H.income_single_parent)} για μονογονεϊκή οικογένεια. Η ακίνητη περιουσία της ΕΝΦΙΑ πρέπει να μένει έως ${$(H.property_single)} ή ${$(H.property_couple)}, συν ${$(H.property_per_child)} ανά παιδί. Οι επιχειρηματίες χρειάζονται τζίρο έως ${$(H.business_turnover_max)}.` },
+  { q: 'Έχει βγει η ΚΥΑ για το επίδομα θέρμανσης 2026-2027;', a: `Όχι ακόμη, στις 4 Οκτωβρίου ${P.year}. Ο υπολογιστής εφαρμόζει τους κανόνες της περιόδου ${H.season} (ΚΥΑ Α.1151/2025) με τους τελικούς συντελεστές ΣΟ-Μ του Μαΐου ${P.year}. Μόλις δημοσιευθεί η νέα απόφαση, θα ενημερώσουμε ποσά, όρια και συντελεστές και θα το γράψουμε στη σελίδα.` },
+];
+---
+<GuideLayout lang={lang} id="heating" breadcrumbLabel={label('heating', lang)}
+  title={`Επίδομα θέρμανσης ${H.season}: υπολογισμός ανά οικισμό και ΤΚ`}
+  h1={`Επίδομα θέρμανσης: πόσα δικαιούστε στον δικό σας οικισμό`}
+  description={`Επίδομα θέρμανσης ${H.season}: γράψτε τον ΤΚ σας και δείτε το ποσό με τον επίσημο ΣΟ-Μ ${n0(all.length)} οικισμών, για πετρέλαιο, φυσικό αέριο, ρεύμα, πέλετ ή ξύλα.`}
+  intro={`Δύο σπίτια με την ίδια οικογένεια και το ίδιο καύσιμο παίρνουν διαφορετικό επίδομα αν βρίσκονται σε διαφορετικό χωριό. Η διαφορά είναι ο συντελεστής του οικισμού.`}
+  resume={`Στα Ιωάννινα, μια οικογένεια που ζεσταίνεται με πετρέλαιο πήρε επίδομα θέρμανσης ${$(ex.amount)} για την περίοδο ${H.season} χωρίς παιδιά και ${$(ex2.amount)} με δύο παιδιά· στην Αθήνα το ίδιο νοικοκυριό πήρε το ελάχιστο των ${$(ath.amount)}. Η διαφορά προέρχεται από τον συντελεστή τρεχουσών καιρικών συνθηκών (ΣΟ-Μ) κάθε οικισμού, που δημοσιεύθηκε στο ΦΕΚ Β΄ 3044/2026. Το ποσό είναι το ποσό αναφοράς του καυσίμου, ${$(H.reference.oil)} για πετρέλαιο ή ${$(H.reference.electricity)} για ρεύμα, προσαυξημένο κατά ${Math.round(H.child_uplift * 100)} % για κάθε παιδί και πολλαπλασιασμένο με τον ΣΟ-Μ. Δεν πέφτει κάτω από ${$(H.min)} ούτε ανεβαίνει πάνω από ${$(H.max)}, εκτός από τους ${n0(cold)} ψυχρούς οικισμούς με ΣΟ-Μ τουλάχιστον 1, όπου προστίθεται ${Math.round(H.cold_uplift * 100)} % και το ανώτατο γίνεται ${$(H.cold_max)} ή ${$(H.very_cold_max)}. Για να πάρετε όλο το ποσό χρειάζονται αγορές ίσες με το διπλάσιο. Ο υπολογιστής βρίσκει τον συντελεστή του οικισμού σας από τον ταχυδρομικό κώδικα.`}
+  faqs={faqs}
+  related={[{ href: route('housing', lang), name: label('housing', lang), description: 'Το μηνιαίο επίδομα για όσους νοικιάζουν.' }, { href: route('rentrefund', lang), name: label('rentrefund', lang), description: 'Ένα ενοίκιο πίσω κάθε Νοέμβριο.' }, { href: route('enfia', lang), name: label('enfia', lang), description: 'Η αξία της ΕΝΦΙΑ που μετρά στο όριο περιουσίας.' }]}
+  sources={[src('heating', lang), src('heating_som', lang), src('heating_annex_som', lang), src('heating_annex_sk', lang)]}>
+  <div data-outil><HeatingCalc client:load lang={lang} defaultTk={DEF} initialRows={data[DEF]} methodHref={route('method', lang)} /></div>
+
+  <h2>Γιατί ο οικισμός αλλάζει τα πάντα</h2>
+  <ContentTable headers={['Πόλη', 'ΤΚ', 'ΣΟ-Μ', 'ΣΚ', 'Πετρέλαιο, χωρίς παιδιά', 'Πετρέλαιο, 2 παιδιά']} align={['l', 'l', 'r', 'r', 'r', 'r']} rows={townRows} />
+  <p>Η ΚΥΑ δεν δίνει έναν συντελεστή ανά νομό αλλά ανά οικισμό: {n0(all.length)} οικισμοί σε {n0(tks)} ταχυδρομικούς κώδικες. Μέσα στον ίδιο κώδικα οι τιμές απέχουν πολύ· στον ΤΚ 50100 της Κοζάνης ο ΣΟ-Μ πηγαίνει από κάτω από 0,7 μέχρι πάνω από 1,3. Γι’ αυτό ένας υπολογιστής που ζητά μόνο τον νομό ή που δίνει «έως 800 ευρώ» δεν μπορεί να σας πει τι θα πάρετε. Ο δικός μας διαβάζει την ίδια γραμμή του παραρτήματος που διαβάζει και η ΑΑΔΕ.</p>
+  <p>Ο ΣΟ-Μ μετρά τον καιρό που έκανε πραγματικά τον χειμώνα, γι’ αυτό δημοσιεύεται αφού τελειώσει η περίοδος, και κρίνει το τελικό ποσό. Ο κλιματικός συντελεστής ΣΚ, που βγαίνει πριν από τον χειμώνα, χρησιμεύει για την προκαταβολή του Δεκεμβρίου και για το ποιοι οικισμοί δικαιούνται επίδομα για ξύλα ή πέλετ. Όπου ένας οικισμός λείπει από το παράρτημα, η ΚΥΑ ορίζει τον μέσο όρο του ταχυδρομικού κώδικα, και ο υπολογιστής το σημειώνει.</p>
+
+  <h2>Ποσά αναφοράς ανά καύσιμο</h2>
+  <ContentTable headers={['Καύσιμο', 'Ποσό αναφοράς']} align={['l', 'r']} rows={refRows} />
+  <div data-chrome><MiniSim client:load kind="heatfuel" lang={lang} href={route('heating', lang)} /></div>
+  <p>Το ρεύμα έχει το υψηλότερο ποσό αναφοράς. Τα καυσόξυλα επιδοτούνται μόνο σε οικισμούς έως {n0(H.wood_max_population)} κατοίκων με ΣΚ τουλάχιστον {d2(H.wood_pellet_min_sk)}, το πέλετ σε οικισμούς έως {n0(H.pellet_max_population)} κατοίκων με τον ίδιο ΣΚ, και η τηλεθέρμανση μόνο στους δήμους που διαθέτουν δίκτυο. Κάθε δικαιούχος επιδοτείται για ένα μόνο είδος.</p>
+
+  <h2>Οι ψυχροί οικισμοί και η προσαύξηση</h2>
+  <p>Σε {n0(cold)} οικισμούς ο ΣΟ-Μ είναι τουλάχιστον 1 και σε {n0(veryCold)} φτάνει το {d2(H.very_cold_threshold)}. Στο Μέτσοβο (ΣΟ-Μ 1,03) μια οικογένεια με δύο παιδιά που καίει πετρέλαιο παίρνει {$(met.amount)}, με την προσαύξηση {Math.round(H.cold_uplift * 100)} %. Για τους οικισμούς με ΣΟ-Μ 1,2 και πάνω η ΚΥΑ προσθέτει «επιπλέον {Math.round(H.cold_uplift * 100)} %» χωρίς να ορίζει αν υπολογίζεται στο αρχικό ή στο ήδη αυξημένο ποσό. Αντί να διαλέξουμε σιωπηλά, ο υπολογιστής δείχνει και τις δύο τιμές· στο ανώτατο όριο των {$(H.very_cold_max)} συμπίπτουν.</p>
+
+  <h2>Ποιοι το δικαιούνται</h2>
+  <ContentTable headers={['Νοικοκυριό', 'Εισόδημα (χωρίς ή 1 παιδί)', 'Εισόδημα με 2 παιδιά', 'Ακίνητα χωρίς παιδιά', 'Ακίνητα με 2 παιδιά']} align={['l', 'r', 'r', 'r', 'r']} rows={limRows} />
+  <p>Το εισόδημα είναι το οικογενειακό, πραγματικό ή τεκμαρτό, χωρίς τα αφορολόγητα ποσά, και η περιουσία είναι η αξία της ΕΝΦΙΑ. Εξαιρούνται όσοι πληρώνουν φόρο πολυτέλειας, όσοι έχουν πάνω από δύο αυτοκίνητα, τα εξαρτώμενα μέλη, όσοι δηλώνουν φιλοξενία και οι φορολογικοί κάτοικοι εξωτερικού.</p>
+
+  <h2>Αιτήσεις, αγορές και πληρωμές της περιόδου {H.season}</h2>
+  <p>Οι αιτήσεις έγιναν στο myAADE έως τις {displayDate(H.application_deadline, 'el-GR')}. Η προκαταβολή πληρώθηκε έως τις {displayDate(H.advance_paid, 'el-GR')}: το 60 % του περσινού επιδόματος για όσους το είχαν πάρει, και για τους νέους δικαιούχους το μισό του ποσού αναφοράς επί τον ΣΚ, τουλάχιστον {$(H.advance_min)}. Οι αγορές μετρούσαν από 1η Οκτωβρίου 2025 έως 31 Μαρτίου 2026, για το πετρέλαιο από 15 Οκτωβρίου και για ξύλα και πέλετ από 1η Ιουνίου 2025. Η εκκαθάριση πληρώθηκε έως τις {displayDate(H.balance_paid, 'el-GR')}.</p>
+  <div data-chrome><MiniSim client:load kind="heatpurchase" lang={lang} href={route('heating', lang)} /></div>
+</GuideLayout>

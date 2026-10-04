@@ -36,7 +36,7 @@ export const EXTRA_E: Record<string, (l: string) => MiniSpec> = {
 
   /** Συντελεστής παλαιότητας : ce que coûte un permis récent. */
   enfiaage: (l) => ({ title: T(l, 'Πόσο ανεβάζει τον ΕΝΦΙΑ μια νεότερη άδεια', 'How a newer permit raises ENFIA'), cta: ENF(l),
-    inputs: [{ id: 'y', label: T(l, 'Έτος νεότερης οικοδομικής άδειας', 'Year of the newest building permit'), def: 2015, max: P.year }, { id: 's', label: T(l, 'Τετραγωνικά', 'Square metres'), def: 90, unit: 'm²', max: 100000 }, { id: 'z', label: T(l, 'Τιμή ζώνης', 'Zone price'), def: 1800, unit: '€/m²', max: 50000 }],
+    inputs: [{ id: 'y', label: T(l, 'Έτος νεότερης οικοδομικής άδειας', 'Year of the newest building permit'), def: 2015, max: P.year, plain: true }, { id: 's', label: T(l, 'Τετραγωνικά', 'Square metres'), def: 90, unit: 'm²', max: 100000 }, { id: 'z', label: T(l, 'Τιμή ζώνης', 'Zone price'), def: 1800, unit: '€/m²', max: 50000 }],
     run: ({ y, s, z }) => { const a = enfiaAgeFactor(y); const now = enfia({ sqm: s, zonePrice: z, buildYear: y, floor: 'f2_3', facades: 1 }); const old = enfia({ sqm: s, zonePrice: z, buildYear: P.year - 30, floor: 'f2_3', facades: 1 });
       return { head: [T(l, 'Συντελεστής παλαιότητας', 'Age factor'), formatNumber(a.factor, 2, l)], rows: [[T(l, 'Παλαιότητα', 'Building age'), T(l, `${a.age} έτη`, `${a.age} years`)], [T(l, 'ΕΝΦΙΑ με αυτή την άδεια', 'ENFIA with this permit'), $(now.total, l)], [T(l, 'Ίδιο σπίτι άνω των 25 ετών', 'Same home over 25 years old'), $(old.total, l)]],
         note: T(l, '2ος-3ος όροφος, μία πρόσοψη, χωρίς άλλα ακίνητα.', '2nd-3rd floor, one frontage, no other property.') }; } }),

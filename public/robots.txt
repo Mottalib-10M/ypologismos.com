@@ -3,4 +3,4 @@ Allow: /
 
 Disallow: /*?*
 
-Sitemap: https://ypologismosmisthou.gr/sitemap-index.xml
+Sitemap: https://ypologismos.com/sitemap-index.xml
