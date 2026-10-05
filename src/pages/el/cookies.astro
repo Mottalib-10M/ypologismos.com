@@ -1,52 +1,52 @@
 ---
 import PageLayout from '../../layouts/PageLayout.astro';
-import { CONTACT_EMAIL, LAST_UPDATED, LANG_TAGS, GA4_ID, CLARITY_ID, CONSENT_MODE } from '../../data/site-config';
+import { CONTACT_EMAIL, LANG_TAGS, GA4_ID } from '../../data/site-config';
 import { route } from '../../i18n/routes';
 import { label } from '../../i18n/nav';
-import { facts } from '../../lib/facts';
 import { displayDate } from '../../lib/format';
 import { breadcrumbSchema } from '../../lib/seo';
 const lang = 'el';
-const F = facts(lang);
-const updated = displayDate(LAST_UPDATED, LANG_TAGS[lang]);
-const tools = [GA4_ID && 'Google Analytics 4', CLARITY_ID && 'Microsoft Clarity'].filter(Boolean).join(' και ');
-const optIn = CONSENT_MODE === 'opt-in';
-const title = `Cookies ${F.year}: κανένα cookie παρακολούθησης στον ιστότοπο`;
-const description = `Το ${F.year} ο ιστότοπος δεν αποθηκεύει cookies παρακολούθησης, δεν έχει μέτρηση επισκεψιμότητας ούτε διαφημίσεις. Τι αλλάζει με πλαίσιο συγκατάθεσης, πώς ελέγχετε.`;
+/** Date de la dernière réécriture de cette page (mise en place de GA4 et Clarity). */
+const updated = displayDate('2026-10-05', LANG_TAGS[lang]);
+const gaCookie = `_ga_${GA4_ID.replace('G-', '')}`;
+const title = 'Cookies υπολογιστή μισθού στην Ελλάδα: Analytics και Clarity';
+const description = 'Cookies υπολογιστή μισθού στην Ελλάδα: κανένα για τον υπολογισμό, _ga και _ga_ του Google Analytics 4, _clck και _clsk του Microsoft Clarity, πώς τα μπλοκάρετε.';
 ---
 <PageLayout title={title} description={description} lang={lang} noindex={true}
   jsonLd={[breadcrumbSchema([{ name: label('home', lang), path: route('home', lang) }, { name: label('cookies', lang), path: route('cookies', lang) }])]}
   breadcrumbs={[{ label: label('cookies', lang) }]} showAuthor={false}>
   <div class="prose prose-slate max-w-none">
     <h1>Cookies και παρόμοιες τεχνολογίες</h1>
-    <p class="lead">Η σελίδα συμπληρώνει την <a href={route('privacy', lang)}>πολιτική απορρήτου</a>. {tools ? `Ο ιστότοπος χρησιμοποιεί ${tools} μόνο αν το αποδεχτείτε.` : 'Η απάντηση είναι σύντομη: σήμερα ο ιστότοπος δεν αποθηκεύει κανένα cookie στη συσκευή σας.'}</p>
+    <p class="lead">Η σελίδα συμπληρώνει την <a href={route('privacy', lang)}>πολιτική απορρήτου</a>. Οι υπολογιστές μισθού, φόρων και επιδομάτων δεν χρειάζονται κανένα cookie· τα μόνα cookies προέρχονται από δύο εργαλεία μέτρησης επισκεψιμότητας, το Microsoft Clarity και το Google Analytics 4.</p>
 
-    <h2>Η κατάσταση σήμερα</h2>
-    {tools ? (
-      <ul>
-        <li><strong>Απαραίτητα cookies:</strong> κανένα. Οι υπολογιστές λειτουργούν χωρίς αυτά.</li>
-        <li><strong>Μέτρηση επισκεψιμότητας:</strong> {tools}, που φορτώνεται {optIn ? 'μόνο αφού πατήσετε «αποδοχή» στο πλαίσιο συγκατάθεσης' : 'με προηγούμενη ενημέρωση και δυνατότητα άρνησης ανά πάσα στιγμή'}.</li>
-        <li><strong>Διαφημιστικά cookies:</strong> κανένα.</li>
-        <li><strong>Τοπική αποθήκευση του browser:</strong> μόνο η επιλογή σας στο πλαίσιο συγκατάθεσης, ώστε να μη σας ρωτάμε σε κάθε σελίδα. Δεν είναι cookie και δεν φεύγει από τη συσκευή.</li>
-      </ul>
-    ) : (
-      <ul>
-        <li><strong>Απαραίτητα cookies:</strong> κανένα. Οι υπολογιστές λειτουργούν χωρίς αυτά.</li>
-        <li><strong>Μέτρηση επισκεψιμότητας:</strong> καμία. Δεν χρησιμοποιούμε Google Analytics, Microsoft Clarity ή άλλο εργαλείο.</li>
-        <li><strong>Διαφημιστικά cookies:</strong> κανένα. Ο ιστότοπος δεν δείχνει διαφημίσεις.</li>
-        <li><strong>Τοπική αποθήκευση του browser (localStorage, sessionStorage):</strong> οι υπολογιστές δεν τη χρησιμοποιούν. Τα στοιχεία σας δεν αποθηκεύονται ούτε τοπικά.</li>
-      </ul>
-    )}
-    {!tools && <p>Γι' αυτό δεν βλέπετε πλαίσιο συγκατάθεσης: δεν υπάρχει τίποτα για να συναινέσετε. Το widget που ενσωματώνεται σε άλλους ιστότοπους λειτουργεί με τον ίδιο τρόπο και δεν αποθηκεύει τίποτα.</p>}
+    <h2>Κατηγορίες</h2>
+    <table>
+      <thead><tr><th>Κατηγορία</th><th>Κατάσταση</th></tr></thead>
+      <tbody>
+        <tr><td>Απαραίτητα</td><td>κανένα</td></tr>
+        <tr><td>Analytics (μέτρηση επισκεψιμότητας)</td><td>ενεργό</td></tr>
+        <tr><td>Διαφημιστικά</td><td>κανένα</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Ποια cookies τοποθετούνται</h2>
+    <table>
+      <thead><tr><th>Cookie</th><th>Υπηρεσία</th><th>Διάρκεια</th></tr></thead>
+      <tbody>
+        <tr><td><code>_clck</code></td><td>Microsoft Clarity</td><td>1 έτος</td></tr>
+        <tr><td><code>_clsk</code></td><td>Microsoft Clarity</td><td>1 ημέρα</td></tr>
+        <tr><td><code>MUID</code>, <code>CLID</code></td><td>Microsoft (στους δικούς της τομείς, ενδεχομένως)</td><td>έως 1 έτος</td></tr>
+        <tr><td><code>_ga</code></td><td>Google Analytics 4</td><td>2 έτη</td></tr>
+        <tr><td><code>{gaCookie}</code></td><td>Google Analytics 4</td><td>2 έτη</td></tr>
+      </tbody>
+    </table>
+    <p>Το <strong>Microsoft Clarity</strong> δημιουργεί καταγραφές συνεδριών και χάρτες θερμότητας: πού κάνουν κλικ οι επισκέπτες, πόσο κυλούν τη σελίδα, ποιες σελίδες ανοίγουν. Τα ποσά που πληκτρολογείτε σε έναν υπολογιστή καλύπτονται μέσα στον browser και δεν αποστέλλονται. Το <strong>Google Analytics 4</strong> (Google Ireland Limited) μετρά προβολές σελίδων, προέλευση, διάρκεια επισκέψεων, τύπο συσκευής και κατά προσέγγιση τοποθεσία, και διατηρεί τα στοιχεία 14 μήνες. Και τα δύο φορτώνονται με το άνοιγμα της σελίδας· δεν υπάρχει πλαίσιο συγκατάθεσης.</p>
 
     <h2>Και ο σύνδεσμος με το αποτέλεσμα;</h2>
-    <p>Αφού αλλάξετε κάποιο πεδίο, ο υπολογιστής γράφει τις τιμές στη διεύθυνση της σελίδας, ώστε να μπορείτε να στείλετε τον υπολογισμό. Αυτό δεν είναι cookie: δεν μένει τίποτα στη συσκευή πέρα από το συνηθισμένο ιστορικό, και ο σύνδεσμος περιέχει τα ποσά σας μόνο αν τον αντιγράψετε και τον στείλετε εσείς.</p>
+    <p>Αφού αλλάξετε κάποιο πεδίο, ο υπολογιστής γράφει τις τιμές στη διεύθυνση της σελίδας, ώστε να μπορείτε να στείλετε τον υπολογισμό. Αυτό δεν είναι cookie, και η αλλαγή της διεύθυνσης δεν περνά στα εργαλεία μέτρησης: δεν μένει τίποτα στη συσκευή πέρα από το συνηθισμένο ιστορικό.</p>
 
-    <h2>Πώς το ελέγχετε μόνοι σας</h2>
-    <p>Σε Chrome, Edge ή Firefox ανοίξτε τα εργαλεία προγραμματιστή (πλήκτρο F12), πηγαίνετε στην καρτέλα «Application» ή «Storage» και επιλέξτε «Cookies» για αυτόν τον τομέα. {tools ? 'Πριν από την αποδοχή η λίστα είναι κενή.' : 'Η λίστα είναι κενή.'} Στην καρτέλα «Network» θα δείτε επίσης ότι η σελίδα δεν συνδέεται με διακομιστές μέτρησης ή διαφημίσεων{tools ? ' πριν από τη συγκατάθεσή σας' : ''}.</p>
-
-    <h2>Αν κάτι αλλάξει</h2>
-    <p>Αν προσθέσουμε κάποτε εργαλείο μέτρησης επισκεψιμότητας, θα ενημερώσουμε πρώτα αυτή τη σελίδα και την <a href={route('privacy', lang)}>πολιτική απορρήτου</a>, περιγράφοντας κάθε cookie, τον σκοπό και τη διάρκειά του. {optIn ? 'Ο ιστότοπος είναι ρυθμισμένος ώστε τα εργαλεία που απαιτούν συγκατάθεση να ξεκινούν μόνο αφού πατήσετε «αποδοχή» σε πλαίσιο όπου η άρνηση είναι εξίσου εύκολη, και η επιλογή να ανακαλείται ανά πάσα στιγμή.' : 'Θα μπορείτε να τα απενεργοποιήσετε ανά πάσα στιγμή.'}</p>
+    <h2>Πώς αρνείστε τα cookies μέτρησης</h2>
+    <p>Αφού ο ιστότοπος δεν ζητά συγκατάθεση, η απενεργοποίηση γίνεται από τον browser σας: μπλοκάρετε τα cookies τρίτων, μπλοκάρετε τους τομείς <code>clarity.ms</code> και <code>google-analytics.com</code> ή εγκαταστήστε το <a href="https://tools.google.com/dlpage/gaoptout" rel="nofollow noopener" target="_blank">πρόσθετο απενεργοποίησης του Google Analytics</a>. Με τη διαγραφή των δεδομένων του ιστότοπου φεύγουν και τα cookies που έχουν ήδη τοποθετηθεί. Οι υπολογιστές λειτουργούν ακριβώς όπως πριν.</p>
     <p>Ερωτήσεις: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Έκδοση της {updated}.</p>
   </div>
 </PageLayout>

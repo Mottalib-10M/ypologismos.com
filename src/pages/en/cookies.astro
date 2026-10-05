@@ -1,52 +1,52 @@
 ---
 import PageLayout from '../../layouts/PageLayout.astro';
-import { CONTACT_EMAIL, LAST_UPDATED, LANG_TAGS, GA4_ID, CLARITY_ID, CONSENT_MODE } from '../../data/site-config';
+import { CONTACT_EMAIL, LANG_TAGS, GA4_ID } from '../../data/site-config';
 import { route } from '../../i18n/routes';
 import { label } from '../../i18n/nav';
-import { facts } from '../../lib/facts';
 import { displayDate } from '../../lib/format';
 import { breadcrumbSchema } from '../../lib/seo';
 const lang = 'en';
-const F = facts(lang);
-const updated = displayDate(LAST_UPDATED, LANG_TAGS[lang]);
-const tools = [GA4_ID && 'Google Analytics 4', CLARITY_ID && 'Microsoft Clarity'].filter(Boolean).join(' and ');
-const optIn = CONSENT_MODE === 'opt-in';
-const title = `Cookies ${F.year}: No Tracking Cookies on This Salary Site`;
-const description = `In ${F.year} this site stores no tracking cookies and runs no audience measurement or ads. What the planned consent banner would change, and how to check yourself.`;
+/** Date de la dernière réécriture de cette page (mise en place de GA4 et Clarity). */
+const updated = displayDate('2026-10-05', LANG_TAGS[lang]);
+const gaCookie = `_ga_${GA4_ID.replace('G-', '')}`;
+const title = 'Salary Calculator Cookies in Greece: Analytics and Clarity';
+const description = 'Salary calculator cookies in Greece: none for the calculation, _ga and _ga_ set by Google Analytics 4, _clck and _clsk by Microsoft Clarity, how to block them.';
 ---
 <PageLayout title={title} description={description} lang={lang} noindex={true}
   jsonLd={[breadcrumbSchema([{ name: label('home', lang), path: route('home', lang) }, { name: label('cookies', lang), path: route('cookies', lang) }])]}
   breadcrumbs={[{ label: label('cookies', lang) }]} showAuthor={false}>
   <div class="prose prose-slate max-w-none">
     <h1>Cookies and similar technologies</h1>
-    <p class="lead">This page completes the <a href={route('privacy', lang)}>privacy policy</a>. {tools ? `The site uses ${tools} only if you accept it.` : 'The short answer: today the site stores no cookies at all on your device.'}</p>
+    <p class="lead">This page completes the <a href={route('privacy', lang)}>privacy policy</a>. The salary, tax and benefit calculators need no cookie; the only cookies come from two audience measurement tools, Microsoft Clarity and Google Analytics 4.</p>
 
-    <h2>The situation today</h2>
-    {tools ? (
-      <ul>
-        <li><strong>Strictly necessary cookies:</strong> none. The calculators work without them.</li>
-        <li><strong>Audience measurement:</strong> {tools}, loaded {optIn ? 'only after you click “accept” in the consent banner' : 'with prior notice and the option to refuse at any time'}.</li>
-        <li><strong>Advertising cookies:</strong> none.</li>
-        <li><strong>Browser storage:</strong> only your choice in the consent banner, so that we do not ask on every page. It is not a cookie and never leaves your device.</li>
-      </ul>
-    ) : (
-      <ul>
-        <li><strong>Strictly necessary cookies:</strong> none. The calculators work without them.</li>
-        <li><strong>Audience measurement:</strong> none. We use neither Google Analytics nor Microsoft Clarity nor any other tool.</li>
-        <li><strong>Advertising cookies:</strong> none. The site shows no ads.</li>
-        <li><strong>Browser storage (localStorage, sessionStorage):</strong> the calculators do not use it. Your figures are not even stored locally.</li>
-      </ul>
-    )}
-    {!tools && <p>That is why you see no consent banner: there is nothing to consent to. The widget embedded on other sites behaves the same way and stores nothing either.</p>}
+    <h2>Categories</h2>
+    <table>
+      <thead><tr><th>Category</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Strictly necessary</td><td>none</td></tr>
+        <tr><td>Analytics (audience measurement)</td><td>active</td></tr>
+        <tr><td>Advertising</td><td>none</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Cookies set</h2>
+    <table>
+      <thead><tr><th>Cookie</th><th>Service</th><th>Lifetime</th></tr></thead>
+      <tbody>
+        <tr><td><code>_clck</code></td><td>Microsoft Clarity</td><td>1 year</td></tr>
+        <tr><td><code>_clsk</code></td><td>Microsoft Clarity</td><td>1 day</td></tr>
+        <tr><td><code>MUID</code>, <code>CLID</code></td><td>Microsoft (own domains, possibly)</td><td>up to 1 year</td></tr>
+        <tr><td><code>_ga</code></td><td>Google Analytics 4</td><td>2 years</td></tr>
+        <tr><td><code>{gaCookie}</code></td><td>Google Analytics 4</td><td>2 years</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Microsoft Clarity</strong> produces session recordings and heatmaps: where people click, how far they scroll, which pages they open. The amounts you type into a calculator are masked in the browser and are not sent. <strong>Google Analytics 4</strong> (Google Ireland Limited) counts page views, traffic sources, visit length, device type and approximate location, and keeps the data for 14 months. Both load when the page opens; there is no consent banner.</p>
 
     <h2>What about the link with my result?</h2>
-    <p>After you change a field, the calculator writes the values into the page address so you can share the calculation. That is not a cookie: nothing stays on your device beyond ordinary browsing history, and the link only carries your figures if you copy it and send it yourself.</p>
+    <p>After you change a field, the calculator writes the values into the page address so you can share the calculation. That is not a cookie, and the address update is not passed to the analytics tools: nothing stays on your device beyond ordinary browsing history.</p>
 
-    <h2>How to check for yourself</h2>
-    <p>In Chrome, Edge or Firefox, open the developer tools (F12), go to the “Application” or “Storage” tab and choose “Cookies” for this domain. {tools ? 'Before you accept, the list is empty.' : 'The list is empty.'} The “Network” tab will also show that the page contacts no analytics or advertising servers{tools ? ' before your consent' : ''}.</p>
-
-    <h2>If this changes</h2>
-    <p>If we ever add audience measurement, we will first update this page and the <a href={route('privacy', lang)}>privacy policy</a>, describing each cookie, its purpose and its lifetime. {optIn ? 'The site is set up so that tools requiring consent start only after you click “accept” in a banner where refusing is just as easy, and you can withdraw that choice at any time.' : 'You will be able to switch them off at any time.'}</p>
+    <h2>How to refuse analytics cookies</h2>
+    <p>As the site asks for no consent, switching measurement off is done in your browser: block third-party cookies, block the domains <code>clarity.ms</code> and <code>google-analytics.com</code>, or install the <a href="https://tools.google.com/dlpage/gaoptout" rel="nofollow noopener" target="_blank">Google Analytics opt-out add-on</a>. Clearing the site’s data removes cookies already set. The calculators keep working exactly as before.</p>
     <p>Questions: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Version of {updated}.</p>
   </div>
 </PageLayout>
