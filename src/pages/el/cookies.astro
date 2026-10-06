@@ -1,52 +1,43 @@
 ---
 import PageLayout from '../../layouts/PageLayout.astro';
-import { CONTACT_EMAIL, LANG_TAGS, GA4_ID } from '../../data/site-config';
+import { CONTACT_EMAIL, LANG_TAGS } from '../../data/site-config';
 import { route } from '../../i18n/routes';
 import { label } from '../../i18n/nav';
 import { displayDate } from '../../lib/format';
 import { breadcrumbSchema } from '../../lib/seo';
 const lang = 'el';
-/** Date de la dernière réécriture de cette page (mise en place de GA4 et Clarity). */
-const updated = displayDate('2026-10-05', LANG_TAGS[lang]);
-const gaCookie = `_ga_${GA4_ID.replace('G-', '')}`;
-const title = 'Cookies υπολογιστή μισθού στην Ελλάδα: Analytics και Clarity';
-const description = 'Cookies υπολογιστή μισθού στην Ελλάδα: κανένα για τον υπολογισμό, _ga και _ga_ του Google Analytics 4, _clck και _clsk του Microsoft Clarity, πώς τα μπλοκάρετε.';
+/** Date de la dernière réécriture de cette page (aucun cookie, Clarity en mode sans cookie). */
+const updated = displayDate('2026-10-06', LANG_TAGS[lang]);
+const title = 'Cookies υπολογιστή μισθού στην Ελλάδα: κανένα cookie';
+const description = 'Cookies υπολογιστή μισθού: ο ιστότοπος δεν τοποθετεί κανένα και δεν κρατά μισθό ή τέκνα στη συσκευή. Το Microsoft Clarity χωρίς cookies ελέγχει ανώνυμα τη λειτουργία.';
 ---
 <PageLayout title={title} description={description} lang={lang} noindex={true}
   jsonLd={[breadcrumbSchema([{ name: label('home', lang), path: route('home', lang) }, { name: label('cookies', lang), path: route('cookies', lang) }])]}
   breadcrumbs={[{ label: label('cookies', lang) }]} showAuthor={false}>
   <div class="prose prose-slate max-w-none">
     <h1>Cookies και παρόμοιες τεχνολογίες</h1>
-    <p class="lead">Η σελίδα συμπληρώνει την <a href={route('privacy', lang)}>πολιτική απορρήτου</a>. Οι υπολογιστές μισθού, φόρων και επιδομάτων δεν χρειάζονται κανένα cookie· τα μόνα cookies προέρχονται από δύο εργαλεία μέτρησης επισκεψιμότητας, το Microsoft Clarity και το Google Analytics 4.</p>
+    <p class="lead">Η σελίδα συμπληρώνει την <a href={route('privacy', lang)}>πολιτική απορρήτου</a>. Ο ιστότοπος δεν τοποθετεί κανένα cookie, ούτε δικό του ούτε τρίτων, και οι υπολογιστές μισθού, φόρων και επιδομάτων δεν αποθηκεύουν τίποτα στη συσκευή σας.</p>
 
     <h2>Κατηγορίες</h2>
     <table>
       <thead><tr><th>Κατηγορία</th><th>Κατάσταση</th></tr></thead>
       <tbody>
-        <tr><td>Απαραίτητα</td><td>κανένα</td></tr>
-        <tr><td>Analytics (μέτρηση επισκεψιμότητας)</td><td>ενεργό</td></tr>
+        <tr><td>Απαραίτητα cookies</td><td>κανένα</td></tr>
+        <tr><td>Cookies μέτρησης ή προφίλ</td><td>κανένα</td></tr>
         <tr><td>Διαφημιστικά</td><td>κανένα</td></tr>
+        <tr><td>Τεχνικός έλεγχος λειτουργίας (Microsoft Clarity)</td><td>χωρίς cookies, με κάλυψη περιεχομένου</td></tr>
       </tbody>
     </table>
+    <p>Ο μικτός μισθός, τα τέκνα ή η ηλικία που πληκτρολογείτε υπολογίζονται μέσα στη σελίδα και χάνονται όταν την κλείσετε: δεν γράφονται ούτε σε cookie ούτε στην τοπική μνήμη του browser. Γι’ αυτό δεν θα δείτε κανένα πλαίσιο για cookies: δεν υπάρχει τίποτα να αποδεχτείτε.</p>
 
-    <h2>Ποια cookies τοποθετούνται</h2>
-    <table>
-      <thead><tr><th>Cookie</th><th>Υπηρεσία</th><th>Διάρκεια</th></tr></thead>
-      <tbody>
-        <tr><td><code>_clck</code></td><td>Microsoft Clarity</td><td>1 έτος</td></tr>
-        <tr><td><code>_clsk</code></td><td>Microsoft Clarity</td><td>1 ημέρα</td></tr>
-        <tr><td><code>MUID</code>, <code>CLID</code></td><td>Microsoft (στους δικούς της τομείς, ενδεχομένως)</td><td>έως 1 έτος</td></tr>
-        <tr><td><code>_ga</code></td><td>Google Analytics 4</td><td>2 έτη</td></tr>
-        <tr><td><code>{gaCookie}</code></td><td>Google Analytics 4</td><td>2 έτη</td></tr>
-      </tbody>
-    </table>
-    <p>Το <strong>Microsoft Clarity</strong> δημιουργεί καταγραφές συνεδριών και χάρτες θερμότητας: πού κάνουν κλικ οι επισκέπτες, πόσο κυλούν τη σελίδα, ποιες σελίδες ανοίγουν. Τα ποσά που πληκτρολογείτε σε έναν υπολογιστή καλύπτονται μέσα στον browser και δεν αποστέλλονται. Το <strong>Google Analytics 4</strong> (Google Ireland Limited) μετρά προβολές σελίδων, προέλευση, διάρκεια επισκέψεων, τύπο συσκευής και κατά προσέγγιση τοποθεσία, και διατηρεί τα στοιχεία 14 μήνες. Και τα δύο φορτώνονται με το άνοιγμα της σελίδας· δεν υπάρχει πλαίσιο συγκατάθεσης.</p>
+    <h2>Ανώνυμος έλεγχος της σταθερότητας</h2>
+    <p>Για να εντοπίζουμε σελίδες που δεν φορτώνουν, σφάλματα σε έναν υπολογιστή ή κουμπιά που δεν αντιδρούν, χρησιμοποιούμε το Microsoft Clarity σε λειτουργία χωρίς cookies. Έτσι το Clarity δεν τοποθετεί τα <code>_clck</code>, <code>_clsk</code>, <code>MUID</code> ή <code>CLID</code>· κάθε προβολή σελίδας παίρνει δικό της αναγνωριστικό μίας χρήσης, οι επισκέψεις δεν συνδέονται μεταξύ τους, και το κείμενο της σελίδας και τα ποσά καλύπτονται πριν σταλεί οτιδήποτε. Μετρώνται μόνο σφάλματα, χρόνοι φόρτωσης, κλικ χωρίς αποτέλεσμα και κύλιση. Ο εκδότης δεν καταγράφει κανένα προσωπικό δεδομένο.</p>
 
     <h2>Και ο σύνδεσμος με το αποτέλεσμα;</h2>
-    <p>Αφού αλλάξετε κάποιο πεδίο, ο υπολογιστής γράφει τις τιμές στη διεύθυνση της σελίδας, ώστε να μπορείτε να στείλετε τον υπολογισμό. Αυτό δεν είναι cookie, και η αλλαγή της διεύθυνσης δεν περνά στα εργαλεία μέτρησης: δεν μένει τίποτα στη συσκευή πέρα από το συνηθισμένο ιστορικό.</p>
+    <p>Αφού αλλάξετε κάποιο πεδίο, ο υπολογιστής γράφει τις τιμές στη διεύθυνση της σελίδας, ώστε να μπορείτε να στείλετε τον υπολογισμό. Αυτό δεν είναι cookie: δεν μένει τίποτα στη συσκευή πέρα από το συνηθισμένο ιστορικό.</p>
 
-    <h2>Πώς αρνείστε τα cookies μέτρησης</h2>
-    <p>Αφού ο ιστότοπος δεν ζητά συγκατάθεση, η απενεργοποίηση γίνεται από τον browser σας: μπλοκάρετε τα cookies τρίτων, μπλοκάρετε τους τομείς <code>clarity.ms</code> και <code>google-analytics.com</code> ή εγκαταστήστε το <a href="https://tools.google.com/dlpage/gaoptout" rel="nofollow noopener" target="_blank">πρόσθετο απενεργοποίησης του Google Analytics</a>. Με τη διαγραφή των δεδομένων του ιστότοπου φεύγουν και τα cookies που έχουν ήδη τοποθετηθεί. Οι υπολογιστές λειτουργούν ακριβώς όπως πριν.</p>
+    <h2>Αν θέλετε να το μπλοκάρετε</h2>
+    <p>Μπλοκάρετε τον τομέα <code>clarity.ms</code> στον browser ή με ένα πρόσθετο αποκλεισμού περιεχομένου. Οι υπολογιστές λειτουργούν ακριβώς το ίδιο.</p>
     <p>Ερωτήσεις: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Έκδοση της {updated}.</p>
   </div>
 </PageLayout>
