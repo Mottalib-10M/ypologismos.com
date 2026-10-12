@@ -5,8 +5,9 @@
  * chargé qu'après hydratation, comme un module du site ; premier rendu = code postal par défaut, dont
  * les lignes arrivent en props depuis le build (§17.5). Aucune donnée saisie ne quitte le navigateur.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import SelectField from '../ui/SelectField';
+import StickyResult from '../ui/StickyResult';
 import { heatingAllowance, heatingAdvanceNew, heatingLimits, type Fuel, type Household } from '../../lib/engine/epidomata';
 import { PARAMS as P } from '../../lib/engine/gr';
 import { formatMoney, formatDecimal } from '../../lib/format';
@@ -58,6 +59,7 @@ export default function HeatingCalc({ lang = 'el', defaultTk, initialRows, metho
   const lim = heatingLimits(hh, Number(kids));
   const flags = row ? row[3] : 0;
   const fuelOk = fuel === 'wood' ? (flags & 1) > 0 : fuel === 'pellet' ? (flags & 4) > 0 : fuel === 'district' ? (flags & 2) > 0 : true;
+  const card = useRef<HTMLDivElement>(null);
   const tkValid = /^\d{5}$/.test(tk);
   return (
     <div data-chrome data-calculator="heating" className="not-prose rounded-xl border border-navy-200 bg-white p-4 sm:p-6">
@@ -77,7 +79,7 @@ export default function HeatingCalc({ lang = 'el', defaultTk, initialRows, metho
           <SelectField id="c-heating-h" label={T(l, 'Νοικοκυριό', 'Household')} value={hh} onChange={(v) => setHh(v as Household)}
             options={[{ value: 'single', label: T(l, 'Άγαμος, χήρος ή σε διάσταση', 'Single, widowed or separated') }, { value: 'couple', label: T(l, 'Έγγαμοι ή σύμφωνο συμβίωσης', 'Married or civil partners') }, { value: 'singleParent', label: T(l, 'Μονογονεϊκή οικογένεια', 'Single-parent family') }]} />
         </form>
-        <div aria-live="polite" className="rounded-lg bg-accent-50 p-4 sm:p-5">
+        <div ref={card} aria-live="polite" data-resultat className="rounded-lg bg-accent-50 p-4 sm:p-5">
           <p className="text-sm font-medium text-navy-700">{T(l, `Επίδομα θέρμανσης ${P.heating.season}`, `Heating allowance ${P.heating.season}`)}</p>
           <p className="tabular-nums mt-1 text-4xl font-bold text-navy-900">{out ? (out.r.band === 2 && Math.round(out.r.amountHigh) !== Math.round(out.r.amount) ? `${$(out.r.amount)}–${$(out.r.amountHigh)}` : $(out.r.amount)) : '—'}</p>
           {row && <p className="mt-1 text-sm text-navy-700">{row[0]} · ΣΟ-Μ {formatDecimal(row[2] ?? 0, 2, l)}{row[3] & 16 ? T(l, ' (μέσος του ΤΚ)', ' (postcode average)') : ''}</p>}
@@ -96,6 +98,7 @@ export default function HeatingCalc({ lang = 'el', defaultTk, initialRows, metho
         </div>
       </div>
       <p className="mt-4 text-xs text-navy-600">{T(l, 'Συντελεστές ΣΟ-Μ και ΣΚ από τα παραρτήματα των ΚΥΑ Α.1151/2025 και Α.1116/2026 · ο υπολογισμός γίνεται στον browser σας, τίποτα δεν αποστέλλεται.', 'Coefficients from the annexes to decisions A.1151/2025 and A.1116/2026 · calculated in your browser, nothing is sent.')}</p>
+      {out && <StickyResult target={card} label={T(l, `Επίδομα θέρμανσης ${P.heating.season}`, `Heating allowance ${P.heating.season}`)} value={out.r.band === 2 && Math.round(out.r.amountHigh) !== Math.round(out.r.amount) ? `${$(out.r.amount)}–${$(out.r.amountHigh)}` : $(out.r.amount)} />}
     </div>
   );
 }

@@ -4,11 +4,12 @@
  * (un sujet = une entrée, calculée par `lib/engine/gr.ts`). Premier rendu = valeurs par défaut
  * du build ; les paramètres d'un lien partagé ne sont lus qu'après hydratation (§17.5).
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import NumberField from '../ui/NumberField';
 import SelectField from '../ui/SelectField';
 import Toggle from '../ui/Toggle';
 import StackedBar from '../ui/StackedBar';
+import StickyResult from '../ui/StickyResult';
 import { getCalc, type CalcValues } from '../../lib/calc-specs';
 import { readParams, updateURL } from '../../lib/url-state';
 
@@ -35,6 +36,7 @@ export default function ToolCalc({ kind, lang = 'el', defaults = {}, methodHref,
   useEffect(() => { updateURL(v); }, [v]);
   const out = useMemo(() => spec.run(v), [v, spec]);
   const set = (id: string) => (x: number | string) => setV((o) => ({ ...o, [id]: x }));
+  const card = useRef<HTMLDivElement>(null);
   const shown = spec.fields.filter((f) => !f.show || f.show(v));
   return (
     <div data-chrome data-calculator={kind} className="not-prose rounded-xl border border-navy-200 bg-white p-4 sm:p-6">
@@ -47,7 +49,7 @@ export default function ToolCalc({ kind, lang = 'el', defaults = {}, methodHref,
             return <SelectField key={f.id} id={`c-${kind}-${f.id}`} label={f.label} value={String(v[f.id])} onChange={set(f.id)} options={f.options ?? []} help={f.help} className={cls} />;
           })}
         </form>
-        <div aria-live="polite" className="rounded-lg bg-accent-50 p-4 sm:p-5">
+        <div ref={card} aria-live="polite" data-resultat className="rounded-lg bg-accent-50 p-4 sm:p-5">
           <p className="text-sm font-medium text-navy-700">{out.headLabel}</p>
           <p className="tabular-nums mt-1 text-4xl font-bold text-navy-900">{out.head}</p>
           {out.sub && <p className="mt-1 text-sm text-navy-700">{out.sub}</p>}
@@ -60,6 +62,7 @@ export default function ToolCalc({ kind, lang = 'el', defaults = {}, methodHref,
         </div>
       </div>
       <p className="mt-4 text-xs text-navy-600">{spec.footer}</p>
+      {!compact && <StickyResult target={card} label={out.headLabel} value={out.head} />}
     </div>
   );
 }

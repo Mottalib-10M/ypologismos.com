@@ -83,7 +83,7 @@ const jsonLd = [webPageSchema({ name: h1, description, path, lang }), breadcrumb
     </header>
     <p class="mb-6 text-navy-700">If you are used to a payroll system elsewhere in Europe, two things about Greek pay will surprise you, and both shape the method. First, salaried staff are paid fourteen times a year: twelve monthly salaries plus a Christmas bonus, an Easter bonus and a leave allowance. Second, the employer works out income tax on the whole year and then spreads it evenly, which is why the tax line on your payslip barely moves from month to month. Our engine reproduces exactly that: it multiplies the monthly gross by fourteen, deducts the employee’s e-EFKA social security contribution of {F.efkaEe} up to the monthly ceiling of {F.ceiling}, applies the {F.year} scale with the rates that depend on your age and children, subtracts the employee tax reduction of article 16 of the Income Tax Code and divides the result back into payments. All of this runs in your browser. No rate is typed into the code: everything is read from one parameter file with an official source next to each value, last checked in full on {checked}. Against the twelve net figures the Ministry of Labour published, our results differ by at most {$2(maxDiff)}.</p>
 
-    <div data-chrome><MiniSim client:load kind="methodsteps" lang={lang} href={route('home', lang)} /></div>
+    <div data-chrome data-simulateur-secondaire><MiniSim client:load kind="methodsteps" lang={lang} href={route('home', lang)} /></div>
 
     <div class="prose prose-slate max-w-none">
       <h2>Salary: the eight steps</h2>

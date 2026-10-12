@@ -69,7 +69,7 @@ export default function MiniSimAutonome({ kind, lang = 'en', href, locale = 'en-
                 </select></div>
             : <Field key={i.id} id={`m-${kind}-${i.id}`} label={i.label} value={v[i.id]} onChange={set(i.id)} unit={i.unit} max={i.max} decimals={i.decimals} locale={locale} />)}
         </form>
-        <div aria-live="polite" className="rounded-lg p-4" style={{ background: C.surface }}>
+        <div aria-live="polite" data-resultat className="rounded-lg p-4" style={{ background: C.surface }}>
           <p className="text-sm font-medium" style={{ color: C.muted }}>{out.head[0]}</p>
           <p className="tabular-nums mt-1 text-3xl font-bold" style={{ color: C.text }}>{out.head[1]}</p>
           <table className="mt-3 w-full text-sm"><tbody>

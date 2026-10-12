@@ -12,14 +12,27 @@ const ui = t(lang);
 const path = route(id, lang);
 const jsonLd = [articleSchema({ title: h1, description, path, lang }), webPageSchema({ name: h1, description, path, lang }), breadcrumbSchema([{ name: t(lang).breadcrumbHome, path: route('home', lang) }, { name: breadcrumbLabel, path }])];
 if (faqs.length) jsonLd.push(faqSchema(faqs, lang));
+// Le corps commence par le simulateur de la page (<div data-outil> ou <div data-chrome> + îlot) :
+// on le détache pour le placer sous le titre. Un îlot React ne contient pas d'autre îlot, donc la
+// première fermeture « </astro-island></div> » termine ce bloc.
+const body = await Astro.slots.render('default');
+// Avant le bloc ne peuvent venir que les <style>/<script> d'hydratation qu'Astro place devant le premier îlot.
+const m = body.match(/^((?:\s|<style>[^<]*<\/style>|<script>(?:(?!<\/script>)[\s\S])*<\/script>)*)<div data-(?:outil|chrome)>\s*<astro-island/);
+const end = m ? body.indexOf('</astro-island></div>', m[0].length) : -1;
+const lead = end >= 0 ? body.slice(0, end + '</astro-island></div>'.length) : '';
+const rest = end >= 0 ? body.slice(end + '</astro-island></div>'.length) : body;
 ---
 <PageLayout title={title} description={description} lang={lang} jsonLd={jsonLd} faqs={faqs} related={related} sources={sources} breadcrumbs={[{ label: breadcrumbLabel }]} noindex={noindex} showAuthor={showAuthor}>
   <article>
-    <header class="mb-8"><h1 class="text-3xl font-bold text-navy-900 md:text-4xl">{h1}</h1>{intro && <p class="mt-3 text-lg text-navy-600">{intro}</p>}
-      <p class="mt-4 text-sm text-navy-500">{ui.reviewedBy} <a href={route('about', lang)} class="text-accent-600 hover:underline">{AUTHOR_NAME}</a> · <a href={route('editorial', lang)} class="text-accent-600 hover:underline">{ui.editorialPolicy}</a></p></header>
-    {/* §21 : le paragraphe citable vit dans le corps, jamais dans le <header>,
-        que les moteurs traitent comme un ornement et que check-seo retire. */}
+    <header class="mb-5"><h1 class="text-[1.75rem] font-bold leading-tight text-navy-900 sm:text-3xl md:text-4xl">{h1}</h1>{intro && <p class="mt-2 text-base text-navy-600 sm:mt-3 sm:text-lg">{intro}</p>}</header>
+    {/* Premier écran (RECETTE §5, 2026-10-11) : titre, réponse directe, puis le simulateur de la page ;
+        le chapeau citable (§21, jamais dans le <header>) et la ligne « Έλεγχος από » passent juste
+        en dessous du simulateur, déplacés tels quels. */}
+    {lead ? (
+      <div class="[&_.rechner-mini]:my-0"><Fragment set:html={lead} /></div>
+    ) : null}
+    <p class="mb-6 mt-4 text-sm text-navy-500">{ui.reviewedBy} <a href={route('about', lang)} class="text-accent-600 hover:underline">{AUTHOR_NAME}</a> · <a href={route('editorial', lang)} class="text-accent-600 hover:underline">{ui.editorialPolicy}</a></p>
     {resume && <p class="mb-6 text-navy-700">{resume}</p>}
-    <div class="prose prose-slate max-w-none"><slot /></div>
+    <div class="prose prose-slate max-w-none"><Fragment set:html={rest} /></div>
   </article>
 </PageLayout>

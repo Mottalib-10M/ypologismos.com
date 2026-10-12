@@ -52,7 +52,7 @@ const groups = [
     </header>
     <div class="prose prose-slate max-w-none">
       <p>These answers are about the site itself rather than about any single Greek rule. Questions on the tax scale, the bonuses or severance are answered in their own guides, each with its calculator. To check a payslip straight away, enter its gross and net below. The most common surprise for newcomers is the payment count: a {$(2500)} gross salary is paid fourteen times, so the {$(offer.net)} net you see in each payment becomes {$(offer.netPer12)} once the bonuses are spread over twelve months.</p>
-      <div data-chrome><MiniSim client:load kind="payslipcheck" lang={lang} href={route('home', lang)} /></div>
+      <div data-chrome data-simulateur-secondaire><MiniSim client:load kind="payslipcheck" lang={lang} href={route('home', lang)} /></div>
       <h2>Guides by topic</h2>
       {groups.map((g) => <p><strong>{g.h}:</strong> {g.ids.map((id, i) => <>{i > 0 && ' · '}<a href={route(id, lang)}>{label(id, lang)}</a></>)}</p>)}
       <p>The step-by-step formulas are in the <a href={route('method', lang)}>methodology</a>, and Greek payroll words are explained in the <a href={route('glossary', lang)}>glossary</a>.</p>

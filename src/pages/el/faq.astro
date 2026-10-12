@@ -52,7 +52,7 @@ const groups = [
     </header>
     <div class="prose prose-slate max-w-none">
       <p>Εδώ απαντάμε σε όσα ρωτούν οι επισκέπτες για τον ίδιο τον ιστότοπο: κόστος, ιδιωτικότητα, ενημέρωση των συντελεστών, ακρίβεια και όρια. Για συγκεκριμένους κανόνες, όπως η κλίμακα, το δώρο ή η αποζημίωση, κάθε θέμα έχει δικό του οδηγό με υπολογιστή. Αν θέλετε να ελέγξετε ένα εκκαθαριστικό αμέσως, βάλτε μικτά και καθαρά στο παρακάτω πεδίο: για {$(1400)} μικτά, άνω των 30 χωρίς τέκνα, τα αναμενόμενα καθαρά είναι {$(a.net)} σε κάθε μία από τις 14 καταβολές, ενώ με σύμβαση 12 καταβολών του ίδιου ετήσιου ποσού γίνονται {$(a12.net)} τον μήνα.</p>
-      <div data-chrome><MiniSim client:load kind="payslipcheck" lang={lang} href={route('home', lang)} /></div>
+      <div data-chrome data-simulateur-secondaire><MiniSim client:load kind="payslipcheck" lang={lang} href={route('home', lang)} /></div>
       <h2>Οδηγοί ανά θέμα</h2>
       {groups.map((g) => <p><strong>{g.h}:</strong> {g.ids.map((id, i) => <>{i > 0 && ' · '}<a href={route(id, lang)}>{label(id, lang)}</a></>)}</p>)}
       <p>Ο τρόπος υπολογισμού, βήμα προς βήμα, βρίσκεται στη <a href={route('method', lang)}>μεθοδολογία</a> και οι όροι της μισθοδοσίας στο <a href={route('glossary', lang)}>γλωσσάρι</a>.</p>
