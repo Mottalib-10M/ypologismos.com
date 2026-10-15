@@ -1,4 +1,5 @@
 ---
+import { meneParSimu } from '../lib/mene-par-simu';
 import { LANG_TAGS as __LT } from '../data/site-config';
 import { displayDate } from '../lib/format';
 import PageLayout from '../layouts/PageLayout.astro';
@@ -21,8 +22,12 @@ const m = body.match(/^((?:\s|<style>[^<]*<\/style>|<script>(?:(?!<\/script>)[\s
 const end = m ? body.indexOf('</astro-island></div>', m[0].length) : -1;
 const lead = end >= 0 ? body.slice(0, end + '</astro-island></div>'.length) : '';
 const rest = end >= 0 ? body.slice(end + '</astro-island></div>'.length) : body;
+// Page de lecture : date en haut, à droite du fil d'Ariane, sauf si le guide s'ouvre sur un
+// simulateur : elle ne passe jamais au-dessus (RECETTE §8.4, 2026-10-15).
+const corpsRendu = (Astro.slots.has('default') ? await Astro.slots.render('default') : '');
+const dateEnHaut = !meneParSimu(`${intro ?? ''} ${resume ?? ''}`, corpsRendu);
 ---
-<PageLayout title={title} description={description} lang={lang} jsonLd={jsonLd} faqs={faqs} related={related} sources={sources} breadcrumbs={[{ label: breadcrumbLabel }]} noindex={noindex} showAuthor={showAuthor}>
+<PageLayout title={title} description={description} lang={lang} jsonLd={jsonLd} faqs={faqs} related={related} sources={sources} breadcrumbs={[{ label: breadcrumbLabel }]} noindex={noindex} showAuthor={showAuthor} dateEnHaut={dateEnHaut}>
   <article>
     <header class="mb-5"><h1 class="text-[1.75rem] font-bold leading-tight text-navy-900 sm:text-3xl md:text-4xl">{h1}</h1>{intro && <p class="mt-2 text-base text-navy-600 sm:mt-3 sm:text-lg">{intro}</p>}</header>
     {/* Premier écran (RECETTE §5, 2026-10-11) : titre, réponse directe, puis le simulateur de la page ;
