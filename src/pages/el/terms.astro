@@ -1,7 +1,7 @@
 ---
 import PageLayout from '../../layouts/PageLayout.astro';
 import LegalIdentity from '../../components/LegalIdentity.astro';
-import { AUTHOR_NAME, LAST_UPDATED, LANG_TAGS, LEGAL } from '../../data/site-config';
+import { AUTHOR_NAME, GA4_ID, LAST_UPDATED, LANG_TAGS, LEGAL } from '../../data/site-config';
 import { route } from '../../i18n/routes';
 import { label } from '../../i18n/nav';
 import { facts } from '../../lib/facts';
@@ -44,7 +44,7 @@ const description = `Ποιος εκδίδει τον ιστότοπο και π
     <p>Οι σύνδεσμοι προς νόμους και σελίδες υπηρεσιών υπάρχουν για να μπορείτε να ελέγξετε τις πηγές μας. Δεν ελέγχουμε το περιεχόμενο αυτών των σελίδων και δεν ευθυνόμαστε για αυτό.</p>
 
     <h2>Προσωπικά δεδομένα και cookies</h2>
-    <p>Ό,τι πληκτρολογείτε στους υπολογιστές δεν φεύγει από τον browser σας. Ο ιστότοπος δεν τοποθετεί cookies και ο εκδότης δεν καταγράφει προσωπικά δεδομένα· η σταθερότητα ελέγχεται ανώνυμα, χωρίς cookies, με το Microsoft Clarity. Η επεξεργασία δεδομένων περιγράφεται στην <a href={route('privacy', lang)}>πολιτική απορρήτου</a> και τα cookies στη σελίδα <a href={route('cookies', lang)}>cookies</a>.</p>
+    <p>Ό,τι πληκτρολογείτε στους υπολογιστές δεν φεύγει από τον browser σας. Ο ιστότοπος τοποθετεί τα cookies μέτρησης επισκεψιμότητας του Google Analytics (<code>_ga</code>, <code>_ga_{GA4_ID.replace('G-', '')}</code>, έως 13 μήνες), χωρίς διαφημίσεις· η σταθερότητα ελέγχεται ανώνυμα, χωρίς cookies, με το Microsoft Clarity. Η επεξεργασία δεδομένων περιγράφεται στην <a href={route('privacy', lang)}>πολιτική απορρήτου</a> και τα cookies στη σελίδα <a href={route('cookies', lang)}>cookies</a>.</p>
 
     <h2>Εφαρμοστέο δίκαιο και αλλαγές</h2>
     <p>Οι όροι διέπονται από το δίκαιο της χώρας εγκατάστασης του εκδότη ({LEGAL.jurisdiction === 'France' ? 'Γαλλία' : LEGAL.jurisdiction}). Αυτό δεν στερεί από τους καταναλωτές την προστασία που τους παρέχουν οι αναγκαστικές διατάξεις της χώρας συνήθους διαμονής τους. Οι όροι μπορεί να αλλάξουν· ισχύει η έκδοση που δημοσιεύεται σε αυτή τη σελίδα, με την ημερομηνία που ακολουθεί.</p>

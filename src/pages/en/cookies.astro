@@ -1,43 +1,34 @@
 ---
 import PageLayout from '../../layouts/PageLayout.astro';
-import { CONTACT_EMAIL, LANG_TAGS } from '../../data/site-config';
+import { CLARITY_ID, CONTACT_EMAIL, GA4_ID, LAST_UPDATED, SITE_NAMES } from '../../data/site-config';
 import { route } from '../../i18n/routes';
-import { label } from '../../i18n/nav';
-import { displayDate } from '../../lib/format';
-import { breadcrumbSchema } from '../../lib/seo';
 const lang = 'en';
-/** Date de la dernière réécriture de cette page (aucun cookie, Clarity en mode sans cookie). */
-const updated = displayDate('2026-10-06', LANG_TAGS[lang]);
-const title = 'Salary Calculator Cookies in Greece: No Cookies Are Set';
-const description = 'Greek salary calculator cookies: the site sets none and keeps no salary or children count on your device. Cookie-free Microsoft Clarity only checks that pages work.';
+const title = `Cookies – ${SITE_NAMES[lang]}`;
+const description = GA4_ID ? 'Google Analytics audience measurement cookies and nothing else: names, purpose, a lifetime of 13 months at most, the provider and how to object.' : 'The site sets no cookies: what you type stays in your browser and nothing is kept on your device.';
 ---
-<PageLayout title={title} description={description} lang={lang} noindex={true}
-  jsonLd={[breadcrumbSchema([{ name: label('home', lang), path: route('home', lang) }, { name: label('cookies', lang), path: route('cookies', lang) }])]}
-  breadcrumbs={[{ label: label('cookies', lang) }]} showAuthor={false}>
+{/* Page générée par scripts/gen-legal-pages.py (trame, décision GA4 du 2026-10-17). Ne pas
+     retoucher à la main : relancer le script. Un passage propre au site se garde entre
+     les marqueurs site:debut et site:fin. */}
+<PageLayout title={title} description={description} lang={lang} noindex={true} breadcrumbs={[{ label: 'Cookies' }]} showAuthor={false}>
   <div class="prose prose-slate max-w-none">
-    <h1>Cookies and similar technologies</h1>
-    <p class="lead">This page completes the <a href={route('privacy', lang)}>privacy policy</a>. The site sets no cookie, first-party or third-party, and the salary, tax and benefit calculators save nothing on your device.</p>
-
-    <h2>Categories</h2>
-    <table>
-      <thead><tr><th>Category</th><th>Status</th></tr></thead>
-      <tbody>
-        <tr><td>Strictly necessary cookies</td><td>none</td></tr>
-        <tr><td>Analytics or profiling cookies</td><td>none</td></tr>
-        <tr><td>Advertising</td><td>none</td></tr>
-        <tr><td>Technical stability check (Microsoft Clarity)</td><td>cookie-free, content masked</td></tr>
-      </tbody>
-    </table>
-    <p>The gross salary, children or age you type are calculated inside the page and are gone when you close it: they are written neither to a cookie nor to the browser’s local storage. That is why you will not see any cookie pop-up: there is nothing to accept.</p>
-
-    <h2>Anonymous stability check</h2>
-    <p>To spot pages that fail to load, errors in a calculator or buttons that do not respond, we use Microsoft Clarity in cookie-free mode. Clarity then places no <code>_clck</code>, <code>_clsk</code>, <code>MUID</code> or <code>CLID</code>; each page view gets its own single-use identifier, visits are not tied together, and page text and amounts are masked before anything is sent. Only errors, load times, clicks without effect and scrolling are measured. The publisher records no personal data.</p>
-
-    <h2>And the link with the result?</h2>
-    <p>After you change a field, the calculator writes the values into the page address so you can send the calculation. That is not a cookie: nothing stays on your device beyond ordinary browsing history.</p>
-
-    <h2>If you want to block it</h2>
-    <p>Block the <code>clarity.ms</code> domain in your browser or with a content-blocking add-on. The calculators work exactly the same.</p>
-    <p>Questions: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Version of {updated}.</p>
+    <h1>Cookies</h1>
+    {GA4_ID ? (<>
+    <p>The site sets Google Analytics audience measurement cookies and those alone: no advertising cookie, no social media cookie. Details of the processing are in the <a href={route('privacy', lang)}>privacy policy</a>.</p>
+    <h2>Cookies set</h2>
+    <table><thead><tr><th>Name</th><th>Provider</th><th>Purpose</th><th>Lifetime</th></tr></thead><tbody>
+    <tr><td><code>_ga</code></td><td>Google Analytics</td><td>Tell visitors apart with a random identifier</td><td>13 months at most (390 days)</td></tr>
+    <tr><td><code>_ga_{GA4_ID.replace('G-', '')}</code></td><td>Google Analytics</td><td>Keep the state of the current visit</td><td>13 months at most (390 days)</td></tr>
+    </tbody></table>
+    <p>These lifetimes are not extended on each visit; Google’s default is 2 years and the site shortens it. Purpose: audience measurement (pages viewed, referrer, device, approximate country). The IP address is anonymised: Google Analytics 4 neither logs nor stores it. No advertising and no ad sharing: ad storage, ad personalisation and Google signals are switched off.</p>
+    <p>Provider: Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland. Data may be transferred to Google LLC in the United States under the EU–U.S. Data Privacy Framework and the European Commission’s standard contractual clauses. Retention at Google: 14 months. Legal basis: the publisher’s legitimate interests (Article 6(1)(f) GDPR).</p>
+    <h2>Objecting to these cookies</h2>
+    <p>Block or delete cookies in your browser settings, or install the <a href="https://tools.google.com/dlpage/gaoptout" rel="nofollow noopener" target="_blank">Google Analytics opt-out browser add-on</a>. The site and its calculators work the same way.</p>
+    </>) : (<>
+    <p>The site <strong>sets no cookies</strong>. Details of the processing are in the <a href={route('privacy', lang)}>privacy policy</a>.</p>
+    </>)}
+    {CLARITY_ID && (<><h2>Microsoft Clarity, cookie-free</h2><p>Page stability is monitored with Microsoft Clarity in cookie-free mode: Clarity sets no cookies, each page view gets a single-use identifier, and page content and your inputs are masked. Blocking <code>clarity.ms</code> stops it.</p></>)}
+    <h2>What you type</h2>
+    <p>Calculations run in your browser: what you enter is sent to no server and is gone when you close the page.</p>
+    <p>Questions: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Last updated: {LAST_UPDATED}.</p>
   </div>
 </PageLayout>

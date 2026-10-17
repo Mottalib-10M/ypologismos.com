@@ -1,7 +1,7 @@
 ---
 import PageLayout from '../../layouts/PageLayout.astro';
 import LegalIdentity from '../../components/LegalIdentity.astro';
-import { AUTHOR_NAME, LAST_UPDATED, LANG_TAGS, LEGAL } from '../../data/site-config';
+import { AUTHOR_NAME, CLARITY_ID, CONTACT_EMAIL, GA4_ID, LANG_TAGS, LAST_UPDATED, LEGAL } from '../../data/site-config';
 import { route } from '../../i18n/routes';
 import { label } from '../../i18n/nav';
 import { facts } from '../../lib/facts';
@@ -43,9 +43,10 @@ const description = `Who publishes the site and where it is hosted, what the ${F
     <h2>Links to other sites</h2>
     <p>Links to laws and public offices are there so you can check our sources. We do not control those pages and are not responsible for their content.</p>
 
+    {/* gen-legal-pages:terms */}
     <h2>Personal data and cookies</h2>
-    <p>What you type into the calculators never leaves your browser. The site sets no cookie and the publisher records no personal data; stability is checked anonymously, without cookies, with Microsoft Clarity. Data processing is described in the <a href={route('privacy', lang)}>privacy policy</a> and cookies on the <a href={route('cookies', lang)}>cookies page</a>.</p>
-
+    {GA4_ID ? (<p>What you type in the calculators stays in your browser. The site sets Google Analytics audience measurement cookies (<code>_ga</code>, <code>_ga_{GA4_ID.replace('G-', '')}</code>, 13 months at most), with no advertising{CLARITY_ID && '; page stability is monitored with Microsoft Clarity, cookie-free'}. Details, legal basis and how to object: <a href={route('privacy', lang)}>privacy policy</a> and <a href={route('cookies', lang)}>cookies</a> page.</p>) : (<p>What you type in the calculators stays in your browser and the site sets no cookies{CLARITY_ID && '; page stability is monitored anonymously with Microsoft Clarity, cookie-free'}. See the <a href={route('privacy', lang)}>privacy policy</a> and the <a href={route('cookies', lang)}>cookies</a> page.</p>)}
+    {/* /gen-legal-pages:terms */}
     <h2>Governing law and changes</h2>
     <p>These terms are governed by the law of the publisher’s country of establishment ({LEGAL.jurisdiction}). This does not deprive consumers of the protection given by the mandatory rules of the country where they normally live. The terms may change; the version published on this page, dated below, applies.</p>
     <p>Version of {updated}.</p>
